@@ -9,8 +9,8 @@ function fitparam_cluster(jobnum, nStartVals)
 if nargin < 3; nStartVals = 10; end
 
 jobnum = num2str(jobnum);
-model = str2num(jobnum(1));
 subjids = {'1','3','4','ND','EL'};
+model = str2num(jobnum(1));
 subjid = subjids{str2num(jobnum(2:end))};
 
 % just loading the first subject to see how many conditions there are

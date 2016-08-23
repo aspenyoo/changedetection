@@ -41,7 +41,8 @@ subjids = cell(1,nFiles);
 for ifile = 1:nFiles;
     files(ifile).name
     data = dlmread(files(ifile).name);
-    bestFitParam(ifile,:) = data(1:nParams);
+    datasorted = sortrows(data,nParams+1);
+    bestFitParam(ifile,:) = datasorted(1:nParams);
     nLL_est(ifile) = data(nParams+1);
     subjids{ifile} = files(ifile).name(length(filename)+1:find(files(ifile).name == '_',1,'last')-1);
 end

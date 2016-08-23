@@ -6,13 +6,9 @@ function fitparam_realdata(subjids,model, nStartVals)
 if nargin < 3; nStartVals = 10; end
 
 nSubj = length(subjids);
+filepath = 'changedetection/analysis/4_realdata/fits/';
 
-% just loading the first subject to see how many conditions there are
-% [data] = concatdata(subjids{1},'Detection');
-% [Xdet] = conditionSeparator(data);
-% nCond = length(Xdet);
-
-nCond = 5; % in current version of the experiment
+nCond = 5; % number of conditions in current version of the experiment (052016)
 switch model
     case 1 % optimal model (noise param per cond., lapse)
         nParams = nCond + 1;
@@ -29,30 +25,31 @@ switch model
     case 7 % linear heuristic model (noise + 2 kcommon parameters + lapse)
         nParams = nCond + 3;
 end
-formatSpec = repmat('%4.4f \t ',1,nParams+2);
+formatSpec = repmat('%4.4f \t ',1,nParams+1);
 formatSpec = [formatSpec(1:end-3) '\r\n'];
 permission = 'a+';
 
 % bestFitParam = nan(nSubj,nParams);
 % nLL_est = nan(1,nSubj);
-parfor isubj = 1:nSubj;
-    subjid = subjids{isubj};
-%     if subjid(1) == 'F' % if fake data
-%         load(['fakedata_model' subjid(2) '_subjF' subjid(3:end) '.mat'])
-%     else
-        [data] = concatdata(subjid,'Detection');
-        [Xdet] = conditionSeparator(data);
-%     end
+for isubj = 1:nSubj;
+    subjid = subjids{isubj}
     
-    %     [bestFitParam(isubj,:), nLL_est(isubj)] = fitparam(Xdet, model, nStartVals);
-    [bestFitParam, nLL_est] = fitparam(Xdet, model, nStartVals);
+    % getting data
+    [data] = concatdata(subjid,'Detection');
+    [Xdet] = conditionSeparator(data);
     
-    c = clock;
-    filename = sprintf('paramfit_model%d_subj%s_%02d%02d%d.txt',model,upper(subjid),c(2),c(3),c(1));
-    fileID = fopen(filename,permission);
-    A1 = [bestFitParam, nLL_est, nStartVals];
-    fprintf(fileID, formatSpec, A1); % save stuff in txt file
-    fclose(fileID);
-    
+    % setting up stuff for saving MLE parameter estimates
+    filename = sprintf('%sparamfit_model%d_subj%s.txt',filepath,model,upper(subjid));
+
+    for istartval = 1:nStartVals;
+        [bestFitParam, nLL_est] = fitparam(Xdet, model);
+        
+        % open, save, and close for each iteration
+        fileID = fopen(filename,permission);
+        A1 = [bestFitParam, nLL_est];
+        fprintf(fileID, formatSpec, A1); % save stuff in txt file
+        fclose(fileID);
+    end
+   
 end
 

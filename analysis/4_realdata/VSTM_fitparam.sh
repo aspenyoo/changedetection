@@ -19,10 +19,13 @@ cat<<EOF | matlab -nodisplay
 addpath('/home/ay963/job-scripts')
 addpath(genpath('/home/ay963/matlab-scripts'))
 
-modelname = $index;
+subjids = {'1','2','3','4','5'};
+blah = num2str($index);
+modelname = str2double(blah(1));
+subjids = cellfun(@(x) [x '_' blah(2:end) '0000'],subjids,'UniformOutput',false);
 nStartVals = 50;
 
-fitparam_realdata({'NN41'},modelname, nStartVals)
+fitparam_realdata(subjids,modelname, nStartVals)
 
 EOF
 
