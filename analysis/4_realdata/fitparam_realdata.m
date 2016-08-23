@@ -41,7 +41,15 @@ for isubj = 1:nSubj;
     % setting up stuff for saving MLE parameter estimates
     filename = sprintf('%sparamfit_model%d_subj%s.txt',filepath,model,upper(subjid));
 
-    for istartval = 1:nStartVals;
+    % check how many jobs have been completed
+    try
+        count = size(dlmread(filename),1); % how many jobs were completed
+        nStartVal = nStartVals - count; % how many jobs you have to do to get to nStartVals total
+    catch
+        nStartVal = nStartVals;
+    end
+    
+    for istartval = 1:nStartVal;
         [bestFitParam, nLL_est] = fitparam(Xdet, model);
         
         % open, save, and close for each iteration
