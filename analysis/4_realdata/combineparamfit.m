@@ -1,5 +1,5 @@
 function [bestFitParam, nLL_est, subjids] = combineparamfit(model,filepath)
-if nargin < 2; filepath = 'Analysis/4_realdata/fitparam'; end
+if nargin < 2; filepath = 'analysis/4_realdata/fits'; end
 % combines data from cluster (txt files) for model
 %
 % NOTES
