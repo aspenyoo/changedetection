@@ -3,7 +3,7 @@ function [Xdet] = simulate_realisticdata(model,subjidz)
 nSubj = length(subjidz);
 
 % load bestFitParam for the model
-files = dir(['Analysis/4_realdata/fitparam/paramfit_model' num2str(model) '_*.mat']);
+files = dir(['analysis/4_realdata/fits/paramfit_model' num2str(model) '_04292016.mat']);
 if length(files) == 1;
     load(files.name);
     mean_bfp = mean(bestFitParam);
@@ -30,20 +30,30 @@ switch model
     case 6 % Super-free model: free noise and full free sigmatilde and lapse
         lb = [(zeros(1,2*nCond)) 0];
         ub = [(200*ones(1,2*nCond)) 1];
+    case 7 % linear heuristic
+        lb = [zeros(1,nCond) zeros(1,2) 0];
+        ub = [200*ones(1,nCond) 100*ones(1,2) 1];
 end
 
 for isubj = 1:nSubj;
     subjid = subjidz{isubj};
     
     theta = mean_bfp + randn(1,nParams).*std_bfp;
-    theta(theta < lb) = lb(theta < lb);
-    theta(theta > ub) = ub(theta > ub);
+    
+    % making sure its in the bounds
+    while sum(theta < lb)
+        theta(theta < lb) = mean_bfp(theta < lb) + randn(1,sum(theta < lb)).*std_bfp(theta<lb);
+    end
+    while sum(theta > ub)
+        theta(theta > ub) = mean_bfp(theta > ub) + randn(1,sum(theta > ub)).*std_bfp(theta > ub);
+    end
+    
     [Xdet] = simulateresp(model, theta);
     
     % save
     if nargout < 1;
         subjid = ['F' num2str(model) subjid];
-        save(sprintf('Analysis/3_fakedata(parameter recovery)/fakedata/fakedata_subj%s.mat',...
+        save(sprintf('analysis/3_fakedata(parameter recovery)/fakedata/fakedata_subj%s.mat',...
            subjid),'Xdet','model','subjid','theta');
     end
 end

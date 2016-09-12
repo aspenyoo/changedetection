@@ -4,7 +4,7 @@ if nargin < 3; sessionnumbers = []; end
 if nargout < 1; issave = 1; else issave = 0; end
 
 subjid = char(subjid);
-filepath = 'changedetection/experiment_data/output_mat';
+filepath = 'experiment_data/output_mat';
 title = ['Exp_Change' experimenttype '_Simult'];
 concatfilename = [title '_concat_subj' subjid '.mat'];
 

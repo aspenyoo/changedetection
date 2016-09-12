@@ -1,5 +1,5 @@
-function [bestFitParam, nLL_est, subjids] = combineparamfit(model,filepath)
-if nargin < 2; filepath = 'analysis/4_realdata/fits'; end
+function [bestFitParam, nLL_est, subjids] = combineparamfit(model,subjids,filepath)
+if nargin < 3; filepath = 'analysis/4_realdata/fits'; end
 % combines data from cluster (txt files) for model
 %
 % NOTES
@@ -32,19 +32,28 @@ end
 
 filename = ['paramfit_model' num2str(model) '_subj'];
 
-files = dir([filepath '/' filename '*.txt']);
-nFiles = length(files); % = nSubj
+if nargin < 2; 
+    files = dir([filepath '/' filename '*.txt']);
+    nFiles = length(files); % = nSubj
+    subjids = cell(1,nFiles);
+else
+    nFiles = length(subjids);
+end
 
 bestFitParam = nan(nFiles,nParams);
 nLL_est = nan(1,nFiles);
-subjids = cell(1,nFiles);
 for ifile = 1:nFiles;
-    files(ifile).name
-    data = dlmread(files(ifile).name);
+    if nargin < 2;
+%         files(ifile).name
+        data = dlmread(files(ifile).name);
+        subjids{ifile} = files(ifile).name(length(filename)+1:find(files(ifile).name == '.',1,'last')-1);
+    else
+%         [filepath '/' filename subjids{ifile} '.txt']
+        data = dlmread([filepath '/' filename subjids{ifile} '.txt']);
+    end
     datasorted = sortrows(data,nParams+1);
-    bestFitParam(ifile,:) = datasorted(1:nParams);
-    nLL_est(ifile) = data(nParams+1);
-    subjids{ifile} = files(ifile).name(length(filename)+1:find(files(ifile).name == '_',1,'last')-1);
+    bestFitParam(ifile,:) = datasorted(1,1:nParams);
+    nLL_est(ifile) = datasorted(1,nParams+1);
 end
 
 if nargout < 1;

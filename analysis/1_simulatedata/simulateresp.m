@@ -38,6 +38,13 @@ switch model
         kappatildeVec = theta(nCond+1:2*nCond);
         prior = [0 8.742 0.5];% true prior! mean and kappa of change dist. pcommon
         lapserate = theta(end);
+    case 7 % linear heuristic model
+        bias = 0;
+        kappaVec = theta(1:nCond);
+        kappatildeVec = nan(1,nCond); % not used in actual calculation
+        kcommonVec = theta(nCond+1:nCond+2);
+        prior = [Inf Inf nan];
+        lapserate = theta(end);
 end
 
 resp = ones(nTrials,1);
@@ -48,6 +55,9 @@ for icond = 1:nCond;
     stim = [zeros(nTrials/2,1); circ_vmrnd(0,vmprior, [nTrials/2,1])*180/pi];
     kappa = kappaVec(icond);
     kappatilde = kappatildeVec(icond);
+    if model == 7; % if non-Bayesian criteria
+        prior(3) = (kcommonVec(2)-kcommonVec(1))*(kappa-kappaVec(1))+kcommonVec(1); %kcommon = mx + b
+    end
     [~,p_resp{icond}] = AhyVSTM_datalike_sameness_VM(stim,resp,bias,kappa,kappatilde,prior,lapserate);
     Xdet{icond} = [stim binornd(ones(nTrials,1),p_resp{icond})];
 end

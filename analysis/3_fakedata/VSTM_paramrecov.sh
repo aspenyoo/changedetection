@@ -1,11 +1,11 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=5:00:00
+#PBS -l walltime=12:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=8GB
+#PBS -l mem=4GB
 #PBS -m abe
-#PBS -N VSTM_pparamfit
+#PBS -N paramrecov_CD
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -16,15 +16,16 @@ module load matlab
 
 export MATLABPATH=/home/ay963/matlab-scripts
 cat<<EOF | matlab -nodisplay
-addpath('/home/ay963/job-scripts')
 addpath(genpath('/home/ay963/matlab-scripts'))
+addpath(genpath('/home/ay963/changedetection'))
 
-jobnum = num2str($index);
-subjid = {['F' jobnum(1:end-1)]}; % model and subjnum
-model = str2num(jobnum(end)); % test model
+subjids = {'1','2','3','4','5'};
 nStartVals = 50;
+blah = num2str($index);
+testmodel = str2double(blah(1));
+truemodel = str2double(blah(2));
 
-fitparam_realdata(subjid,model, nStartVals)
+fitparam_realdata(subjids,testmodel, truemodel, nStartVals)
 
 EOF
 
