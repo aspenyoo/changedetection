@@ -25,7 +25,7 @@ blah = num2str($index);
 testmodel = str2double(blah(1));
 truemodel = str2double(blah(2));
 
-fitparam_realdata(subjids,testmodel, truemodel, nStartVals)
+fitparam_fakedata(subjids,testmodel, truemodel, nStartVals)
 
 EOF
 
