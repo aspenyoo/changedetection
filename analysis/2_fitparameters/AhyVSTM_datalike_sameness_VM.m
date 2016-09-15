@@ -74,9 +74,6 @@ if all(isfinite(prior))     % Bayesian criterion
 %        + log(2*pi*Izero(kappatilde)*Izero(prior_kappa)) - log(Izero(kappabar)); % luigi old comment
     d = log(pcommon/(1-pcommon)) + kappatilde.*cos(xrange) ...
        +(prior_kappa-kappabar).*log(Izero(prior_kappa)./Izero(kappabar)); % luigi current
-%     d = log(pcommon/(1-pcommon)) + kappatilde.*cos(xrange) + log(Izero(prior_kappa))...
-%         -log(Izero(kappabar)); % aspen current (apr 18, 2016) THIS SI
-%         WRONG! BC Izero
     
     if smoothflag
         delta = 0.01;

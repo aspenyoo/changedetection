@@ -24,13 +24,19 @@ nSubj = length(subjids);
 if nSubj > 1; plotindvl = 0; else plotindvl = 1; end
 
 % determining number of conditions from first subject
-[data] = concatdata(subjids{1}, experimenttype);
-if strcmp(experimenttype,'Detection')
-    condDivide = 2;
-else strcmp(experimenttype,'Discrim')
-    condDivide = 1;
+if strcmp(subjids{1}(1),'F'); % if fake data
+    load(['fakedata_subj' subjids{1} '.mat'],'Xdet');
+    data = Xdet;
+    nCond = length(data);
+else
+    [data] = concatdata(subjids{1}, experimenttype);
+    if strcmp(experimenttype,'Detection')
+        condDivide = 2;
+    else strcmp(experimenttype,'Discrim')
+        condDivide = 1;
+    end
+    nCond = max(data(:,5))/condDivide;
 end
-nCond = max(data(:,5))/condDivide; 
 
 if nargin < 3; conditions = 1:nCond; end
 nCond = length(conditions);
@@ -53,7 +59,11 @@ if (plotindvl)
     end
     
     % load real data
-    data(data(:,1) == 0, :) = []; % deleting trials with no change
+    if iscell(data);        % if data are already split up by condition
+        data = cellfun(@(x) x(x(:,1) ~= 0,:),data,'UniformOutput',false);
+    else
+        data(data(:,1) == 0, :) = []; % deleting trials with no change
+    end
     [stimlevels, trialnums, nresps] = conditionSeparator(data,1);
     
     nLevels = length(stimlevels{1});

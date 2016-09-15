@@ -6,7 +6,9 @@ function [ll,p_resp] = loglike(data, model, theta)
 
 nCond = length(data); % number of conditions
 
+% kappa_prior = 8.742;
 kappa_prior = 2.6982; % REAL KAPPA!! (goes from -pi to pi instead of -pi/2 to pi/2) 4/28/16
+
 bias = 0;
 kappaVec = exp(theta(1:nCond));
 lapserate = theta(end);
@@ -41,7 +43,10 @@ for icond = 1:nCond;
     kappatilde = kappatildeVec(icond);
     currcondData = data{icond};
     if model == 7; % if non-Bayesian criteria
-        prior(3) = (kcommonVec(2)-kcommonVec(1))*(kappa-kappaVec(1))+kcommonVec(1); %kcommon = mx + b
+%         prior(3) = (kcommonVec(2)-kcommonVec(1))*(kappa-kappaVec(1))+kcommonVec(1) %kcommon = mx + b OLD ONE 09/15/2016
+%         
+%         blah = (kcommonVec(2)-kcommonVec(1))*(kappaVec(5)-kappaVec(1))+kcommonVec(1);
+        prior(3) = (kcommonVec(2)-kcommonVec(1))/(kappaVec(5)-kappaVec(1))*(kappa-kappaVec(1))+kcommonVec(1); %kcommon = mx + b
     end
 %     [loglike(icond),p_resp{icond}] = loglike_onecondition(currcondData,bias,kappa,kappatilde,prior,lapserate);
     [ll(icond),p_resp{icond}] = AhyVSTM_datalike_sameness_VM(currcondData(:,1),currcondData(:,2),bias,kappa,kappatilde,prior,lapserate);

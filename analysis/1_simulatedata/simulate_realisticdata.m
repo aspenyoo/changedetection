@@ -7,7 +7,7 @@ files = dir(['analysis/4_realdata/fits/paramfit_model' num2str(model) '_04292016
 if length(files) == 1;
     load(files.name);
     mean_bfp = mean(bestFitParam);
-    std_bfp = std(bestFitParam);
+    cov_bfp = cov(bestFitParam);
     nParams = length(mean_bfp);
 else
     error('problems with loading fitted parameters')
@@ -38,14 +38,11 @@ end
 for isubj = 1:nSubj;
     subjid = subjidz{isubj};
     
-    theta = mean_bfp + randn(1,nParams).*std_bfp;
+    theta = mvnrnd(mean_bfp,cov_bfp);
     
     % making sure its in the bounds
-    while sum(theta < lb)
-        theta(theta < lb) = mean_bfp(theta < lb) + randn(1,sum(theta < lb)).*std_bfp(theta<lb);
-    end
-    while sum(theta > ub)
-        theta(theta > ub) = mean_bfp(theta > ub) + randn(1,sum(theta > ub)).*std_bfp(theta > ub);
+    while sum(theta < lb) + sum(theta > ub);
+        theta = mvnrnd(mean_bfp,cov_bfp);
     end
     
     [Xdet] = simulateresp(model, theta);
@@ -53,7 +50,7 @@ for isubj = 1:nSubj;
     % save
     if nargout < 1;
         subjid = ['F' num2str(model) subjid];
-        save(sprintf('analysis/3_fakedata(parameter recovery)/fakedata/fakedata_subj%s.mat',...
+        save(sprintf('analysis/3_fakedata/fakedata/fakedata_subj%s.mat',...
            subjid),'Xdet','model','subjid','theta');
     end
 end

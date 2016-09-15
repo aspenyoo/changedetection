@@ -16,11 +16,15 @@ for isubj = 1:nSubj;
     end
     theta = thetaVec(isubj,:);
     
-    % load real data
-    experimenttype = 'Detection';
-    [data] = concatdata(subjid,experimenttype);
-    [Xdet] = conditionSeparator(data);
-%     nCond = length(Xdet);
+    if strcmp(subjid(1),'F'); % if fake data
+        load(['fakedata_subj' subjid '.mat'],'Xdet');
+    else
+        % load real data
+        experimenttype = 'Detection';
+        [data] = concatdata(subjid,experimenttype);
+        [Xdet] = conditionSeparator(data);
+    end
+    %     nCond = length(Xdet);
     
     if (summaryplot)
         [stimlevels, trialnums, nresps] = conditionSeparator(Xdet);
@@ -29,7 +33,7 @@ for isubj = 1:nSubj;
         nResps = cellfun(@(x,y) [x;y],nResps,nresps,'UniformOutput',false);
     else
         % plot real data
-        figure;
+%         figure;
         plotrealdata({subjid}, 'Detection')
 %         plotdata(Xdet);
     end
