@@ -57,7 +57,7 @@ for icond = 1:nCond;
     kappa = kappaVec(icond);
     kappatilde = kappatildeVec(icond);
     if model == 7; % if non-Bayesian criteria
-        prior(3) = (kcommonVec(2)-kcommonVec(1))*(kappa-kappaVec(1))+kcommonVec(1); %kcommon = mx + b
+        prior(3) = (kcommonVec(2)-kcommonVec(1))/(kappaVec(5)-kappaVec(1))*(kappa-kappaVec(1))+kcommonVec(1); %kcommon = mx + b
     end
     [~,p_resp{icond}] = AhyVSTM_datalike_sameness_VM(stim,resp,bias,kappa,kappatilde,prior,lapserate);
     Xdet{icond} = [stim binornd(ones(nTrials,1),p_resp{icond})];
