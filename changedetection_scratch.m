@@ -84,11 +84,11 @@ plot([centers1; centers2],[count1; count2])
 %% ====================================
 %        PARAMETER RECOVERY
 %  ====================================
-
-%% simulate fake data
 clear all
 
 model = 7;
+%% simulate fake data
+
 nSubj = 10;
 subjids = num2cell(1:nSubj);
 subjids = cellfun(@(x) [num2str(x)],subjids,'UniformOutput',false);
@@ -139,6 +139,9 @@ for isubj = 1:nSubj;
     LL_estimate(isubj) = loglike(Xdet,model,theta_est);
 end
 
+LL_trueish
+LL_estimate
+nLL_est
 %% plot data model predictions for true and fake data
 
 figure;

@@ -12,14 +12,14 @@ fclose(fid);
 
 % remove empty lines
 idxsMat = [];
-for i = 1:9;
-    tempidx = cellfun(@(x) min([find(x == num2str(i)) Inf]),Data{1},'UniformOutput',false);
-    idxsMat = [idxsMat tempidx];
+for i = 1:10; % for each digit (1:10 -1 = 0:9)
+    tempidx = cellfun(@(x) min([find(x == num2str(i-1)) Inf]),Data{1},'UniformOutput',false); % find the earliest index of that digit
+    idxsMat = [idxsMat tempidx];    % contatinate that into a matrix of first instance of the digit
 end
-idxMat = min(cell2mat(idxsMat),[],2);
+idxMat = min(cell2mat(idxsMat),[],2);       % find the first digit in that line
 data = Data{1};
 
-% get rid of any empty lines
+% get rid of any empty lines (i.e., lines where there are no digits)
 data(idxMat == Inf,:) = [];
 idxMat(idxMat == Inf) = [];
 

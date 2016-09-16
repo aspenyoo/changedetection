@@ -3,7 +3,6 @@ function [ll,p_resp] = loglike(data, model, theta)
 % 
 % THETA: some theta values are given in log format, so they are
 % exponentiated here. 
-
 nCond = length(data); % number of conditions
 
 % kappa_prior = 8.742;
