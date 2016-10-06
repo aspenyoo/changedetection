@@ -45,6 +45,24 @@ switch model
         plb = [1e-2*ones(1,nCond) zeros(1,2) 0];
         pub = [35*ones(1,nCond) 90*ones(1,2) 0.1];
         logflag = logical([ones(1,nCond) zeros(1,3)]);
+    case 11 % optimal power law
+        lb = [1e-3 1e-3 1e-3 0]; % kappalow, kappahigh, beta, lapse
+        ub = [40 40 20 1];
+        plb = [1e-3 5 1e-3 0];
+        pub = [1 20 10 0.1];
+        logflag = logical([1 1 0 0]);
+    case 15 % fixed power law
+        lb = [1e-3 1e-3 1e-3 1e-2 0]; % kappalow, kappahigh, beta, lapse
+        ub = [40 40 20 200 1];
+        plb = [1e-3 5 1e-3 1e-2 0];
+        pub = [1 20 10 35 0.1];
+        logflag = logical([1 1 0 1 0]);
+    case 17 % heuristic power law
+        lb = [1e-3 1e-3 1e-3 1e-3 1e-3 0]; % kappalow, kappahigh, beta, lapse
+        ub = [40 40 20 90*ones(1,2) 1];
+        plb = [1e-3 5 1e-3 1e-3 1e-2 0];
+        pub = [1 20 10 20 20 0.1];
+        logflag = logical([1 1 0 0 0 0]);        
 end
 lb(logflag) = log(lb(logflag));
 ub(logflag) = log(ub(logflag));

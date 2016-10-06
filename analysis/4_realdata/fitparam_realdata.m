@@ -24,6 +24,13 @@ switch model
         nParams = nCond*2 + 1;
     case 7 % linear heuristic model (noise + 2 kcommon parameters + lapse)
         nParams = nCond + 3;
+    case 11 % optimal w/ power law. power law mapping for kappas, lapse
+        nParams = 3 + 1;
+    case 15 % fixed w/ power law. power law mapping for kappas, lapse, assumed kappa
+        nParams = 3 + 2;
+    case 17 % heuristic w/ power law
+        nParams = 3 + 3;
+        
 end
 formatSpec = repmat('%4.4f \t ',1,nParams+1);
 formatSpec = [formatSpec(1:end-3) '\r\n'];

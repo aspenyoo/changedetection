@@ -26,6 +26,12 @@ switch model
         nParams = nCond*2 + 1;
     case 7 % linear heuristic model (true noise param per condition, kcommon low and high, lapse)
         nParams = nCond + 3;
+    case 11;
+        nParams = 3 + 1;
+    case 15 
+        nParams = 3 + 2;
+    case 17 
+        nParams = 3 + 3;
 end
 
 

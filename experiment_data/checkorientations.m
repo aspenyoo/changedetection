@@ -2,6 +2,8 @@ function checkorientations
 
 commandwindow; 
 
+Screen('Preference', 'ConserveVRAM', 64);
+Screen('Preference', 'SkipSyncTests', 1);
 screenNumber = max(Screen('Screens'));       % use external screen if exists
 [w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
 windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
@@ -36,9 +38,9 @@ for irelib = 1:length(prefs.reliabilityNum);
         Screen('DrawTexture',windowPtr,StimPatch,cuesrcrect,destrect,0);
         
         
-        % line
-        [x,y] = lineCoord(prefs.lineLength, ideg);
-        Screen('DrawLine',windowPtr, prefs.stimColor-20, stimx+x, stimy+y, stimx-x, stimy-y, prefs.lineWidth);
+%         % line
+%         [x,y] = lineCoord(prefs.lineLength, ideg);
+%         Screen('DrawLine',windowPtr, prefs.stimColor-20, stimx+x, stimy+y, stimx-x, stimy-y, prefs.lineWidth);
         
         % flip
         Screen('Flip', windowPtr);

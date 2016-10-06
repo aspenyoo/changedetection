@@ -54,6 +54,12 @@ for isubj = 1:nSubj;
             logflag = logical([ones(1,2*nCond) 0]);
         case 7 % linear heuristic model: free noise, low and high kcommon, lapse
             logflag = logical([ones(1,nCond) zeros(1,3)]);
+        case 11 % optimal model power law
+            logflag = logical([1 1 0 0]);
+        case 15 % fixed model power law
+            logflag = logical([1 1 0 1 0]);
+        case 17
+            logflag = logical([1 1 0 0 0 0]);
     end
     theta(logflag) = log(theta(logflag));
     
