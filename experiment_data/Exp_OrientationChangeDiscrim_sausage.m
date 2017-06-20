@@ -1,4 +1,4 @@
-function Exp_OrientationChangeDiscrim(subjid, sessionnum, nTrialsPerCond)
+function Exp_OrientationChangeDiscrim_sausage(subjid, sessionnum, nTrialsPerCond)
 % runs experiment: orientation change discrimination
 %
 % STRUCT EXPLANATIONS
@@ -24,7 +24,7 @@ commandwindow;
 savedata = 1;
 
 % random number generator
-rng('shuffle')
+rng(0)
 
 % skipping sync tests
 % Screen('Preference', 'SkipSyncTests', 1);
@@ -35,13 +35,14 @@ rng('shuffle')
 
 
 % importing preferences for simultaneous/sequential experiment
-prefs = prefscode('Discrim','Simult',subjid, sessionnum, nTrialsPerCond);
+prefs = prefscode('Discrim','sausage',subjid, sessionnum, nTrialsPerCond);
 
 % full factorial design
 prefs.design = fullfact([prefs.f1 prefs.f2 prefs.f3 prefs.f4]);
 prefs.nCond = size(prefs.design,1);
 prefs.conditionNum = [1:prefs.nCond]';
 prefs.design = [prefs.design prefs.conditionNum];
+prefs.nTrials = prefs.nCond*prefs.nTrialsPerCond;
 
 % testing design (trials/condition, pseudo-randomizing order)
 % prefs.nTrialsPerCond = nTrialsPerCond;
@@ -51,7 +52,7 @@ prefs.nTrials = size(prefs.fullDesign,1);
 prefs.fullDesign = prefs.fullDesign([randperm(prefs.nTrials)],:);
 
 % trial numbers for each of the conditions
-for i = 1:prefs.nCond;
+for i = 1:prefs.nCond
     prefs.cond(i).trialNums = find(prefs.fullDesign(:,end)==i);
 end
 
@@ -60,7 +61,7 @@ prefs.keys = [KbName('left') KbName('right') KbName('esc')];
 
 if (savedata)
     % Data files
-    prefs.fileName = [prefs.expName '_' prefs.dateStr];
+    prefs.fileName = [prefs.expName '_sausage'];
     % prefs.fidxls = fopen(fullfile('output_xls',[prefs.fileName '.xls']), 'a');
     prefs.fidmat = fullfile('output_mat',[prefs.fileName '.mat']);
 end
@@ -68,27 +69,25 @@ end
 % CALCULATIONS BASED ON PREFERENCES (change not necessary)
 % ========================================================================
 
-% screen info (visual)
+% open screen
 screenNumber = max(Screen('Screens'));       % use external screen if exists
-[w, h]=Screen('WindowSize', screenNumber);  % screen resolution
+[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
+windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
+Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+Screen('TextSize',windowPtr,28);
+Screen('TextFont',windowPtr,'Helvetica');
+HideCursor;
+
+% screen info (visual)
 screenResolution = [w h];       % screen resolution
 screenCenter = screenResolution/2;       % screen center
 screenDistance = 45;                      % distance between observer and screen (in cm)
 screenAngle = atand((prefs.screenHeight/2) / screenDistance); % total visual angle of screen
-screen_ppd = screenResolution(1) / screenAngle;  % pixels per degree
+screen_ppd = screenResolution(2) / screenAngle;  % pixels per degree
 prefs.ellipseArea = prefs.ellipseArea * screen_ppd^2; % ellipse area (pixels)
 
-% open screen
-if ~(sessionnum)
-    windowPtr = Screen('OpenWindow',screenNumber,prefs.grey,[],32,2);
-else
-    windowPtr = 10;
-end
-Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-HideCursor;
-
 % calculating where breaks will occur
-if prefs.blocknum > 1;
+if prefs.blocknum > 1
     breakpoints = round((1:(prefs.blocknum-1)).* (prefs.nTrials/prefs.blocknum));
 else
     breakpoints = prefs.nTrials+1;
@@ -111,15 +110,15 @@ StimPatches = zeros(length(prefs.reliabilityNum),numDegrees);
 
 % Fill StimPatches
 StimSizes = zeros(length(prefs.reliabilityNum),numDegrees,2);
-for i=1:length(prefs.reliabilityNum)
+for i = 1:length(prefs.reliabilityNum)
     % Eccentricity = reliability for now
-    ecc = prefs.reliabilityNum(i);
+    s_length = prefs.reliabilityNum(i);
     % Draw a patch for each orientation
-    for j = 1:numDegrees
-        im = drawEllipse(prefs.ellipseArea, ecc, j*res,prefs.stimColor,prefs.bgColor);
-        StimPatches(i,j) = Screen('MakeTexture',windowPtr,im);
-        StimSizes(i,j,:) = size(im);
-        StimSizes(i,j,:) = StimSizes(i,j,[2 1]);
+    for ideg = 1:numDegrees
+        im = makeSausage(round(sqrt(prefs.ellipseArea)), deg2rad(ideg), s_length);
+        StimPatches(i,ideg) = Screen('MakeTexture',windowPtr,im);
+        StimSizes(i,ideg,:) = size(im);
+        StimSizes(i,ideg,:) = StimSizes(i,ideg,[2 1]);
     end
 end
 
@@ -128,7 +127,7 @@ prefs.lineArea = prefs.ellipseArea; % so line is same area as ellipse
 prefs.lineWidth = 3;%round(prefs.lineArea*.01); % pixels
 prefs.lineLength = round(prefs.lineArea/prefs.lineWidth);
 lineCoordinates = nan(2,numDegrees);
-for j = 1:numDegrees;
+for j = 1:numDegrees
     [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(prefs.lineLength,j);
 end
 % prefs.lineRect = prefs.stimColor.*ones(prefs.lineWidth,prefs.lineLength);
@@ -219,18 +218,16 @@ waitForKey;
 % run a trial
 % -------------------------------------------------------------------------
 
-% step correct for each condition
-stepCounter = zeros(1,prefs.nCond);
 
 % first delta of each condition ~ U[15,25]
 conddir(1,:) = prefs.directionNum(prefs.design(:,1));
-if (prefs.vmprior)
-    designMat(:,1) = circ_vmrnd(0,prefs.vmprior,[prefs.nTrials,1]); % delta prior ~ N(true,90/sqrt(12))
+if (prefs.gaussprior)
+    designMat(:,1) = randn([prefs.nTrials,1]).*prefs.gaussprior; % delta prior ~ N(true,90/sqrt(12))
 else
     designMat(:,1) = -45+rand(prefs.nTrials,1)*90; % delta prior ~ Unif[-45, 45]
 end
 
-for i = 1:prefs.nTrials;
+for i = 1:prefs.nTrials
     
     % setting values for current trial
     condition = designMat(i,5); % current condition
@@ -312,13 +309,6 @@ for i = 1:prefs.nTrials;
     end
     
     
-    if (prefs.screenshot)
-        grabSize = 2.5 * screen_ppd * prefs.stimecc;
-        grabrect = CenterRectOnPoint([0 0 grabSize grabSize],screenCenter(1),screenCenter(2));
-        im = Screen('getimage',windowPtr,grabrect);
-        imwrite(im,['screenshots/stim_' num2str(i) '_X.png'],'png');
-    end
-    
     % blank screen (inter-stimulus interval)
     Screen('fillRect',windowPtr,prefs.bgColor);
     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
@@ -338,12 +328,18 @@ for i = 1:prefs.nTrials;
     if (prefs.allStimInPres2)
         
         for j= 1:setsize
-            xy = [-stimLine stimLine]; %aspen, need to change this is setsize >1
-            Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[xpositions(j) ypositions(j)],1);
+            srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == 0,pres2orientations(k(j)),:))'];
+            destrect = CenterRectOnPoint(srcrect,xpositions(k(j)),ypositions(k(j)));
+            Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == 0,pres2orientations(j)),srcrect,destrect,0);
+            %             xy = [-stimLine stimLine]; %aspen, need to change this is setsize >1
+            %             Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[xpositions(j) ypositions(j)],1);
         end
     else
-        xy = [-stimLine stimLine];
-        Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[xpositions(targetlocation) ypositions(targetlocation)],1);
+        srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == 0,pres2orientations(k(targetlocation)),:))'];
+        destrect = CenterRectOnPoint(srcrect,xpositions(k(targetlocation)),ypositions(k(targetlocation)));
+        Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == 0,pres2orientations(targetlocation)),srcrect,destrect,0);
+        %         xy = [-stimLine stimLine];
+        %         Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[xpositions(targetlocation) ypositions(targetlocation)],1);
     end
     Screen('flip',windowPtr); %tic;
     % fprintf('ISI: %f \n', toc)
@@ -352,7 +348,7 @@ for i = 1:prefs.nTrials;
     if (prefs.respInPres2) % if response is in 2nd stim presentation
         
     else % if response is not during 2nd presentation
-        while (GetSecs()-t0)<prefs.pres2Dur;
+        while (GetSecs()-t0)<prefs.pres2Dur
             % do nothing
         end
         % blank screen (waiting for response)
@@ -365,11 +361,11 @@ for i = 1:prefs.nTrials;
     
     % checking for response
     [pressedKey, designMat(i,8)] = waitForKeys(prefs.keys,GetSecs());
-    if pressedKey == 1;
-        response = -1;
-    elseif pressedKey == 2;
+    if pressedKey == 1 % counter clockwise
         response = 1;
-    elseif pressedKey == 3;
+    elseif pressedKey == 2 % clockwise
+        response = -1;
+    elseif pressedKey == 3
         sca;
         ShowCursor;
         fclose('all');
@@ -377,19 +373,12 @@ for i = 1:prefs.nTrials;
     end
     
     % correct/incorrect calculation
-    if delta/abs(delta) == response;
+    if delta/abs(delta) == response
         correct = 1;
     else
         correct = 0;
     end
     
-    
-    if (prefs.screenshot) % if you want a screenshot
-        grabSize = 2.5 * screen_ppd * prefs.stimecc;
-        grabrect = CenterRectOnPoint([0 0 grabSize grabSize],screenCenter(1),screenCenter(2));
-        im = Screen('getimage',windowPtr,grabrect);
-        imwrite(im,['screenshots/stim_' num2str(i) '_Y.png'],'png');
-    end
     
     % blank space/colored feedback fixation (intertrial display)
     Screen('fillRect',windowPtr,prefs.bgColor);
@@ -418,7 +407,7 @@ for i = 1:prefs.nTrials;
     %     if find(prefs.cond(D.conditionNum(i)).trialNums == i) < prefs.nTrialsPerCond;
     %         idxx = prefs.cond(D.conditionNum(i)).trialNums(find(prefs.cond(D.conditionNum(i)).trialNums == i)+1);
     
-    if ~(prefs.vmprior)
+    if ~(prefs.gaussprior)
         if (mod(condition,2))
             cond2 = condition+1;
         else
@@ -541,11 +530,9 @@ if (savedata)
     save(prefs.fidmat,'designMat','stimuliMat','names')
 end
 
-if ~(sessionnum);
-ShowCursor;
 sca;
-end
-% clear all;
+ShowCursor;
+fclose('all');
 
 
 % ========================================================================
