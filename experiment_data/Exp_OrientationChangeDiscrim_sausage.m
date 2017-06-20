@@ -218,7 +218,6 @@ waitForKey;
 % run a trial
 % -------------------------------------------------------------------------
 
-
 % first delta of each condition ~ U[15,25]
 conddir(1,:) = prefs.directionNum(prefs.design(:,1));
 if (prefs.gaussprior)
@@ -406,7 +405,7 @@ for i = 1:prefs.nTrials
     % assign deltaNum based on prev trials
     %     if find(prefs.cond(D.conditionNum(i)).trialNums == i) < prefs.nTrialsPerCond;
     %         idxx = prefs.cond(D.conditionNum(i)).trialNums(find(prefs.cond(D.conditionNum(i)).trialNums == i)+1);
-    
+
     if ~(prefs.gaussprior)
         if (mod(condition,2))
             cond2 = condition+1;
