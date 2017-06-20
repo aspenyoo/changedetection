@@ -430,7 +430,7 @@ for i = 1:prefs.nTrials
     designMat(i,7) = correct;
 
     if (savedata)
-        save(prefs.fidmat,'designMat','stimuliMat','names')
+        save(prefs.fidmat,'designMat','stimuliMat','names','prefs')
     end
     
     % code for breaks/blocks
@@ -527,7 +527,7 @@ waitForKey;
 % ========================================================================
 % writeTrialToFile(D, i, prefs.fidxls);
 if (savedata)
-    save(prefs.fidmat,'designMat','stimuliMat','names')
+    save(prefs.fidmat,'designMat','stimuliMat','names','prefs')
 end
 
 sca;

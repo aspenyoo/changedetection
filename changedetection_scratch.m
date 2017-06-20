@@ -1,3 +1,57 @@
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%     LOOKING AT EXPERIMENTAL STUFF
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+%% save stuff from different sessions all in one thingy
+
+clear all
+nSessions = 4;
+[dMat, sMat] = deal([]);
+for isession = 1:nSessions;
+    fileName = ['experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_session' num2str(isession) '_sausage.mat'];
+    load(fileName);
+    dMat = [dMat; designMat];
+    sMat = [sMat; stimuliMat];
+end
+
+designMat = dMat;
+stimuliMat = sMat;
+save('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausage.mat','designMat','stimuliMat','names')
+
+%% look at psychometric functions from sausage experiment
+
+clear all
+load('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausage.mat','designMat','stimuliMat','names')
+
+condVec = unique(designMat(:,5));
+nCond = length(condVec);
+nQuantiles = 10;
+    
+[PC,delta] = deal(nan(nCond,nQuantiles));
+for icond = 1:nCond;
+    condnum = condVec(icond);
+    
+    % get trials from this condition
+    idx = designMat(:,5) == condnum;
+    nTrials = sum(idx);
+    dMat = designMat(idx,:);
+    sMat = stimuliMat(idx,:);
+    
+    % sort things by amount of change
+    dMat(:,1) = abs(dMat(:,1)); % positive change
+    [dMat, index] = sortrows(dMat);
+    sMat = sMat(index);
+    
+    % get PC as for each quantile
+    quantidx = round(linspace(0,nTrials,nQuantiles+1));
+    for iquant = 1:nQuantiles;
+        PC(icond,iquant) = mean(dMat(quantidx(iquant)+1:quantidx(iquant+1),7));
+        quantDelta(icond,iquant) = mean(dMat(quantidx(iquant)+1:quantidx(iquant+1),1));
+    end
+
+end
+plot(quantDelta',PC')
+
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 % FIGURES
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
