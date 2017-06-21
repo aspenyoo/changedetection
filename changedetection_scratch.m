@@ -5,7 +5,7 @@
 %% save stuff from different sessions all in one thingy
 
 clear all
-nSessions = 4;
+nSessions = 9;
 [dMat, sMat] = deal([]);
 for isession = 1:nSessions;
     fileName = ['experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_session' num2str(isession) '_sausage.mat'];
@@ -16,23 +16,23 @@ end
 
 designMat = dMat;
 stimuliMat = sMat;
-save('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausage.mat','designMat','stimuliMat','names')
+save('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausage.mat','designMat','stimuliMat','names','prefs')
 
 %% look at psychometric functions from sausage experiment
 
 clear all
 load('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausage.mat','designMat','stimuliMat','names')
 
-condVec = unique(designMat(:,5));
+condVec = unique(designMat(:,3)); % unique sausage lenghts
 nCond = length(condVec);
-nQuantiles = 10;
+nQuantiles = 6;
     
 [PC,delta] = deal(nan(nCond,nQuantiles));
 for icond = 1:nCond;
-    condnum = condVec(icond);
+    rel = condVec(icond);
     
     % get trials from this condition
-    idx = designMat(:,5) == condnum;
+    idx = designMat(:,3) == rel;
     nTrials = sum(idx);
     dMat = designMat(idx,:);
     sMat = stimuliMat(idx,:);
@@ -50,7 +50,24 @@ for icond = 1:nCond;
     end
 
 end
-plot(quantDelta',PC')
+
+condStr = cellfun(@num2str,num2cell(condVec./(pi/8)),'UniformOutput',false);
+subplot(1,3,1:2)
+plot(quantDelta',PC','o-')
+legend(condStr)
+ylim([0.5 1])
+xlabel('delta')
+ylabel('PC')
+set(gca,'YTick',0.5:0.1:1)
+defaultplot
+
+subplot(1,3,3)
+plot([1:nCond]',mean(PC(:,1:7),2),'o')
+axis([0.5 nCond+0.5 0.5 1])
+set(gca,'YTick',0.5:0.1:1,'XTick',1:nCond,'XTickLabel',condStr)
+xlabel('sausage length')
+defaultplot
+
 
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 % FIGURES
