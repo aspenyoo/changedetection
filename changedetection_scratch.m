@@ -5,9 +5,9 @@
 %% save stuff from different sessions all in one thingy
 
 clear all
-nSessions = 9;
+nSessions = 5;
 [dMat, sMat] = deal([]);
-for isession = 1:nSessions;
+for isession = 1:nSessions
     fileName = ['experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_session' num2str(isession) '_sausage.mat'];
     load(fileName);
     dMat = [dMat; designMat];
@@ -18,21 +18,39 @@ designMat = dMat;
 stimuliMat = sMat;
 save('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausage.mat','designMat','stimuliMat','names','prefs')
 
+%% because rng(0), can look at trial to trial variability
+
+clear all
+nSessions = 3;
+rMat = [];
+for isession = 1:nSessions
+    fileName = ['experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_session' num2str(isession) '_sausage.mat'];
+    load(fileName);
+    rMat = [rMat designMat(:,7)];
+end
+
+plot(rMat,'o--')
+
 %% look at psychometric functions from sausage experiment
 
 clear all
-load('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausage.mat','designMat','stimuliMat','names')
+condidx = 3;
+if condidx == 3
+    load('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_sausagelength.mat','designMat','stimuliMat','names')
+else
+    load('experiment_data/output_mat/Exp_ChangeDiscrim_sausage_subjAHY_delay.mat','designMat','stimuliMat','names')
+end
 
-condVec = unique(designMat(:,3)); % unique sausage lenghts
+condVec = unique(designMat(:,condidx)); % unique sausage lenghts
 nCond = length(condVec);
 nQuantiles = 6;
     
 [PC,delta] = deal(nan(nCond,nQuantiles));
-for icond = 1:nCond;
+for icond = 1:nCond
     rel = condVec(icond);
     
     % get trials from this condition
-    idx = designMat(:,3) == rel;
+    idx = designMat(:,condidx) == rel;
     nTrials = sum(idx);
     dMat = designMat(idx,:);
     sMat = stimuliMat(idx,:);
@@ -44,29 +62,50 @@ for icond = 1:nCond;
     
     % get PC as for each quantile
     quantidx = round(linspace(0,nTrials,nQuantiles+1));
-    for iquant = 1:nQuantiles;
+    for iquant = 1:nQuantiles
         PC(icond,iquant) = mean(dMat(quantidx(iquant)+1:quantidx(iquant+1),7));
         quantDelta(icond,iquant) = mean(dMat(quantidx(iquant)+1:quantidx(iquant+1),1));
     end
 
 end
 
-condStr = cellfun(@num2str,num2cell(condVec./(pi/8)),'UniformOutput',false);
+if condidx == 3
+    condStr = cellfun(@num2str,num2cell(condVec./(pi/8)),'UniformOutput',false); 
+    xlabell = 'sausage length';
+else
+    condStr = cellfun(@num2str,num2cell(round(condVec)),'UniformOutput',false);
+    xlabell = 'delay';
+end
 subplot(1,3,1:2)
 plot(quantDelta',PC','o-')
 legend(condStr)
-ylim([0.5 1])
+ylim([0.4 1])
 xlabel('delta')
 ylabel('PC')
-set(gca,'YTick',0.5:0.1:1)
+set(gca,'YTick',0.4:0.1:1)
 defaultplot
 
 subplot(1,3,3)
-plot([1:nCond]',mean(PC(:,1:7),2),'o')
-axis([0.5 nCond+0.5 0.5 1])
-set(gca,'YTick',0.5:0.1:1,'XTick',1:nCond,'XTickLabel',condStr)
-xlabel('sausage length')
+plot(1:nCond,mean(PC,2),'o')
+axis([0.5 nCond+0.5 0.4 1])
+set(gca,'YTick',0.4:0.1:1,'XTick',1:nCond,'XTickLabel',condStr)
+xlabel(xlabell)
 defaultplot
+
+%% make sausage plot
+
+sausagelengthVec = [0 2 3 4 6];
+nStim = length(sausagelengthVec);
+
+for istim = 1:nStim
+    s_length = sausagelengthVec(istim);
+    im = makeSausage(128,pi/4,s_length*pi/8);
+    subplot(1,nStim,istim)
+    imagesc(im,[0 255])
+    colormap('gray')
+    set(gca,'Xtick',[],'YTick',[])
+    title(['sausage length = ' num2str(s_length)])
+end
 
 
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % % 

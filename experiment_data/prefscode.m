@@ -87,7 +87,7 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
         f4 = length(ISIdelayNum);
         
     end
-elseif strcmp(afctype,'Discrim'); % discrimination task (c/cc)
+elseif strcmp(afctype,'Discrim') % discrimination task (c/cc)
     
     % info for current experiment
     expName = ['Exp_ChangeDiscrim_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
