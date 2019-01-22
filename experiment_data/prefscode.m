@@ -49,19 +49,54 @@ ellipseArea     = 1;   % ellipse area (deg)
 % ========================================================================
 
 if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
+
     
-    % info for current experiment
-    expName = ['Exp_ChangeDetection_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
+    switch exptype
+        case 'Simult' % simultaneous detection
+            expName = ['Exp_ChangeDetection_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
+            
+            % yes(1)/no(0)
+            vmprior = 8.742;      % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
+            screenshot = 0;      % do you want a screenshot?
+            feedback = 0;        % do you want to give feedback on performance?
+            allStimInPres2 = 0;  % all stimuli to be in pres2 (vs.just target)?
+            directionChange = 0; % task clockwise/counterclockwise (vs. yes/no)?
+            respInPres2 = 1;     % does 2nd presentation stay up until S responds?
+            simultPres1 = 1;        % are all stimuli presented simultaneous in first presentation?
+            permLocInPres1 = 0;  % are stimuli locations in pres1 permuted?
+            
+            % breaks and feedback
+            blocknum = 5;     % number of blocks ( 1 + number of breaks )
+            breakDuration = 20;   % duration of each break between blocks (sec)
+            feedbacktrial = 29; % every feedbacktrialth trial, feedback will be given
+            
+            % experimental design
+            deltaNum = [0 1]; %
+            f1 = length(deltaNum);
+            % if directionChange = 1, magnitude and direction of change
+            % if directionChange = 0, should be 0 or 1 for yes/no change
+            
+            setSizeNum =[1]; % stimulus set size
+            f2 = length(setSizeNum);
+            
+            %         reliabilityName = {'low','medium', 'high'};
+            reliabilityNum = [0.15 0.3 0.5 0.8 0.999]; % ellipse eccentricity
+            f3 = length(reliabilityNum);
+            
+            ISIdelayNum = [0.981];   % ISI delay time (sec)
+            f4 = length(ISIdelayNum);
+        case 'Keshvari'
+            expName = ['Exp_CD_Keshvari_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
     
-    if strcmp(exptype,'Simult'); % simultaneous detection
-        
+            expName = ['Exp_ChangeDetection_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
+    
         % yes(1)/no(0)
-        vmprior = 8.742;      % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
+        vmprior = 0;      % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
         screenshot = 0;      % do you want a screenshot?
         feedback = 0;        % do you want to give feedback on performance?
-        allStimInPres2 = 0;  % all stimuli to be in pres2 (vs.just target)?
+        allStimInPres2 = 1;  % all stimuli to be in pres2 (vs.just target)?
         directionChange = 0; % task clockwise/counterclockwise (vs. yes/no)?
-        respInPres2 = 1;     % does 2nd presentation stay up until S responds?
+        respInPres2 = 0;     % does 2nd presentation stay up until S responds?
         simultPres1 = 1;        % are all stimuli presented simultaneous in first presentation?
         permLocInPres1 = 0;  % are stimuli locations in pres1 permuted?
         
@@ -76,7 +111,7 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
         % if directionChange = 1, magnitude and direction of change
         % if directionChange = 0, should be 0 or 1 for yes/no change
         
-        setSizeNum =[1]; % stimulus set size
+        setSizeNum =[4]; % stimulus set size
         f2 = length(setSizeNum);
         
         %         reliabilityName = {'low','medium', 'high'};
@@ -87,6 +122,7 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
         f4 = length(ISIdelayNum);
         
     end
+
 elseif strcmp(afctype,'Discrim') % discrimination task (c/cc)
     
     % info for current experiment
