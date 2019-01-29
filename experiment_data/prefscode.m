@@ -49,7 +49,7 @@ ellipseArea     = 1;   % ellipse area (deg)
 % ========================================================================
 
 if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
-
+    
     
     switch exptype
         case 'Simult' % simultaneous detection
@@ -64,7 +64,8 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
             respInPres2 = 1;     % does 2nd presentation stay up until S responds?
             simultPres1 = 1;        % are all stimuli presented simultaneous in first presentation?
             permLocInPres1 = 0;  % are stimuli locations in pres1 permuted?
-            
+            ellipseinPres2 = 0;     % is the second stimulus presentation ellipses
+
             % breaks and feedback
             blocknum = 5;     % number of blocks ( 1 + number of breaks )
             breakDuration = 20;   % duration of each break between blocks (sec)
@@ -87,47 +88,56 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
             f4 = length(ISIdelayNum);
         case 'Keshvari'
             expName = ['Exp_CD_Keshvari_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
-    
+            
             expName = ['Exp_ChangeDetection_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
-    
-        % yes(1)/no(0)
-        vmprior = 0;      % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
-        screenshot = 0;      % do you want a screenshot?
-        feedback = 0;        % do you want to give feedback on performance?
-        allStimInPres2 = 1;  % all stimuli to be in pres2 (vs.just target)?
-        directionChange = 0; % task clockwise/counterclockwise (vs. yes/no)?
-        respInPres2 = 0;     % does 2nd presentation stay up until S responds?
-        simultPres1 = 1;        % are all stimuli presented simultaneous in first presentation?
-        permLocInPres1 = 0;  % are stimuli locations in pres1 permuted?
-        
-        % breaks and feedback
-        blocknum = 5;     % number of blocks ( 1 + number of breaks )
-        breakDuration = 20;   % duration of each break between blocks (sec)
-        feedbacktrial = 29; % every feedbacktrialth trial, feedback will be given
-        
-        % experimental design
-        deltaNum = [0 1]; %
-        f1 = length(deltaNum);
-        % if directionChange = 1, magnitude and direction of change
-        % if directionChange = 0, should be 0 or 1 for yes/no change
-        
-        setSizeNum =[4]; % stimulus set size
-        f2 = length(setSizeNum);
-        
-        %         reliabilityName = {'low','medium', 'high'};
-        reliabilityNum = [0.15 0.3 0.5 0.8 0.999]; % ellipse eccentricity
-        f3 = length(reliabilityNum);
-        
-        ISIdelayNum = [0.981];   % ISI delay time (sec)
-        f4 = length(ISIdelayNum);
-        
-    end
+            
+            jitter          = 0.3;   % amount of x/y-jitter (deg)
+            stimecc         = 7;    % stimulus eccentricity (deg)
+            ellipseArea     = 1.19;   % ellipse area (deg)
+            % this ellipse area gives approximately the same one as
+            % keshvari
 
+            % yes(1)/no(0)
+            vmprior = 0;      % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
+            screenshot = 0;      % do you want a screenshot?
+            feedback = 1;        % do you want to give feedback on performance?
+            allStimInPres2 = 1;  % all stimuli to be in pres2 (vs.just target)?
+            directionChange = 0; % task clockwise/counterclockwise (vs. yes/no)?
+            respInPres2 = 0;     % does 2nd presentation stay up until S responds?
+            simultPres1 = 1;        % are all stimuli presented simultaneous in first presentation?
+            permLocInPres1 = 0;  % are stimuli locations in pres1 permuted?
+            ellipseinPres2 = 1;     % is the second stimulus presentation ellipses
+            
+            % breaks and feedback
+            blocknum = 5;     % number of blocks ( 1 + number of breaks )
+            breakDuration = 20;   % duration of each break between blocks (sec)
+            feedbacktrial = 2000; % every feedbacktrialth trial, feedback will be given
+            
+            % experimental design
+            deltaNum = [0 1]; %
+            f1 = length(deltaNum);
+            % if directionChange = 1, magnitude and direction of change
+            % if directionChange = 0, should be 0 or 1 for yes/no change
+            
+            setSizeNum =[4]; % stimulus set size
+            f2 = length(setSizeNum);
+            
+            %         reliabilityName = {'low','medium', 'high'};
+            reliabilityNum = [0.93]; % ellipse eccentricity
+            % eccentricity of 0.93 gives approximately the same "long"
+            % ellipse as keshvari
+            f3 = length(reliabilityNum);
+            
+            ISIdelayNum = [0.981];   % ISI delay time (sec)
+            f4 = length(ISIdelayNum);
+            
+    end
+    
 elseif strcmp(afctype,'Discrim') % discrimination task (c/cc)
     
     % info for current experiment
     expName = ['Exp_ChangeDiscrim_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
-
+    
     
     % yes(1)/no(0)
     gaussprior = 15;      % gaussian or stepwise
@@ -138,7 +148,7 @@ elseif strcmp(afctype,'Discrim') % discrimination task (c/cc)
     respInPres2 = 1;     % does 2nd presentation stay up until S responds?
     simultPres1 = 1;        % are all stimuli presented simultaneous in first presentation?
     permLocInPres1 = 0;  % are stimuli locations in pres1 permuted?
-    
+    ellipseinPres2 = 0;     % is the second stimulus presentation ellipses
     
     % breaks and feedback
     blocknum = 1;     % number of blocks ( 1 + number of breaks )

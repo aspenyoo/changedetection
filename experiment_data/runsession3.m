@@ -17,25 +17,27 @@ Screen('TextFont',windowPtr,'Helvetica');
 HideCursor;
 
 % ========== TRAINING SESSION ON FIRST DAY ==========
-if sessionnum == 1; 
-    train_detect(subjid,sessionnum,40); % 400 trials of training
-else
-    train_detect(subjid,sessionnum,2); % 20 trials of training
-end
-Screen('Flip', windowPtr);
+% if sessionnum == 1; 
+%     train_detect(subjid,sessionnum,40); % 400 trials of training
+% else
+%     train_detect(subjid,sessionnum,2); % 20 trials of training
+% end
+% Screen('Flip', windowPtr);
+% 
+% % ========== DETECTION TASK ============
+% Snd('Open');
+% for i = 1:length(beepVec);
+%     beep = MakeBeep(beepVec(i),0.1);
+%     Snd('Play',beep);
+% end
+% switch sessionnum
+%     case 1; nTrialsPerCond = 40;
+%     case 2; nTrialsPerCond = 87;
+%     case 3; nTrialsPerCond = 87;
+%     case 4; nTrialsPerCond = 86;
+% end
 
-% ========== DETECTION TASK ============
-Snd('Open');
-for i = 1:length(beepVec);
-    beep = MakeBeep(beepVec(i),0.1);
-    Snd('Play',beep);
-end
-switch sessionnum
-    case 1; nTrialsPerCond = 40;
-    case 2; nTrialsPerCond = 87;
-    case 3; nTrialsPerCond = 87;
-    case 4; nTrialsPerCond = 86;
-end
+nTrialsPerCond = 5;
 
 Exp_OrientationChangeDetect(subjid, sessionnum, nTrialsPerCond)
 Screen('Flip', windowPtr);

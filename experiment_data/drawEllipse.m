@@ -14,8 +14,8 @@ function im = drawEllipse(area, eccentricity, rot, fgcol, bgcol)
 % area and eccentricity
 % v3 Aspen. 
 
-d1 = round (sqrt( (4 * area * sqrt(1 - eccentricity^2)) / pi)) % length of minor axis
-d2 = round (4 * area / (d1 * pi)) % length of major axis
+d1 = round (sqrt( (area * sqrt(1 - eccentricity^2)) / pi)); % length of minor axis
+d2 = round (area / (d1 * pi)); % length of major axis
 
 nPixels = d1 * d2;
 

@@ -23,7 +23,8 @@ rng('shuffle');
 % ==================================================================
 
 % importing preferences for simultaneous/sequential experiment
-prefs = prefscode('Detect','Simult',subjid, sessionnum,nTrialsPerCond);
+prefs = prefscode('Detect','Keshvari', subjid, sessionnum, nTrialsPerCond);
+% prefs = prefscode('Detect','Simult',subjid, sessionnum,nTrialsPerCond);
 
 % response keys
 prefs.keys = [KbName('s') KbName('d') KbName('esc')];
@@ -51,8 +52,8 @@ screenNumber =  max(Screen('Screens'));       % use external screen if exists
 screenResolution = [w h];                 % screen resolution
 screenCenter = screenResolution/2;       % screen center
 screenDistance = 45;                      % distance between observer and screen (in cm)
-screenAngle = 2*(180/pi)*(atan((prefs.screenWidth/2) / screenDistance)) ; % total visual angle of screen
-screen_ppd = screenResolution(1) / screenAngle;  % pixels per degree
+screenAngle = 2*(180/pi)*(atan((prefs.screenHeight/2) / screenDistance)) ; % total visual angle of screen
+screen_ppd = screenResolution(2) / screenAngle;  % pixels per degree
 prefs.ellipseArea = prefs.ellipseArea * screen_ppd^2; % ellipse area (pixels)
 
 % open screen
@@ -345,23 +346,34 @@ for i = 1:prefs.nTrials;
     if (prefs.allStimInPres2)
         
         for j= 1:designMat(i,2)
-%             srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j),:))'];
-%             destrect = CenterRectOnPoint(srcrect,D.XPositions(i,j),D.YPositions(i,j));
-%             Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j)),srcrect,destrect,0);
-       xy = [-lineStim lineStim ]; % aspen, need to change this is setsize > 1
+            %             srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j),:))'];
+            %             destrect = CenterRectOnPoint(srcrect,D.XPositions(i,j),D.YPositions(i,j));
+            %             Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j)),srcrect,destrect,0);
+            if (prefs.ellipseinPres2)
+                srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == designMat(i,3),pres2orientations(k(j)),:))'];
+                destrect = CenterRectOnPoint(srcrect,xpositions(k(j)),ypositions(k(j)));
+                Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == designMat(i,3),pres2orientations(k(j))),srcrect,destrect,0);
+            else
+                xy = [-lineStim lineStim ]; % aspen, need to change this is setsize > 1
                 Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[xpositions(j) ypositions(j)],1);
-          
+            end
         end
     else
         j = stimuliMat(i,end);
         if j == 0;
             j = ceil(rand*designMat(i,2));
         end
-%         srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j),:))'];
-%         destrect = CenterRectOnPoint(srcrect,D.XPositions(i,j),D.YPositions(i,j));
-%         Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j)),srcrect,destrect,0);
-    xy = [-lineStim lineStim ];
-            Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[xpositions(j) ypositions(j)],1);
+        %         srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j),:))'];
+        %         destrect = CenterRectOnPoint(srcrect,D.XPositions(i,j),D.YPositions(i,j));
+        %         Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == designMat(i,3),D.pres2Orientations(i,j)),srcrect,destrect,0);
+       if (prefs.ellipseinPres2)
+                srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == designMat(i,3),pres2orientations(k(j)),:))'];
+                destrect = CenterRectOnPoint(srcrect,xpositions(k(j)),ypositions(k(j)));
+                Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == designMat(i,3),pres2orientations(k(j))),srcrect,destrect,0);
+       else
+           xy = [-lineStim lineStim ];
+           Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[xpositions(j) ypositions(j)],1);
+       end
        
     end
     Screen('flip',windowPtr);
