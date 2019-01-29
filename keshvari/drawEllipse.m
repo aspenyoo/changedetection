@@ -1,6 +1,3 @@
-% Output an ellipse with axes length d1 and d2, rotation rot. fgcol is the
-% foreground color, bgcol is the background color. im is a double matrix.
-
 function im = drawEllipse(d1,d2,rot,fgcol,bgcol)
 
 rot = -rot-90;  
@@ -27,6 +24,10 @@ Y = X * sin(rot) + Y * cos(rot);
 X = X_new;
 idx = (X.^2/(d1/2)^2 + Y.^2/(d2/2)^2)<1;
 im(idx) = fgcol;
+
+% rotate
+% % im=imrotate(im,-rot);
+% im(im==0)=bgcol;
 
 % crop
 while im(:,1)==bgcol
