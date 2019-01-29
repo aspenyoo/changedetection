@@ -23,15 +23,16 @@
 % different output file, which should be appended together into a data
 % structure (see analysis README) before analyzing.
 
+% keshvari on this website
+% editted by Aspen Yoo in 2019
+
 function run_orientation_expt(expID)
-s
-% Set random stream
-rng('shuffle')
+
 
 try
     
     % Initialization
-    clear all;
+%     clear all;
     
     % Get settings from experimenter
     settings = getExperimentSettings(expID);
@@ -80,9 +81,12 @@ try
     % Set feedback flag
     settings.feedback = 1;
     
+    % Set random stream
+    rng(str2num(sprintf('%d',subjid)))
+    
     % screen info
     screenNumber=max(Screen('Screens'));       % use external screen if exists
-    [w h]=Screen('WindowSize', screenNumber);  % screen resolution
+    [w, h]=Screen('WindowSize', screenNumber);  % screen resolution
     screen_resolution = [w h];                 % screen resolution
     screen_center = screen_resolution/2;       % screen center
     screen_distance = 60;                      % distance between observer and screen (in cm)
@@ -158,7 +162,7 @@ try
             % Pick angle of first one rand and add the rest in counterclockwise
             % fashion with angle spacing = 2pi/max(setsizeval)
             locAngles = rand()*2*pi+(1:(max(setsizeval)))*(2*pi)/max(setsizeval);
-            [X Y] = pol2cart(locAngles,screen_ppd * settings.stimecc);
+            [X, Y] = pol2cart(locAngles,screen_ppd * settings.stimecc);
             TrialMat(i,23:(22+TrialMat(i,5))) = X(1:TrialMat(i,5)) + screen_center(1);
             TrialMat(i,31:(30+TrialMat(i,5))) = Y(1:TrialMat(i,5)) + screen_center(2);
             

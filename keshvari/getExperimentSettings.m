@@ -128,16 +128,16 @@ if(~strcmp(expID,'CDSetSize') && ~strcmp(expID,'Training'))
 elseif(strcmp(expID,'CDSetSize'))
     % Set parameters for the first change detection experiment, variable
     % set size per block
-    exptype='actual';
+    exptype = 'actual';
     
-    deltatype='variable';
+    deltatype = 'variable';
     deltavartyperange = 180;
     deltavartype = 'Uniform';
     
-    reliabilitytype='constants';
-    reliabilityval= .9;
+    reliabilitytype = 'constants';
+    reliabilityval = .9;
     
-    setsizeval=[2 4 6 8];    
+    setsizeval = 4;    
     multiplicity = 75;
     drawstimuli = 'randomly';   
     nTrials = 600;
@@ -151,14 +151,14 @@ elseif(strcmp(expID,'Training'))
     % set size per block
     exptype='train';
     
-    deltatype='variable';
+    deltatype = 'variable';
     deltavartyperange = 180;
     deltavartype = 'Uniform';
     
-    reliabilitytype='constants';
-    reliabilityval= .9;
+    reliabilitytype = 'constants';
+    reliabilityval = .9;
     
-    setsizeval=[2 4 6 8];    
+    setsizeval = 4;    
     multiplicity = 75;
     drawstimuli = 'randomly';   
     nTrials = 16;
