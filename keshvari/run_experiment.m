@@ -36,7 +36,7 @@ try
     
     % Screen info
     ScreenNumber=max(Screen('Screens'));       % use external Screen if exists
-    [w h]=Screen('WindowSize', ScreenNumber);  % Screen resolution
+    [w, h]=Screen('WindowSize', ScreenNumber);  % Screen resolution
     Screen_resolution = [w h];                 % Screen resolution
     Screen_center = Screen_resolution/2;       % Screen center
     Screen_distance = 60;                      % distance between observer and Screen (in cm)
@@ -299,7 +299,7 @@ try
             %drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
             %Screen('DrawText',windowPtr,['Trial # = ' num2str(trialnr)],20,0,round(settings.bgdac*1.2));
             Screen('flip',windowPtr,nextFlipTime);
-            nextFlipTime = GetSecs + .5;
+%             PC = [PC mean(TrialMat((breakpoints(find(breakpoints==i)-1)+1):intersect(breakpoints,i),1))];
             
             if (intersect(breakpoints,i) == breakpoints(ceil(breaknum/2)))
                 TempTrialMat = TrialMat(1:i,:);
@@ -307,18 +307,11 @@ try
                 
                 Screen('fillRect',windowPtr,settings.bgdac);
                 Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
-                Screen('Flip', windowPtr);
-                waitForKey;
-                
-                drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
-                Screen('Flip', windowPtr);
-                waitSecs(1.2);
-                nextFlipTime = GetSecs + .5;
                 
             else
                 Screen('fillRect',windowPtr,settings.bgdac);
                 tic
-                cdtime = 60;   % time in seconds
+                cdtime = 1;   % time in seconds
                 
                 while toc<cdtime
                     Screen('DrawText',windowPtr,['You have finished ' num2str(round(100*i/settings.nTrials)) '% of the trials'],100,Screen_center(2)-80,[255 255 255]);
@@ -326,14 +319,40 @@ try
                     Screen('Flip', windowPtr);
                 end
                 Screen('DrawText',windowPtr,'Press any key to continue',100,Screen_center(2)-80,[255 255 255]);
-                Screen('Flip', windowPtr);
-                waitForKey;
-                
-                drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
-                Screen('Flip', windowPtr);
-                waitSecs(1.2);
-                nextFlipTime = GetSecs + .5;
             end
+%             
+%             % GRAPH OF PROGRESS
+%             Screen('DrawText',windowPtr,sprintf('End of block %d. You earned %02.f points!',blocknum, mean(PC)),650,screenCenter(2)-140,[255 255 255]);
+%             
+%             graphwidth = round(w/3); % half of graph width
+%             graphheight = round(h/5); % half of graph height
+%             origin = [w/2-graphwidth/2 h/2+graphheight];
+%             Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
+%             Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
+%             Screen('TextSize',windowPtr,24);
+%             Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
+%             
+%             % draw lines to make graph
+%             pc = (PC./75 - 1/3)*graphheight; % rescaling PC to size of graph
+%             dx = graphwidth./breaknum; % equally spaced out to fill size of graph at end of exp.
+%             og = origin;
+%             dc = nan(2,length(pc));
+%             dc(:,1) = [og(1),og(2)-pc(1)];
+%             for ipc = 2:length(pc) % draw the lines
+%                 dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
+%                 Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
+%                 og(1) = og(1) + dx;
+%             end
+%             Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1)
+            
+            % flip screen and draw fixation screen
+            Screen('Flip', windowPtr);
+            waitForKey;
+            
+            drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
+            Screen('Flip', windowPtr);
+            WaitSecs(1.2);
+            nextFlipTime = GetSecs + .5;
             
         end
         

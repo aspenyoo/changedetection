@@ -52,7 +52,7 @@ if(strcmp(expID,'Reliability'))
     reliabilityval= [low_rel .9];
     setsizeval= 4;    
     nTrials = 800;
-    breaknum = 4;
+    breaknum = 8;
     stim_on_time = 0.1;
     
 elseif(strcmp(expID,'Threshold'))
@@ -63,7 +63,7 @@ elseif(strcmp(expID,'Threshold'))
     reliabilityval= linspace(.3,.9,16);
     setsizeval= 4;    
     nTrials = 400;
-    breaknum = 2;
+    breaknum = 4;
     stim_on_time = 0.1;
 
 elseif(strcmp(expID,'Practice'))
@@ -74,7 +74,7 @@ elseif(strcmp(expID,'Practice'))
     reliabilityval= linspace(.3,.9,16);
     setsizeval= 4;    
     nTrials = 256;
-    breaknum = 1;
+    breaknum = 2;
     stim_on_time = 0.333;
 
 end
