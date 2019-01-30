@@ -177,8 +177,8 @@ try
     [newx,newy] = Screen('DrawText',windowPtr,'The ORIENTATION of the ellipse looks like this:',textx,texty,[255 255 255]); texty = texty + dy;
     destrect = CenterRectOnPoint(cuesrcrect,newx+30,newy+20);
     Screen('drawtexture',windowPtr,StimPatches(length(reliabilityval),round(numDegrees/4+1)),cuesrcrect,destrect,0);
-    Screen('DrawText',windowPtr,'The change can be of any magnitude. Press "y" if you think',textx,texty,[255 255 255]); texty = texty + dy;
-    Screen('DrawText',windowPtr,'there is a change and "u" if you think they are the same.',textx,texty,[255 255 255]);
+    Screen('DrawText',windowPtr,'The change can be of any magnitude. Press "j" if you think',textx,texty,[255 255 255]); texty = texty + dy;
+    Screen('DrawText',windowPtr,'there is a change and "k" if you think they are the same.',textx,texty,[255 255 255]);
     
     
     Screen('Flip', windowPtr);
@@ -248,8 +248,8 @@ try
         Screen('flip',windowPtr,nextFlipTime);
         REALSTIMTIME = round(1000*(GetSecs - stimStartTime));
         
-        yesKey = KbName('y');
-        noKey = KbName('u');
+        yesKey = KbName('j');
+        noKey = KbName('k');
         escKey = KbName('esc');
         responseStartTime = GetSecs;
         done=0;
