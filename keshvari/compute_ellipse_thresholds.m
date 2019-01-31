@@ -17,7 +17,8 @@ end
 fitpars = fminsearch(@(fitpars) fitfun(fitpars,X,Y),[.5 .5 .2]);
 X_fit = 0:.001:1;
 Y_fit = 0.5 + fitpars(3) * normcdf(X_fit,fitpars(1),fitpars(2));
-Y_fit = normrnd(Y_fit,.000001);   % to avoid "Values should be distinct" error in interp1
+Y_fit = Y_fit + randn(size(Y_fit)).*1e-6;
+% Y_fit = normrnd(Y_fit,.000001);   % to avoid "Values should be distinct" error in interp1
 th  = interp1(Y_fit,X_fit,.65);
 
 % if plotting
