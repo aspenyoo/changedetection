@@ -322,8 +322,9 @@ try
             idxstart = (breakpointsVec(find(breakpointsVec==i)-1)+1); % first trial idx of current block
             idxend = intersect(breakpointsVec,i); % trial idx of the end of current block
             correct = logical(TrialMat(idxstart:idxend,1)) == TrialMat(idxstart:idxend,2); % did subjects get the trials in this block correct?
+            PC = [PC mean(correct)];
             
-            if (intersect(breakpointsVec,i) == breakpointsVec(ceil(breaknum/2)))
+            if (intersect(breakpointsVec,i) == breakpointsVec(ceil(breaknum/2)+1))
                 TempTrialMat = TrialMat(1:i,:);
                 HalfPC = sum((TempTrialMat(:,1)>0)-TempTrialMat(:,2)==0)/i;
                 
