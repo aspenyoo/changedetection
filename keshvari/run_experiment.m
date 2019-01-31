@@ -10,29 +10,35 @@ try
     
     clear;
     
-    % Get the experimental settings
+    % ====== EXPERIMENTAL SETTINGS ====
     settings = getExperimentSettings();
+    
+    % subject and experimental design settings
+    subjid = settings.subjid;
+    expID = settings.expID;
     setsizeval = settings.setsizeval;
     reliabilityval = settings.reliabilityval;
     deltavartyperange = settings.deltavartyperange*(pi/180);
     reliabilitytype = settings.reliabilitytype;
-	nTrials = settings.nTrials;
-    breaknum = settings.breaknum;
-    subjid = settings.subjid;
-    stim_on_time = settings.stim_on_time;
+    feedback = settings.feedback;
     
-    % set some condition-independent variables
-    settings.makeScreenShot  = 0;    % if 1, then Screenshots of stimuli will be made
-    settings.Screen_width    = 40;   % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
-    settings.barwidth        = .3;   % width of stimulus bar (deg)
-    settings.barheight       = .8;   % height of stimulus bar (deg)
-    settings.ellipseArea     = settings.barwidth*settings.barheight; % ellipse size (deg^2)
-    settings.jitter          = .6;   % amount of x/y-jitter (deg)
-    settings.bgdac           = 128;  % background grayvalue (RGB)
-    settings.fgdac           = 200;  % foreground grayvalue (RGB)
-    settings.stimecc         = 7;    % stimulus eccentricity (deg)
-    settings.ITT             = 1000;  % inter stimulus time (ms)
-    settings.feedback        = 1;     % Set feedback flag    
+    % trial and experiment timing settings
+    stim_on_time = settings.stim_on_time;
+    ITI = settings.ITI;
+    nTrials = settings.nTrials;
+    breaknum = settings.breaknum;
+    breaktime = settings.breaktime; 
+    
+    % stimulus and screen settings
+    barwidth = settings.barwidth;
+    barheight = settings.barheight;
+    ellipseArea = settings.ellipseArea;
+    jitter = settings.jitter;
+    stimecc = settings.stimecc;
+    makeScreenShot = settings.makeScreenShot;
+    Screen_width = settings.Screen_width;
+    bgdac = settings.bgdac;
+    fgdac = settings.fgdac;
     
     % Screen info
     ScreenNumber=max(Screen('Screens'));       % use external Screen if exists
@@ -40,11 +46,10 @@ try
     Screen_resolution = [w h];                 % Screen resolution
     Screen_center = Screen_resolution/2;       % Screen center
     Screen_distance = 60;                      % distance between observer and Screen (in cm)
-    Screen_angle = 2*(180/pi)*(atan((settings.Screen_width/2) / Screen_distance)) ; % total visual angle of Screen
+    Screen_angle = 2*(180/pi)*(atan((Screen_width/2) / Screen_distance)) ; % total visual angle of Screen
     Screen_ppd = Screen_resolution(1) / Screen_angle;  % pixels per degree
     Screen_fixposxy = Screen_resolution .* [.5 .5]; % fixation position
-    settings.ellipseArea = .3;
-    settings.ellipseArea = settings.ellipseArea * Screen_ppd^2;
+    ellipseArea = ellipseArea * Screen_ppd^2;
     
     % open Screen
     gray=GrayIndex(ScreenNumber);
@@ -52,7 +57,7 @@ try
     windowPtr = Screen('OpenWindow',ScreenNumber,gray,[],32,2);
     
     % Set break points
-    breakpoints = round((1:(breaknum-1)).* (settings.nTrials/breaknum));
+    breakpointsVec = [0 round((1:(breaknum-1)).* (nTrials/breaknum))];
     
     % Fixation information
     fixsize = 4;
@@ -117,14 +122,14 @@ try
         % Pick angle of first one rand and add the rest in counterclockwise
         % fashion with angle spacing = 2pi/max(setsizeval)
         locAngles = rand()*2*pi+(1:(max(setsizeval)))*(2*pi)/max(setsizeval);
-        [X,Y] = pol2cart(locAngles,Screen_ppd * settings.stimecc);
+        [X,Y] = pol2cart(locAngles,Screen_ppd * stimecc);
         TrialMat(i,23:(22+TrialMat(i,5))) = X(1:TrialMat(i,5)) + Screen_center(1);
         TrialMat(i,31:(30+TrialMat(i,5))) = Y(1:TrialMat(i,5)) + Screen_center(2);
         
     end   
     
     % Jitter stimulus positions
-    TrialMat(:,23:38) = TrialMat(:,23:38) + round((rand(nTrials,16)-.5)*settings.jitter*Screen_ppd);
+    TrialMat(:,23:38) = TrialMat(:,23:38) + round((rand(nTrials,16)-.5)*jitter*Screen_ppd);
     
     % Create all stimulus patches, with degreeres 1 degree between each
     % possible stimulus orientations
@@ -145,9 +150,9 @@ try
         
         % Draw a patch for each orientation
         for j = 0:numDegrees
-            b = sqrt(settings.ellipseArea * sqrt(1 - ecc^2) / pi);
-            a = settings.ellipseArea / (pi*b);
-            im = drawEllipse(2*b,2*a,j*res,settings.fgdac,settings.bgdac);
+            b = sqrt(ellipseArea * sqrt(1 - ecc^2) / pi);
+            a = ellipseArea / (pi*b);
+            im = drawEllipse(2*b,2*a,j*res,fgdac,bgdac);
             StimPatches(i,j+1) = Screen('MakeTexture',windowPtr,im);
             StimSizes(i,j+1,:) = size(im);
             StimSizes(i,j+1,:) = StimSizes(i,j+1,[2 1]);            
@@ -164,7 +169,7 @@ try
     
     % Randomize the trials
     TrialMat = TrialMat(randperm(nTrials),:);
-    datafilename = ['output/' settings.subjid '/' settings.subjid '_' settings.expID '_' num2str(settings.nTrials) '_' datestr(now,'yyyymmddTHHMMSS') '.mat'];
+    datafilename = ['output/' subjid '/' subjid '_' expID '_' num2str(nTrials) '_' datestr(now,'yyyymmddTHHMMSS') '.mat'];
     
     % Show start Screen. This needs to be done better
     Screen('TextSize',windowPtr,20);
@@ -183,7 +188,7 @@ try
     
     Screen('Flip', windowPtr);
     waitForKey;
-    Screen('fillRect',windowPtr,settings.bgdac);
+    Screen('fillRect',windowPtr,bgdac);
     drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
     
     Screen('flip',windowPtr,nextFlipTime);
@@ -193,11 +198,12 @@ try
     
     % Begin Trials!
     i = 0;
+    PC = [];
     while (i < nTrials) && ~aborted
         i = i+1;
         
         % SCREEN 1a: FIXATION
-        Screen('fillRect',windowPtr,settings.bgdac);
+        Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
         
         % First array, draw each element to screen
@@ -209,18 +215,23 @@ try
         end
         
         % show the stimuli for 0.1 seconds
+        sprintf('stim pres 1')
+        tic; % ASPEN
         Screen('flip',windowPtr,nextFlipTime);
         
         nextFlipTime = GetSecs + stim_on_time;
         
         % SCREEN 1b: BLANK
-        Screen('fillRect',windowPtr,settings.bgdac);
+        Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
+        toc % ASPEN
+        sprintf('ISI')
+        tic; % aspen
         Screen('flip',windowPtr,nextFlipTime);
         nextFlipTime = GetSecs + 1;
         
         % SCREEN 2: STIMULUS
-        Screen('fillRect',windowPtr,settings.bgdac);
+        Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
         
         % Second array, draw each element to screen
@@ -231,26 +242,35 @@ try
         end
         
         % show the second stimulus for 0.1 seconds
+        toc % ASPEN
+        sprintf('pres2')
+        tic; % aspen
         Screen('flip',windowPtr,nextFlipTime);
         stimStartTime = GetSecs;
         nextFlipTime = GetSecs + stim_on_time; 
         
-        if (settings.makeScreenShot)
-            grabSize = 2.5 * Screen_ppd * settings.stimecc;
+        if (makeScreenShot)
+            grabSize = 2.5 * Screen_ppd * stimecc;
             grabrect = CenterRectOnPoint([0 0 grabSize grabSize],Screen_fixposxy(1),Screen_fixposxy(2));
             im = Screen('getimage',windowPtr,grabrect);
             imwrite(im,['Screenshots/stim_' num2str(trialnr) '.png'],'png');
         end
         
         % SCREEN 3a: YES/NO RESPONSE
-        Screen('fillRect',windowPtr,settings.bgdac);
+        Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
+        toc % ASPEN
         Screen('flip',windowPtr,nextFlipTime);
         REALSTIMTIME = round(1000*(GetSecs - stimStartTime));
         
+        KbName('UnifyKeyNames');
         yesKey = KbName('j');
         noKey = KbName('k');
-        escKey = KbName('esc');
+        if (ismac)
+            escKey = KbName('esc');
+        else
+            escKey = KbName('ESCAPE');
+        end
         responseStartTime = GetSecs;
         done=0;
         while ~done
@@ -278,8 +298,8 @@ try
         save(datafilename,'settings','TrialMat');
         
         % SCREEN 4: INTER TRIAL DISPLAY
-        Screen('fillRect',windowPtr,settings.bgdac);
-        if (settings.feedback)
+        Screen('fillRect',windowPtr,bgdac);
+        if (feedback)
             if (CORRECT)
                 drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),[0 200 0],fixsize);
             else
@@ -288,62 +308,66 @@ try
         else
             drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
         end
-        %Screen('DrawText',windowPtr,['Trial # = ' num2str(trialnr)],20,0,round(settings.bgdac*1.2));
+        %Screen('DrawText',windowPtr,['Trial # = ' num2str(trialnr)],20,0,round(bgdac*1.2));
         Screen('flip',windowPtr);
-        nextFlipTime = GetSecs + (settings.ITT/1000);
+        nextFlipTime = GetSecs + ITI;
         
         % show progress info + target reminder
         
-        if ~isempty(intersect(breakpoints,i))
-            Screen('fillRect',windowPtr,settings.bgdac);
+        if ~isempty(intersect(breakpointsVec,i))
+            Screen('fillRect',windowPtr,bgdac);
             %drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
-            %Screen('DrawText',windowPtr,['Trial # = ' num2str(trialnr)],20,0,round(settings.bgdac*1.2));
+            %Screen('DrawText',windowPtr,['Trial # = ' num2str(trialnr)],20,0,round(bgdac*1.2));
             Screen('flip',windowPtr,nextFlipTime);
-%             PC = [PC mean(TrialMat((breakpoints(find(breakpoints==i)-1)+1):intersect(breakpoints,i),1))];
+            idxstart = (breakpointsVec(find(breakpointsVec==i)-1)+1); % first trial idx of current block
+            idxend = intersect(breakpointsVec,i); % trial idx of the end of current block
+            correct = logical(TrialMat(idxstart:idxend,1)) == TrialMat(idxstart:idxend,2); % did subjects get the trials in this block correct?
             
-            if (intersect(breakpoints,i) == breakpoints(ceil(breaknum/2)))
+            if (intersect(breakpointsVec,i) == breakpointsVec(ceil(breaknum/2)))
                 TempTrialMat = TrialMat(1:i,:);
                 HalfPC = sum((TempTrialMat(:,1)>0)-TempTrialMat(:,2)==0)/i;
                 
-                Screen('fillRect',windowPtr,settings.bgdac);
+                Screen('fillRect',windowPtr,bgdac);
                 Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
                 
             else
-                Screen('fillRect',windowPtr,settings.bgdac);
+                Screen('fillRect',windowPtr,bgdac);
                 tic
-                cdtime = 1;   % time in seconds
                 
-                while toc<cdtime
-                    Screen('DrawText',windowPtr,['You have finished ' num2str(round(100*i/settings.nTrials)) '% of the trials'],100,Screen_center(2)-80,[255 255 255]);
-                    Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(cdtime-toc)) ' seconds…'],100,Screen_center(2)-100,[255 255 255]);
+                % progress graph settings
+                graphwidth = round(w/3); % half of graph width
+                graphheight = round(h/5); % half of graph height
+                origin = [w/2-graphwidth/2 h/2+graphheight];
+                pc = (PC./.75 - 1/3)*graphheight; % rescaling PC to size of graph
+                dx = graphwidth./breaknum; % equally spaced out to fill size of graph at end of exp.
+                
+                while toc<breaktime
+                    Screen('DrawText',windowPtr,['You have finished ' num2str(round(100*i/nTrials)) '% of the trials'],100,Screen_center(2)-80,[255 255 255]);
+                    Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(breaktime-toc)) ' seconds…'],100,Screen_center(2)-100,[255 255 255]);
+
+                    % graph progress
+                    Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
+                    Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
+                    Screen('TextSize',windowPtr,24);
+                    Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
+                    
+                    og = origin;
+                    dc = nan(2,length(pc));
+                    dc(:,1) = [og(1),og(2)-pc(1)];
+                    for ipc = 2:length(pc) % draw lines connecting performance for each block
+                        dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
+                        Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
+                        og(1) = og(1) + dx;
+                    end
+                    Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1) % draw performance for each block
+                    
+                    % flip screen
                     Screen('Flip', windowPtr);
                 end
                 Screen('DrawText',windowPtr,'Press any key to continue',100,Screen_center(2)-80,[255 255 255]);
             end
-%             
-%             % GRAPH OF PROGRESS
-%             Screen('DrawText',windowPtr,sprintf('End of block %d. You earned %02.f points!',blocknum, mean(PC)),650,screenCenter(2)-140,[255 255 255]);
-%             
-%             graphwidth = round(w/3); % half of graph width
-%             graphheight = round(h/5); % half of graph height
-%             origin = [w/2-graphwidth/2 h/2+graphheight];
-%             Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
-%             Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
-%             Screen('TextSize',windowPtr,24);
-%             Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
-%             
-%             % draw lines to make graph
-%             pc = (PC./75 - 1/3)*graphheight; % rescaling PC to size of graph
-%             dx = graphwidth./breaknum; % equally spaced out to fill size of graph at end of exp.
-%             og = origin;
-%             dc = nan(2,length(pc));
-%             dc(:,1) = [og(1),og(2)-pc(1)];
-%             for ipc = 2:length(pc) % draw the lines
-%                 dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
-%                 Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
-%                 og(1) = og(1) + dx;
-%             end
-%             Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1)
+            
+            
             
             % flip screen and draw fixation screen
             Screen('Flip', windowPtr);
@@ -357,7 +381,7 @@ try
         end
         
         % If this is a practice session, gradually shorten stimulus time
-        if strcmp(settings.expID,'Practice') && (mod(i,32)==0)
+        if strcmp(expID,'Practice') && (mod(i,32)==0)
             stim_on_time = stim_on_time - .033; 
         end
     end
@@ -366,13 +390,13 @@ try
     PC = sum((TrialMat(1:i,1)>0)-TrialMat(1:i,2)==0)/i;
     
     % Compute 65% correct threshold        
-    if strcmp(settings.expID,'Threshold')
+    if strcmp(expID,'Threshold')
         low_rel = compute_ellipse_thresholds(TrialMat,0);
         save(['./output/' subjid '/low_rel'],low_rel)
     end
     
     % show end screen
-    Screen('fillRect',windowPtr,settings.bgdac);
+    Screen('fillRect',windowPtr,bgdac);
     Screen('DrawText',windowPtr,['End of this session. You got ' num2str(PC*100) '% correct. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
     Screen('Flip', windowPtr);
     key = 0;

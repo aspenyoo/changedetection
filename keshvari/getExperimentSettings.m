@@ -43,6 +43,18 @@ catch
     end 
 end
 
+% set some condition-independent variables
+settings.makeScreenShot  = 0;    % if 1, then Screenshots of stimuli will be made
+settings.Screen_width    = 40;   % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
+settings.barwidth        = .3;   % width of stimulus bar (deg)
+settings.barheight       = .8;   % height of stimulus bar (deg)
+settings.ellipseArea     = 0.3;  %settings.barwidth*settings.barheight; % ellipse size (deg^2)
+settings.jitter          = .6;   % amount of x/y-jitter (deg)
+settings.bgdac           = 128;  % background grayvalue (RGB)
+settings.fgdac           = 200;  % foreground grayvalue (RGB)
+settings.stimecc         = 7;    % stimulus eccentricity (deg)
+settings.ITI             = 1;    % inter stimulus time (sec)
+settings.breaktime       = 10;   % mandatory breaktime (sec)
 
 if(strcmp(expID,'Reliability'))
 
@@ -54,6 +66,7 @@ if(strcmp(expID,'Reliability'))
     nTrials = 800;
     breaknum = 8;
     stim_on_time = 0.1;
+    feedback    = 0;    % feedback flag
     
 elseif(strcmp(expID,'Threshold'))
 
@@ -65,6 +78,7 @@ elseif(strcmp(expID,'Threshold'))
     nTrials = 400;
     breaknum = 4;
     stim_on_time = 0.1;
+    feedback = 1;
 
 elseif(strcmp(expID,'Practice'))
 
@@ -76,7 +90,8 @@ elseif(strcmp(expID,'Practice'))
     nTrials = 256;
     breaknum = 2;
     stim_on_time = 0.333;
-
+    feedback = 1;
+    
 end
 
 settings.subjid = upper(subjid);
@@ -88,3 +103,4 @@ settings.setsizeval = setsizeval;
 settings.breaknum = breaknum;
 settings.nTrials = nTrials;
 settings.stim_on_time = stim_on_time;
+settings.feedback = feedback;
