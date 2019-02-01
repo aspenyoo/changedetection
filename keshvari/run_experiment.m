@@ -37,7 +37,7 @@ try
     jitter = settings.jitter;
     stimecc = settings.stimecc;
     makeScreenShot = settings.makeScreenShot;
-    Screen_width = settings.Screen_width;
+    ScreenHeight = settings.ScreenHeight;
     bgdac = settings.bgdac;
     fgdac = settings.fgdac;
     
@@ -47,8 +47,8 @@ try
     Screen_resolution = [w h];                 % Screen resolution
     Screen_center = Screen_resolution/2;       % Screen center
     Screen_distance = 60;                      % distance between observer and Screen (in cm)
-    Screen_angle = 2*(180/pi)*(atan((Screen_width/2) / Screen_distance)) ; % total visual angle of Screen
-    Screen_ppd = Screen_resolution(1) / Screen_angle;  % pixels per degree
+    Screen_angle = 2*(atand((ScreenHeight/2) / Screen_distance)) ; % total visual angle of Screen
+    Screen_ppd = Screen_resolution(2) / Screen_angle;  % pixels per degree
     Screen_fixposxy = Screen_resolution .* [.5 .5]; % fixation position
     ellipseArea = ellipseArea * Screen_ppd^2;
 
