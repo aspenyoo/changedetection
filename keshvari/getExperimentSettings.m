@@ -33,7 +33,7 @@ while ~(strcmp(pres2stimuli,'Ellipse') || strcmp(pres2stimuli,'Line'))
 end
 
 try
-    load(['./output/' subjid '/low_rel'])
+    load(['./output/' subjid '/lowrel_' pres2stimuli])
     if strcmp(expID,'Threshold')
         fprintf('\nThreshold Set! Continue?\n')
         redo_thresh = input('Y/N:','s');

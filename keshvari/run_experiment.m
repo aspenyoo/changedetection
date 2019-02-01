@@ -180,7 +180,7 @@ try
     
     % Randomize the trials
     TrialMat = TrialMat(randperm(nTrials),:);
-    datafilename = ['output/' subjid '/' subjid '_' expID '_' num2str(nTrials) '_' datestr(now,'yyyymmddTHHMMSS') '.mat'];
+    datafilename = ['output/' subjid '/' subjid '_' expID '_' pres2stimuli '_' num2str(nTrials) '_' datestr(now,'yyyymmddTHHMMSS') '.mat'];
     
     % Show start Screen. This needs to be done better
     Screen('TextSize',windowPtr,20);
@@ -352,7 +352,7 @@ try
                 Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
                 Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
                 Screen('TextSize',windowPtr,24);
-                Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
+                Screen('DrawText',windowPtr,'percent correct per block',w/2-200,origin(2)+15,[255 255 255]); % xlabel
                 
                 og = origin;
                 dc = nan(2,length(pc));
@@ -376,7 +376,7 @@ try
                     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
                     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
                     Screen('TextSize',windowPtr,24);
-                    Screen('DrawText',windowPtr,'points per block',w/2-100,origin(2)+15,[255 255 255]); % xlabel
+                    Screen('DrawText',windowPtr,'percent correct per block',w/2-200,origin(2)+15,[255 255 255]); % xlabel
                     
                     og = origin;
                     dc = nan(2,length(pc));
@@ -417,18 +417,23 @@ try
     % Compute 65% correct threshold        
     if strcmp(expID,'Threshold')
         low_rel = compute_ellipse_thresholds(TrialMat,0);
-        save(['./output/' subjid '/low_rel'],low_rel)
+        save(['./output/' subjid '/lowrel_' pres2stimuli],'low_rel')
     end
     
     % ====== SHOW END SCREEN =====
     Screen('fillRect',windowPtr,bgdac);
     Screen('DrawText',windowPtr,['End of this session. You got ' num2str(PC*100) '% correct. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
     
+    % calculate pc
+    correct = logical(TrialMat(idxend+1:end,1)) == TrialMat(idxend+1:end,2); % did subjects get the trials in this block correct?
+    PC = [PC mean(correct)];
+    pc = (PC./.75 - 1/3)*graphheight; % rescaling PC to size of graph
+    
     % graph progress
     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
     Screen('TextSize',windowPtr,24);
-    Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
+    Screen('DrawText',windowPtr,'percent correct per block',w/2-200,origin(2)+15,[255 255 255]); % xlabel
     
     og = origin;
     dc = nan(2,length(pc));
