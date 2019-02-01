@@ -30,8 +30,9 @@ try
     breaktime = settings.breaktime; 
     
     % stimulus and screen settings
-    barwidth = settings.barwidth;
-    barheight = settings.barheight;
+    pres2stimuli = settings.pres2stimuli;
+    lineWidth = settings.lineWidth;
+    lineLength = settings.lineLength;
     ellipseArea = settings.ellipseArea;
     jitter = settings.jitter;
     stimecc = settings.stimecc;
@@ -50,12 +51,13 @@ try
     Screen_ppd = Screen_resolution(1) / Screen_angle;  % pixels per degree
     Screen_fixposxy = Screen_resolution .* [.5 .5]; % fixation position
     ellipseArea = ellipseArea * Screen_ppd^2;
-    
+
     % open Screen
     gray=GrayIndex(ScreenNumber);
     Screen('Preference', 'SkipSyncTests', 1);
     windowPtr = Screen('OpenWindow',ScreenNumber,gray,[],32,2);
-    
+    Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
     % Set break points
     breakpointsVec = [0 round((1:(breaknum-1)).* (nTrials/breaknum))];
     
@@ -93,7 +95,6 @@ try
     % Set reliabilities
     if (strcmp(reliabilitytype,'constant'))
         rel = reliabilityval(ceil(rand(nTrials,1)*length(reliabilityval)));
-        size(rel)
         for i = 39:54
             TrialMat(:,i) = rel;
         end
@@ -148,14 +149,24 @@ try
         % Eccentricity = reliability for now
         ecc = reliabilityval(i);
         
-        % Draw a patch for each orientation
-        for j = 0:numDegrees
+        % Draw a patch for each orientation (counterclockwise from
+        % horizontal)
+        for j = 0:numDegrees 
             b = sqrt(ellipseArea * sqrt(1 - ecc^2) / pi);
             a = ellipseArea / (pi*b);
             im = drawEllipse(2*b,2*a,j*res,fgdac,bgdac);
             StimPatches(i,j+1) = Screen('MakeTexture',windowPtr,im);
             StimSizes(i,j+1,:) = size(im);
             StimSizes(i,j+1,:) = StimSizes(i,j+1,[2 1]);            
+        end
+    end
+    
+    % create lines if second presentation stimuli are lines
+    % (counterclockwise from horizontal)
+    if strcmp(pres2stimuli,'Line') 
+        lineCoordinates = nan(2,numDegrees);
+        for j = 1:numDegrees;
+            [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(lineLength,j);
         end
     end
     
@@ -185,7 +196,6 @@ try
     Screen('DrawText',windowPtr,'The change can be of any magnitude. Press "j" if you think',textx,texty,[255 255 255]); texty = texty + dy;
     Screen('DrawText',windowPtr,'there is a change and "k" if you think they are the same.',textx,texty,[255 255 255]);
     
-    
     Screen('Flip', windowPtr);
     waitForKey;
     Screen('fillRect',windowPtr,bgdac);
@@ -196,13 +206,19 @@ try
     Screen('TextSize', windowPtr, 15);
     HideCursor;
     
+    % settings for the graph shown between blocks
+    graphwidth = round(w/3); % half of graph width
+    graphheight = round(h/5); % half of graph height
+    origin = [w/2-graphwidth/2 h/2+graphheight];
+    dx = graphwidth./breaknum; % equally spaced out to fill size of graph at end of exp.
+    
     % Begin Trials!
     i = 0;
     PC = [];
     while (i < nTrials) && ~aborted
         i = i+1;
         
-        % SCREEN 1a: FIXATION
+        % ======= SCREEN 1a: STIMULUS ======
         Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
         
@@ -215,36 +231,37 @@ try
         end
         
         % show the stimuli for 0.1 seconds
-        sprintf('stim pres 1')
-        tic; % ASPEN
         Screen('flip',windowPtr,nextFlipTime);
         
         nextFlipTime = GetSecs + stim_on_time;
         
-        % SCREEN 1b: BLANK
+        % ======= SCREEN 1b: ISI ========
         Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
-        toc % ASPEN
-        sprintf('ISI')
-        tic; % aspen
         Screen('flip',windowPtr,nextFlipTime);
         nextFlipTime = GetSecs + 1;
         
-        % SCREEN 2: STIMULUS
+        % ======== SCREEN 2: STIMULUS =======
         Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
-        
-        % Second array, draw each element to screen
-        for j= 1:TrialMat(i,5)
-            srcrect = [0 0 squeeze(StimSizes(find(reliabilityval == TrialMat(i,38+8+j)),TrialMat(i,63+j),:))'];
-            destrect = CenterRectOnPoint(srcrect,TrialMat(i,22+j),TrialMat(i,30+j));
-            Screen('drawtexture',windowPtr,StimPatches(find(reliabilityval == TrialMat(i,38+8+j)),TrialMat(i,63+j)),srcrect,destrect,0);
+
+        % Second array, draw each element to screen                
+        switch pres2stimuli
+            case 'Ellipse'
+                for j= 1:TrialMat(i,5)
+                    srcrect = [0 0 squeeze(StimSizes(find(reliabilityval == TrialMat(i,38+8+j)),TrialMat(i,63+j),:))'];
+                    destrect = CenterRectOnPoint(srcrect,TrialMat(i,22+j),TrialMat(i,30+j));
+                    Screen('drawtexture',windowPtr,StimPatches(find(reliabilityval == TrialMat(i,38+8+j)),TrialMat(i,63+j)),srcrect,destrect,0);
+                end
+            case 'Line'
+                for j= 1:TrialMat(i,5)
+                    lineStim = lineCoordinates(:,TrialMat(i,63+j));
+                    xy = [lineStim -lineStim ];
+                    Screen('DrawLines',windowPtr, xy, lineWidth,fgdac,round([TrialMat(i,22+j) TrialMat(i,30+j)]),1);                    
+                end
         end
-        
+
         % show the second stimulus for 0.1 seconds
-        toc % ASPEN
-        sprintf('pres2')
-        tic; % aspen
         Screen('flip',windowPtr,nextFlipTime);
         stimStartTime = GetSecs;
         nextFlipTime = GetSecs + stim_on_time; 
@@ -256,10 +273,9 @@ try
             imwrite(im,['Screenshots/stim_' num2str(trialnr) '.png'],'png');
         end
         
-        % SCREEN 3a: YES/NO RESPONSE
+        % ======= SCREEN 3a: YES/NO RESPONSE ======== 
         Screen('fillRect',windowPtr,bgdac);
         drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
-        toc % ASPEN
         Screen('flip',windowPtr,nextFlipTime);
         REALSTIMTIME = round(1000*(GetSecs - stimStartTime));
         
@@ -323,34 +339,44 @@ try
             idxend = intersect(breakpointsVec,i); % trial idx of the end of current block
             correct = logical(TrialMat(idxstart:idxend,1)) == TrialMat(idxstart:idxend,2); % did subjects get the trials in this block correct?
             PC = [PC mean(correct)];
-            
-            if (intersect(breakpointsVec,i) == breakpointsVec(ceil(breaknum/2)+1))
+            pc = (PC./.75 - 1/3)*graphheight; % rescaling PC to size of graph
+
+            if (intersect(breakpointsVec,i) == breakpointsVec(ceil(breaknum/2)+1)) % if halfway
                 TempTrialMat = TrialMat(1:i,:);
                 HalfPC = sum((TempTrialMat(:,1)>0)-TempTrialMat(:,2)==0)/i;
                 
                 Screen('fillRect',windowPtr,bgdac);
                 Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
                 
-            else
+                % graph progress
+                Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
+                Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
+                Screen('TextSize',windowPtr,24);
+                Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
+                
+                og = origin;
+                dc = nan(2,length(pc));
+                dc(:,1) = [og(1),og(2)-pc(1)];
+                for ipc = 2:length(pc) % draw lines connecting performance for each block
+                    dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
+                    Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
+                    og(1) = og(1) + dx;
+                end
+                Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1) % draw performance for each block
+
+            else % if a break that is not halfway
                 Screen('fillRect',windowPtr,bgdac);
                 tic
                 
-                % progress graph settings
-                graphwidth = round(w/3); % half of graph width
-                graphheight = round(h/5); % half of graph height
-                origin = [w/2-graphwidth/2 h/2+graphheight];
-                pc = (PC./.75 - 1/3)*graphheight; % rescaling PC to size of graph
-                dx = graphwidth./breaknum; % equally spaced out to fill size of graph at end of exp.
-                
                 while toc<breaktime
                     Screen('DrawText',windowPtr,['You have finished ' num2str(round(100*i/nTrials)) '% of the trials'],100,Screen_center(2)-80,[255 255 255]);
-                    Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(breaktime-toc)) ' seconds…'],100,Screen_center(2)-100,[255 255 255]);
+                    Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(breaktime-toc)) ' seconds…'],100,Screen_center(2)-110,[255 255 255]);
 
                     % graph progress
                     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
                     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
                     Screen('TextSize',windowPtr,24);
-                    Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
+                    Screen('DrawText',windowPtr,'points per block',w/2-100,origin(2)+15,[255 255 255]); % xlabel
                     
                     og = origin;
                     dc = nan(2,length(pc));
@@ -367,8 +393,6 @@ try
                 end
                 Screen('DrawText',windowPtr,'Press any key to continue',100,Screen_center(2)-80,[255 255 255]);
             end
-            
-            
             
             % flip screen and draw fixation screen
             Screen('Flip', windowPtr);
@@ -396,9 +420,26 @@ try
         save(['./output/' subjid '/low_rel'],low_rel)
     end
     
-    % show end screen
+    % ====== SHOW END SCREEN =====
     Screen('fillRect',windowPtr,bgdac);
     Screen('DrawText',windowPtr,['End of this session. You got ' num2str(PC*100) '% correct. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
+    
+    % graph progress
+    Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
+    Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
+    Screen('TextSize',windowPtr,24);
+    Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
+    
+    og = origin;
+    dc = nan(2,length(pc));
+    dc(:,1) = [og(1),og(2)-pc(1)];
+    for ipc = 2:length(pc) % draw lines connecting performance for each block
+        dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
+        Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
+        og(1) = og(1) + dx;
+    end
+    Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1) % draw performance for each block
+    
     Screen('Flip', windowPtr);
     key = 0;
     while (key ~= 13)

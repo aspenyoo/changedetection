@@ -8,6 +8,7 @@ nTrials = []; % number of trials
 breaknum =[]; % number of breaks
 stim_on_time = []; % stimulus on time (per display)
 expID = ''; % experiment type
+pres2stimuli = ''; % shape of stimuli in second presentaion
 dir_names = dir('./output');
 
 % Get subject ID
@@ -26,6 +27,9 @@ end
 % If this is an existing experimental setup, use those parameters
 while ~(strcmp(expID,'Reliability') || strcmp(expID,'Threshold') || strcmp(expID,'Practice'))
     expID = input('Experiment ID (Reliability/Threshold/Practice)............: ','s');
+end
+while ~(strcmp(pres2stimuli,'Ellipse') || strcmp(pres2stimuli,'Line'))
+    pres2stimuli = input('Stimuli in second presentation (Ellipse/Line)............: ','s');
 end
 
 try
@@ -46,10 +50,13 @@ end
 % set some condition-independent variables
 settings.makeScreenShot  = 0;    % if 1, then Screenshots of stimuli will be made
 settings.Screen_width    = 40;   % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
-settings.barwidth        = .3;   % width of stimulus bar (deg)
-settings.barheight       = .8;   % height of stimulus bar (deg)
 settings.ellipseArea     = 0.3;  %settings.barwidth*settings.barheight; % ellipse size (deg^2)
-settings.jitter          = .6;   % amount of x/y-jitter (deg)
+% the linewidth and length are set to approximate the ellipse area!
+settings.lineWidth       = 6;    % width of line, for presentation 2 (pixels)
+settings.lineLength      = 135;  % length of line for pres 2 simuli (pixels)
+% settings.barwidth        = 0.3;  % width of stimulus bar (deg)
+% settings.barheight       = 0.8;  % height of stimulus bar (deg)
+settings.jitter          = 0.6;  % amount of x/y-jitter (deg)
 settings.bgdac           = 128;  % background grayvalue (RGB)
 settings.fgdac           = 200;  % foreground grayvalue (RGB)
 settings.stimecc         = 7;    % stimulus eccentricity (deg)
@@ -104,3 +111,4 @@ settings.breaknum = breaknum;
 settings.nTrials = nTrials;
 settings.stim_on_time = stim_on_time;
 settings.feedback = feedback;
+settings.pres2stimuli = pres2stimuli;

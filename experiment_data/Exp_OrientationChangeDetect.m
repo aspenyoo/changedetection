@@ -23,7 +23,7 @@ rng('shuffle');
 % ==================================================================
 
 % importing preferences for simultaneous/sequential experiment
-prefs = prefscode('Detect','Keshvari', subjid, sessionnum, nTrialsPerCond);
+prefs = prefscode('Detect','Simult', subjid, sessionnum, nTrialsPerCond);
 % prefs = prefscode('Detect','Simult',subjid, sessionnum,nTrialsPerCond);
 
 % response keys
