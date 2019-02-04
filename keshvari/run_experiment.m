@@ -412,7 +412,7 @@ try
     end
     
     % Calculate percent correct
-    PC = sum((TrialMat(1:i,1)>0)-TrialMat(1:i,2)==0)/i;
+    PC_all = sum((TrialMat(1:i,1)>0)-TrialMat(1:i,2)==0)/i;
     
     % Compute 65% correct threshold        
     if strcmp(expID,'Threshold')
@@ -422,7 +422,7 @@ try
     
     % ====== SHOW END SCREEN =====
     Screen('fillRect',windowPtr,bgdac);
-    Screen('DrawText',windowPtr,['End of this session. You got ' num2str(PC*100) '% correct. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
+    Screen('DrawText',windowPtr,['End of this session. You got ' num2str(PC_all*100) '% correct. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
     
     % calculate pc
     correct = logical(TrialMat(idxend+1:end,1)) == TrialMat(idxend+1:end,2); % did subjects get the trials in this block correct?
