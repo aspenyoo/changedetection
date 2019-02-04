@@ -206,12 +206,6 @@ try
     Screen('TextSize', windowPtr, 15);
     HideCursor;
     
-%     % settings for the graph shown between blocks
-%     graphwidth = round(w/3); % half of graph width
-%     graphheight = round(h/5); % half of graph height
-%     origin = [w/2-graphwidth/2 h/2+graphheight];
-%     dx = graphwidth./breaknum; % equally spaced out to fill size of graph at end of exp.
-    
     % Begin Trials!
     i = 0;
     PC = [];
@@ -328,7 +322,7 @@ try
         Screen('flip',windowPtr);
         nextFlipTime = GetSecs + ITI;
         
-        % show progress info + target reminder
+        % ============ show progress info + target reminder ========
         
         if ~isempty(intersect(breakpointsVec,i))
             Screen('fillRect',windowPtr,bgdac);
@@ -349,10 +343,27 @@ try
                 HalfPC = sum((TempTrialMat(:,1)>0)-TempTrialMat(:,2)==0)/i;
                 
                 Screen('fillRect',windowPtr,bgdac);
-                Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
-                
-                % plot progress graph
-                if strcmp(expID,'Reliability'); graphProgress(windowPtr,breaknum,PC); end
+
+                if strcmp(expID,'Reliability'); 
+                    Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press get the experimenter. '],100,Screen_center(2)-110,[255 255 255]);
+                    graphProgress(windowPtr,breaknum,PC); % plot progress graph
+                    Screen('Flip', windowPtr);
+                    
+                    % wait for key press "a"
+                    breakKey = KbName('a');
+                    done=0;
+                    while ~done
+                        keyCode = waitForKey;
+                        if (keyCode==breakKey)
+                            done=1;
+                        elseif (keyCode == escKey)
+                            aborted=1;
+                            break;
+                        end
+                    end
+                else
+                    Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far.'],250,Screen_center(2)-110,[255 255 255]);
+                end
 
             else % if a break that is not halfway
                 Screen('fillRect',windowPtr,bgdac);
@@ -368,13 +379,14 @@ try
                     % flip screen
                     Screen('Flip', windowPtr);
                 end
-                Screen('DrawText',windowPtr,'Press any key to continue',100,Screen_center(2)-80,[255 255 255]);
             end
-            
-            % flip screen and draw fixation screen
+                                    
+            % "press any key to continue" screen
+            Screen('DrawText',windowPtr,'Press any key to continue',100,Screen_center(2)-80,[255 255 255]);
             Screen('Flip', windowPtr);
             waitForKey;
             
+            % starting trial again: fixation
             drawfixation(windowPtr,Screen_fixposxy(1),Screen_fixposxy(2),fixcol,fixsize);
             Screen('Flip', windowPtr);
             WaitSecs(1.2);
