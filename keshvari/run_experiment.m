@@ -339,7 +339,6 @@ try
             idxend = intersect(breakpointsVec,i); % trial idx of the end of current block
             correct = logical(TrialMat(idxstart:idxend,1)) == TrialMat(idxstart:idxend,2); % did subjects get the trials in this block correct?
             PC = [PC mean(correct)];
-%             pc = (PC./.75 - 1/3)*graphheight; % rescaling PC to size of graph
 
             if (intersect(breakpointsVec,i) == breakpointsVec(ceil(breaknum/2)+1)) % if halfway
                 TempTrialMat = TrialMat(1:i,:);
@@ -348,22 +347,8 @@ try
                 Screen('fillRect',windowPtr,bgdac);
                 Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
                 
+                % plot progress graph
                 graphProgress(windowPtr,breaknum,PC);
-%                 % graph progress
-%                 Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
-%                 Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
-%                 Screen('TextSize',windowPtr,24);
-%                 Screen('DrawText',windowPtr,'percent correct per block',w/2-200,origin(2)+15,[255 255 255]); % xlabel
-%                 
-%                 og = origin;
-%                 dc = nan(2,length(pc));
-%                 dc(:,1) = [og(1),og(2)-pc(1)];
-%                 for ipc = 2:length(pc) % draw lines connecting performance for each block
-%                     dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
-%                     Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
-%                     og(1) = og(1) + dx;
-%                 end
-%                 Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1) % draw performance for each block
 
             else % if a break that is not halfway
                 Screen('fillRect',windowPtr,bgdac);
@@ -373,23 +358,9 @@ try
                     Screen('DrawText',windowPtr,['You have finished ' num2str(round(100*i/nTrials)) '% of the trials'],100,Screen_center(2)-80,[255 255 255]);
                     Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(breaktime-toc)) ' seconds…'],100,Screen_center(2)-110,[255 255 255]);
 
+                    % plot the progress graph
                     graphProgress(windowPtr,breaknum,PC);
-%                     % graph progress
-%                     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
-%                     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
-%                     Screen('TextSize',windowPtr,24);
-%                     Screen('DrawText',windowPtr,'percent correct per block',w/2-200,origin(2)+15,[255 255 255]); % xlabel
-%                     
-%                     og = origin;
-%                     dc = nan(2,length(pc));
-%                     dc(:,1) = [og(1),og(2)-pc(1)];
-%                     for ipc = 2:length(pc) % draw lines connecting performance for each block
-%                         dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
-%                         Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
-%                         og(1) = og(1) + dx;
-%                     end
-%                     Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1) % draw performance for each block
-                    
+
                     % flip screen
                     Screen('Flip', windowPtr);
                 end
@@ -426,27 +397,10 @@ try
     Screen('fillRect',windowPtr,bgdac);
     Screen('DrawText',windowPtr,['End of this session. You got ' num2str(PC_all*100) '% correct. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
     
-    % calculate pc
+    % calculate and graph progess
     correct = logical(TrialMat(idxend+1:end,1)) == TrialMat(idxend+1:end,2); % did subjects get the trials in this block correct?
     PC = [PC mean(correct)];
     graphProgress(windowPtr,breaknum,PC)
-%     pc = (PC./.75 - 1/3)*graphheight; % rescaling PC to size of graph
-%     
-%     % graph progress
-%     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
-%     Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
-%     Screen('TextSize',windowPtr,24);
-%     Screen('DrawText',windowPtr,'percent correct per block',w/2-200,origin(2)+15,[255 255 255]); % xlabel
-%     
-%     og = origin;
-%     dc = nan(2,length(pc));
-%     dc(:,1) = [og(1),og(2)-pc(1)];
-%     for ipc = 2:length(pc) % draw lines connecting performance for each block
-%         dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
-%         Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
-%         og(1) = og(1) + dx;
-%     end
-%     Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1) % draw performance for each block
     
     Screen('Flip', windowPtr);
     key = 0;
