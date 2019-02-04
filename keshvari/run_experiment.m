@@ -337,8 +337,12 @@ try
             Screen('flip',windowPtr,nextFlipTime);
             idxstart = (breakpointsVec(find(breakpointsVec==i)-1)+1); % first trial idx of current block
             idxend = intersect(breakpointsVec,i); % trial idx of the end of current block
-            correct = logical(TrialMat(idxstart:idxend,1)) == TrialMat(idxstart:idxend,2); % did subjects get the trials in this block correct?
-            PC = [PC mean(correct)];
+            
+            % calculate percent correct, for graphing progress
+            if strcmp(expID,'Reliability');
+                correct = logical(TrialMat(idxstart:idxend,1)) == TrialMat(idxstart:idxend,2); % did subjects get the trials in this block correct?
+                PC = [PC mean(correct)];
+            end
 
             if (intersect(breakpointsVec,i) == breakpointsVec(ceil(breaknum/2)+1)) % if halfway
                 TempTrialMat = TrialMat(1:i,:);
@@ -348,7 +352,7 @@ try
                 Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
                 
                 % plot progress graph
-                graphProgress(windowPtr,breaknum,PC);
+                if strcmp(expID,'Reliability'); graphProgress(windowPtr,breaknum,PC); end
 
             else % if a break that is not halfway
                 Screen('fillRect',windowPtr,bgdac);
@@ -359,8 +363,8 @@ try
                     Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(breaktime-toc)) ' seconds…'],100,Screen_center(2)-110,[255 255 255]);
 
                     % plot the progress graph
-                    graphProgress(windowPtr,breaknum,PC);
-
+                    if strcmp(expID,'Reliability'); graphProgress(windowPtr,breaknum,PC); end
+                
                     % flip screen
                     Screen('Flip', windowPtr);
                 end
@@ -398,9 +402,11 @@ try
     Screen('DrawText',windowPtr,['End of this session. You got ' num2str(PC_all*100) '% correct. Press <ENTER> to continue'],250,Screen_center(2) - 50,[255 255 255]);
     
     % calculate and graph progess
-    correct = logical(TrialMat(idxend+1:end,1)) == TrialMat(idxend+1:end,2); % did subjects get the trials in this block correct?
-    PC = [PC mean(correct)];
-    graphProgress(windowPtr,breaknum,PC)
+    if strcmp(expID,'Reliability'); 
+        correct = logical(TrialMat(idxend+1:end,1)) == TrialMat(idxend+1:end,2); % did subjects get the trials in this block correct?
+        PC = [PC mean(correct)];
+        graphProgress(windowPtr,breaknum,PC); 
+    end
     
     Screen('Flip', windowPtr);
     key = 0;
