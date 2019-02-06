@@ -9,8 +9,8 @@ fprintf('MC samples, and whether you parallelize "for" loops.\n\n');
 fprintf('Press any key to start the analysis.\n');
 pause()
 
-addpath(genpath('../'))
-load ../data/Subj_data_cell.mat
+% addpath(genpath('../'))
+load Subj_data_cell.mat
 
 % set random seed
 rng('shuffle')
@@ -21,6 +21,11 @@ model_mat = ...
     1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
     2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
     2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
+subjid = 'POO';
+pres2stimuli = 'Ellipse';
+for imodel = 2:size(model_mat,1)
+    run_model_reliability(subjid, pres2stimuli, model_mat(imodel,:));
+end
 
 % Get the model predictions and log likelihoods. This takes a LONG time. I
 % suggest using matlab parallel toolbox to parallelize the inner for-loop,

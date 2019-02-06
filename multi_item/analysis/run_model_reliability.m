@@ -21,7 +21,7 @@
 %           3-> Global decision noise
 %           4-> Both global and local decision noise (NOT IN PAPER)
 
-function [LL,P_C_HAT] = run_model_reliability(subj_data_idx,model_idx)
+function [LL,P_C_HAT] = run_model_reliability(subjid, pres2stimuli,model_idx)
 
 % model indices
 encoding = model_idx(1); 
@@ -29,12 +29,16 @@ variability = model_idx(2);
 decision_rule = model_idx(3);
 decision_noise = model_idx(4);
 
-fprintf('Encoding: %g Variability: %g Decision Rule: %g Decision Noise: %g Subject: %g\n',encoding,variability,decision_rule,decision_noise,subj_data_idx)
+fprintf('Encoding: %g Variability: %g Decision Rule: %g Decision Noise: %g Subject: %s\n',encoding,variability,decision_rule,decision_noise,subjid)
 
 % load parameter ranges & data
-A = load('../data/param_data_file.mat');
-load('../data/Subj_data_cell.mat');
-Subj_data_cell = revert_data(Subj_data_cell);
+A = load('param_data_file.mat');
+load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
+Subj_data = trialMat;
+clear trialMat
+
+% load('Subj_data_cell.mat');
+% Subj_data_cell = revert_data(Subj_data_cell);
 
 J_vec = A.J_vec;
 J_vec_FP = A.J_vec_FP;
@@ -75,8 +79,8 @@ end
 logprior_vec = shiftdim(log(prior_vec./(1-prior_vec)),-4);
 
 % set size & numTrials from data, assuming all same set size
-N = Subj_data_cell{subj_data_idx}(1,5);
-num_trials = size(Subj_data_cell{subj_data_idx},1);
+N = Subj_data(1,5);
+num_trials = size(Subj_data,1);
 
 % Only keep needed decision noise
 if decision_noise == 1
@@ -97,13 +101,13 @@ J_init = zeros(num_samples,N,num_trials);
 delta_noise = J_init;
 
 % Lookup tables for modified bessel function and J to Kappa equation
-Lookup(:,1) = linspace(0,700.92179,3500)';
+highest_J = 700.92179;
+Lookup(:,1) = linspace(0,highest_J,3500)';
 Lookup(:,2) = besseli(0,Lookup(:,1));
 LookupY = Lookup(:,2);
 LookupSpacing = 1/(Lookup(2,1)-Lookup(1,1));
 cdfLin = linspace(-pi,pi,1000)';
-highest_J = 700.92179;
-K_interp = [0 logspace(log10(1e-3),log10(700.92179),1999)];
+K_interp = [0 logspace(log10(1e-3),log10(highest_J),1999)];
 
 % make CDF for interpolating J to Kappa
 cdf = make_cdf_table(K_interp,cdfLin);
@@ -118,25 +122,25 @@ highest_J = max(J_range);
 t = []; 
 
 % Get data into [rel], [delta] format
-Subj_data = Subj_data_cell{subj_data_idx};
 Data_rel = Subj_data(:,39:(38+N)); % reliabilities
 Data_delta = -Subj_data(:,56:(55+N))*(pi/90) + Subj_data(:,64:(63+N))*(pi/90); % y-x
 C_hat = Subj_data(:,2);
 
 % SORT DATA
 % First, sort each trial. Low to high reliability
-[rel_sorted I_t] = sort(Data_rel,2);
-Delta_sorted = zeros(size(Data_delta));
+[rel_sorted, I_t] = sort(Data_rel,2);               % sorting reliabilities for each trial from low to high
+Delta_sorted = zeros(size(Data_delta));             
 for j = 1:size(rel_sorted,1)
     Delta_sorted(j,:) = Data_delta(j,I_t(j,:));
 end
 
 % Now, sort by number of reliabilities. Low to high
-rels = unique(Data_rel);
-high_num = sum(Data_rel==rels(2),2);
-[high_sorted I] = sort(high_num); I_LATER = I;
-low_sorted = N-high_sorted;
-delta = Delta_sorted(I,:);
+rels = unique(Data_rel);            % unique reliabilities across experiment
+high_num = sum(Data_rel==rels(2),2);% number of high rel items on each trial
+[high_sorted, I] = sort(high_num);  % sorted (ascending order) and original indices of high_num
+I_LATER = I;                        % renaming (ASPEN: not sure why necessary)
+low_sorted = N-high_sorted;         % number of low rel items, in descending order
+delta = Delta_sorted(I,:);          % 
 rel_sorted = rel_sorted(I,:);
 low_rel = rel_sorted == rels(1);
 high_rel = rel_sorted == rels(2);
@@ -175,11 +179,11 @@ for J_high_idx = 1:length(J_vec)
             switch encoding
                 case 1 % encode with VR
                     
-                    [delta_noise kappa_x kappa_y] = encode_VR();
+                    [delta_noise, kappa_x, kappa_y] = encode_VR();
                     
                 case 2 % encode with ER
                     if (variability == 2) || (theta_idx == 1)
-                        [delta_noise kappa_x kappa_y] = encode_ER();
+                        [delta_noise, kappa_x, kappa_y] = encode_ER();
                     end
             end
             get_deltas = 0;
@@ -194,53 +198,52 @@ for J_high_idx = 1:length(J_vec)
                         % optimized for VP/FP
                         
                         % if encoded with VP
-                        if encoding == 1
-                            kappa_x_i = kappa_x;
-                            kappa_y_i = kappa_y;
-                            Kc = sqrt(kappa_x_i.^2+kappa_y_i.^2+2*kappa_x_i.*kappa_y_i.*cos(delta+delta_noise));
-                            Kc(Kc>Lookup(end,1)) = Lookup(end,1); % clip large values
-                            d = myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY)./myBessel(Kc,LookupSpacing,LookupY);
-                            
-                            % if encoded with FP
-                        else
-                            [tmp kappa_x_i kappa_y_i] = encode_VR();
-                            Kc = sqrt(kappa_x_i.^2+kappa_y_i.^2+2*kappa_x_i.*kappa_y_i.*cos(delta+delta_noise));
-                            Kc(Kc>Lookup(end,1)) = Lookup(end,1);
-                            d = myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY)./myBessel(Kc,LookupSpacing,LookupY);
-                            
+                        switch encoding
+                            case 1 % VP encoding
+                                kappa_x_i = kappa_x;
+                                kappa_y_i = kappa_y;
+                                Kc = sqrt(kappa_x_i.^2+kappa_y_i.^2+2*kappa_x_i.*kappa_y_i.*cos(delta+delta_noise));
+                                Kc(Kc>Lookup(end,1)) = Lookup(end,1); % clip large values
+                                d = myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY)./myBessel(Kc,LookupSpacing,LookupY);
+
+                            case 2 % FP encoding
+                                [tmp, kappa_x_i, kappa_y_i] = encode_VR();
+                                Kc = sqrt(kappa_x_i.^2+kappa_y_i.^2+2*kappa_x_i.*kappa_y_i.*cos(delta+delta_noise));
+                                Kc(Kc>Lookup(end,1)) = Lookup(end,1);
+                                d = myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY)./myBessel(Kc,LookupSpacing,LookupY);
+                                
                         end
                         
                     case 2 % Assume FP variability
                         
                         % optimize for VP/FP
-                        % if encoded with FP
-                        if encoding == 1
-                            [tmp kappa_x_i kappa_y_i] = encode_ER(); %#ok<NASGU>
-                            Kc = sqrt(bsxfun(@times,2*kappa_x_i.^2,1+cos(delta+delta_noise)));
-                            Kc(Kc>Lookup(end,1)) = Lookup(end,1);
-                            d = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).^2,myBessel(Kc,LookupSpacing,LookupY));
-                            
-                            % if encoded with FP
-                        else
-                            Kc = sqrt(bsxfun(@times,2*kappa_x.^2,cos(delta+delta_noise)+1));
-                            Kc(Kc>Lookup(end,1)) = Lookup(end,1);
-                            d = bsxfun(@rdivide,myBessel(kappa_x,LookupSpacing,LookupY).^2,myBessel(Kc,LookupSpacing,LookupY));
+                        switch encoding
+                            case 1 % VP encoding
+                                [tmp, kappa_x_i, kappa_y_i] = encode_ER(); %#ok<NASGU>
+                                Kc = sqrt(bsxfun(@times,2*kappa_x_i.^2,1+cos(delta+delta_noise)));
+                                Kc(Kc>Lookup(end,1)) = Lookup(end,1);
+                                d = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).^2,myBessel(Kc,LookupSpacing,LookupY));
+                            case 2 % FP encoding
+                                Kc = sqrt(bsxfun(@times,2*kappa_x.^2,cos(delta+delta_noise)+1));
+                                Kc(Kc>Lookup(end,1)) = Lookup(end,1);
+                                d = bsxfun(@rdivide,myBessel(kappa_x,LookupSpacing,LookupY).^2,myBessel(Kc,LookupSpacing,LookupY));
                         end
                         
                     case 3 % average variability
                         
                         % optimize if FP
-                        if encoding == 1
-                            kappa_x_i = bsxfun(@plus,mean(kappa_x,2),zeros(size(kappa_x)));
-                            kappa_y_i = bsxfun(@plus,mean(kappa_y,2),zeros(size(kappa_y)));
-                            Kc = sqrt(kappa_x_i.^2+kappa_y_i.^2+2*kappa_x_i.*kappa_y_i.*cos(delta+delta_noise));
-                            Kc(Kc>Lookup(end,1)) = Lookup(end,1);
-                            d = bsxfun(@times,myBessel(kappa_x_i(:,1,:),LookupSpacing,LookupY).*myBessel(kappa_y_i(:,1,:),LookupSpacing,LookupY),1./myBessel(Kc,LookupSpacing,LookupY));
-                        else % if VP
-                            kappa_x_i = bsxfun(@plus,mean(kappa_x,2),zeros(size(kappa_x)));
-                            Kc = sqrt(bsxfun(@times,2*kappa_x_i.^2,1+cos(delta+delta_noise)));
-                            Kc(Kc>Lookup(end,1)) = Lookup(end,1);
-                            d = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).^2,myBessel(Kc,LookupSpacing,LookupY));
+                        switch encoding
+                            case 1 % VP encoding
+                                kappa_x_i = bsxfun(@plus,mean(kappa_x,2),zeros(size(kappa_x)));
+                                kappa_y_i = bsxfun(@plus,mean(kappa_y,2),zeros(size(kappa_y)));
+                                Kc = sqrt(kappa_x_i.^2+kappa_y_i.^2+2*kappa_x_i.*kappa_y_i.*cos(delta+delta_noise));
+                                Kc(Kc>Lookup(end,1)) = Lookup(end,1);
+                                d = bsxfun(@times,myBessel(kappa_x_i(:,1,:),LookupSpacing,LookupY).*myBessel(kappa_y_i(:,1,:),LookupSpacing,LookupY),1./myBessel(Kc,LookupSpacing,LookupY));
+                            case 2 % FP encoding
+                                kappa_x_i = bsxfun(@plus,mean(kappa_x,2),zeros(size(kappa_x)));
+                                Kc = sqrt(bsxfun(@times,2*kappa_x_i.^2,1+cos(delta+delta_noise)));
+                                Kc(Kc>Lookup(end,1)) = Lookup(end,1);
+                                d = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).^2,myBessel(Kc,LookupSpacing,LookupY));
                         end
                         
                     case 4 % single variability
@@ -312,7 +315,7 @@ for J_high_idx = 1:length(J_vec)
                 
                 % save maximizing P_C_HAT
                 if max(curr_LL(:))>max(LL(LL~=0))
-                    [X I] = max(curr_LL(:));
+                    [X, I] = max(curr_LL(:));
                     Subj_data_temp = Subj_data(I_LATER,:);
                     Subj_data_temp(:,2) = squeeze(p_C_hat(:,I));
                     P_C_HAT = Subj_data_temp;
@@ -333,11 +336,11 @@ for J_high_idx = 1:length(J_vec)
     
 end
 
-save(['./LL/LL_' num2str(subj_data_idx) '_' num2str(encoding) '_' num2str(variability) '_' num2str(decision_rule) '_' num2str(decision_noise)],'LL','P_C_HAT','-v7.3');
+save(['analysis/LL/LL_' subjid '_' pres2stimuli '_' num2str(encoding) '_' num2str(variability) '_' num2str(decision_rule) '_' num2str(decision_noise)],'LL','P_C_HAT','-v7.3');
 
 % helper functions
 
-    function [delta_noise kappa_x kappa_y] = encode_VR()
+    function [delta_noise, kappa_x, kappa_y] = encode_VR()
         kappa_x = J_init;
         kappa_y = J_init;
         delta_noise = kappa_x;
@@ -397,9 +400,8 @@ save(['./LL/LL_' num2str(subj_data_idx) '_' num2str(encoding) '_' num2str(variab
             
         end
     end
-    function [delta_noise kappa_x kappa_y] = encode_ER()
-        kappa_x = J_init;
-        delta_noise = kappa_x;
+    function [delta_noise, kappa_x, kappa_y] = encode_ER()
+        [kappa_x, delta_noise] = deal(J_init); % initiating empty matrix
         
         % Convert from J to Kappa
         kappa_low = J_to_Kappa(J_low);

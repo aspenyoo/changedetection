@@ -1,8 +1,8 @@
 
 %% set up data into useable format
 
-subj_ID_cell = {'METEST','POO'};
-pres2stimuli_cell = {'Line','Ellipse'};
+subj_ID_cell = {'POO'};
+pres2stimuli_cell = {'Ellipse'};
 Subj_data_cell = combine_all_data(subj_ID_cell,pres2stimuli_cell);
 
 save('Subj_data_cell.mat','Subj_data_cell')

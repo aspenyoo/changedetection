@@ -4,8 +4,8 @@
 function bars = compute_BMC(model_idx)
 
 % load parameter ranges & data
-load('../data/param_data_file.mat');
-load('../data/Subj_data_cell.mat');
+load('param_data_file.mat');
+load('Subj_data_cell.mat');
 
 bars = NaN(length(Subj_data_cell),1);
 
@@ -24,8 +24,8 @@ J_range_VP_full = log(max(J_vec)-min(J_vec)); % ditto
 prior_range = log(max(prior_vec)-min(prior_vec));
 local_d_range = log(max(local_d_noise_vec)-min(local_d_noise_vec));
 global_d_range = log(max(global_d_noise_vec)-min(global_d_noise_vec));
-theta_range = log(max(theta_vec) - min(theta_vec));
-crit_range = log(max(crit_vec) - min(crit_vec));
+theta_range = log(max(theta_vec)-min(theta_vec));
+crit_range = log(max(crit_vec)-min(crit_vec));
 
 % for each subject
 for ii = 1:length(Subj_data_cell)
