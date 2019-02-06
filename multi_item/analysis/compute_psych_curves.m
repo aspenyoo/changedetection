@@ -5,7 +5,7 @@
 % to use, the next two are 1 if plotting subject and/or model data,
 % respectively, and the last one is
 
-function [p_C_hat_mat_subj,HR_mean_subj,FA_mean_subj] = compute_psych_curves(num_delta_bins,plot_subj_data,plot_model_data,Model_Data_Cell)
+function [delta_bin_vec,p_C_hat_mat_subj,HR_subj,FA_subj] = compute_psych_curves(num_delta_bins,plot_subj_data,plot_model_data,Model_Data_Cell)
 
 if nargin==3 % no model data
     plot_model_data = 0;
@@ -22,25 +22,37 @@ Subj_data_cell = revert_data(Subj_data_cell);
 num_subj = length(Subj_data_cell);
 
 % get subject data and model curves
-[p_C_hat_mat_subj,curr_mean_subj,curr_stderr_subj,FA_mean_subj,FA_stderr_subj,HR_mean_subj,HR_stderr_subj,N_vec] = get_curves(delta_bin_vec,Subj_data_cell);
+% [p_C_hat_mat_subj,curr_mean_subj,curr_stderr_subj,FA_mean_subj,FA_stderr_subj,HR_mean_subj,HR_stderr_subj,N_vec] = get_curves(delta_bin_vec,Subj_data_cell);
+[p_C_hat_mat_subj,HR_subj,FA_subj,N_vec] = get_curves(delta_bin_vec,Subj_data_cell);
 
 if plot_subj_data
-    close
+    
+    curr_mean_subj = squeeze(mean(p_C_hat_mat_subj,1));
+    curr_stderr_subj = squeeze(std(p_C_hat_mat_subj,[],1)/sqrt(num_subj));
+    
+%     close
     figure
     subplot(1,2,1)
-    stdlines = [0 0 1;.9 .6 0;0 1 0;1 0 0; 0 1 1];
+%     stdlines = [0 0 1;.9 .6 0;0 1 0;1 0 0; 0 1 1];
     for i = 1:length(N_vec)
-        errorbar(delta_bin_vec,curr_mean_subj(i,:),curr_stderr_subj(i,:),'Color',stdlines(i,:),'LineWidth',1.5);
+        %         errorbar(delta_bin_vec,curr_mean_subj(i,:),curr_stderr_subj(i,:),'Color',stdlines(i,:),'LineWidth',1.5);
+        errorbar(delta_bin_vec,curr_mean_subj(i,:),curr_stderr_subj(i,:),'LineWidth',1.5);
         hold on
     end
     legend([repmat('N_H=',length(N_vec),1) num2str(N_vec)],'Location','SouthEast')
     title('Probability report "Change"')
     xlabel('Magnitude of change in radians')
+    defaultplot
     
     subplot(1,2,2)
     
     HR_point_color = [0 0 0];
     FA_point_color = (1/255)*[148 138 84];
+    
+    FA_mean_subj = mean(FA_subj,1);
+    FA_stderr_subj = std(FA_subj,[],1)/sqrt(num_subj);
+    HR_mean_subj = mean(HR_subj,1);
+    HR_stderr_subj = std(HR_subj,[],1)/sqrt(num_subj);
     
     hold on
     errorbar(N_vec,HR_mean_subj,HR_stderr_subj,'Color',HR_point_color,'LineWidth',1.5);
@@ -51,11 +63,13 @@ if plot_subj_data
     xlabel('Number of high reliability items (N_H)')
     set(gcf,'OuterPosition',[0 0 1000 500])
     title('Subject data')
+    defaultplot
 end
 
 if nargin == 4 % if given the model predictions
-    [p_C_hat_mat,curr_mean,curr_stderr,FA_mean,FA_stderr,HR_mean,HR_stderr,N_vec] = get_curves(delta_bin_vec,Model_Data_Cell);
-    
+    [p_C_hat_mat,HR,FA,N_vec] = get_curves(delta_bin_vec,Model_Data_Cell);
+%     [p_C_hat_mat,curr_mean,curr_stderr,FA_mean,FA_stderr,HR_mean,HR_stderr,N_vec] = get_curves(delta_bin_vec,Model_Data_Cell);    
+
     % plotting model predictions as well
     if plot_model_data
         
@@ -71,6 +85,10 @@ if nargin == 4 % if given the model predictions
         
         p_C_hat_mat_mean = squeeze(mean(p_C_hat_mat,1));
         p_C_hat_mat_stderr = squeeze(std(p_C_hat_mat,[],1)/sqrt(num_subj));
+        FA_mean = mean(FA,1);
+        FA_stderr = std(FA,[],1)/sqrt(num_subj);
+        HR_mean = mean(HR,1);
+        HR_stderr = std(HR,[],1)/sqrt(num_subj);
         
         for i = 1:length(N_vec)
             polyY(1:length(delta_bin_vec)) = p_C_hat_mat_mean(i,:)-p_C_hat_mat_stderr(i,:);
@@ -128,12 +146,12 @@ if nargin == 4 % if given the model predictions
         xlabel('Number of high reliability items (N_H)')
         
         set(gcf,'OuterPosition',[0 0 1000 500])
-        title('Model predictions on subject data')
-        
+        title('Model predictions on subject data')        
     end
 end
 
-function [p_C_hat_mat,curr_mean,curr_stderr,FA_mean,FA_stderr,HR_mean,HR_stderr,N_vec] = get_curves(delta_bin_vec,curr_data_cell)
+% function [p_C_hat_mat,curr_mean,curr_stderr,FA_mean,FA_stderr,HR_mean,HR_stderr,N_vec] = get_curves(delta_bin_vec,curr_data_cell)
+function [p_C_hat_mat,HR,FA,N_vec] = get_curves(delta_bin_vec,curr_data_cell)
 
 num_subj = length(curr_data_cell);
 num_delta_bins = length(delta_bin_vec);
@@ -142,8 +160,7 @@ num_delta_bins = length(delta_bin_vec);
 rels = unique(curr_data_cell{1}(:,39:54));
 N_vec = unique(sum(curr_data_cell{1}(:,39:42)==rels(2),2));
 p_C_hat_mat = zeros(num_subj,length(N_vec),length(delta_bin_vec));
-HR = zeros(num_subj,length(N_vec));
-FA= HR;
+[HR, FA] = deal(zeros(num_subj,length(N_vec)));
 
 for subj_idx = 1:num_subj
     
@@ -153,7 +170,7 @@ for subj_idx = 1:num_subj
     N_high_vec = sum(curr_data(:,39:42)==rels(2),2);
     N_vec = unique(N_high_vec);
     
-    curr_data_delta = .5*sum(abs(circ_dist((pi/90)*curr_data(:,56:63),(pi/90)*curr_data(:,64:71))),2);
+    curr_data_delta = 0.5*sum(abs(circ_dist((pi/90)*curr_data(:,56:63),(pi/90)*curr_data(:,64:71))),2);
     
     % loop over set size
     for N_idx = 1:length(N_vec)
@@ -184,10 +201,4 @@ for subj_idx = 1:num_subj
     
 end
 
-curr_mean = squeeze(mean(p_C_hat_mat,1));
-curr_stderr = squeeze(std(p_C_hat_mat,[],1)/sqrt(num_subj));
-FA_mean = mean(FA,1);
-FA_stderr = std(FA,[],1)/sqrt(num_subj);
 
-HR_mean = mean(HR,1);
-HR_stderr = std(HR,[],1)/sqrt(num_subj);

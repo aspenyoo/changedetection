@@ -23,8 +23,10 @@ for ii = 1:length(subjCell)
     curr_data(:,2) = double(data.response);
     curr_data(:,4) = double(data.RT);
     curr_data(:,5) = double(data.setsize);
-    curr_data(:,56:63) = double(round((180/pi)*data.ort_first));
-    curr_data(:,64:71) = double(round((180/pi)*data.ort_second));
+%     curr_data(:,56:63) = double(round((180/pi)*data.ort_first));
+%     curr_data(:,64:71) = double(round((180/pi)*data.ort_second));
+    curr_data(:,56:59) = double(round((180/pi)*data.ort_first));
+    curr_data(:,64:67) = double(round((180/pi)*data.ort_second));
     curr_data(:,39:42) = double(data.ecc_first);
     curr_data(:,47:50) = double(data.ecc_second);
 

@@ -9,8 +9,8 @@ function subjCell_new = convert_data(subjCell)
 % 4-> reaction time (ms)
 % 5-> number of stimuli [setsize] (int)
 % 6-> delta
-% 56:63-> first array orientations (radians)
-% 64:71-> second array orientations (radians)
+% 56:59-> first array orientations (radians)
+% 64:67-> second array orientations (radians)
 
 subjCell_new = cell(size(subjCell));
 
@@ -20,13 +20,13 @@ for ii = 1:length(subjCell)
     
     data.change = curr_data(:,1)>0;
     data.response = curr_data(:,2)>0;
-    temp_delta = .5*sum(abs(circ_dist((pi/90)*curr_data(:,56:63),(pi/90)*curr_data(:,64:71))),2);
+    temp_delta = .5*sum(abs(circ_dist((pi/90)*curr_data(:,56:59),(pi/90)*curr_data(:,64:67))),2);
     temp_delta(temp_delta < eps) = 0; % numerical error in computing difference
     data.delta = temp_delta;
     data.RT = curr_data(:,4);
     data.setsize = curr_data(:,5);
-    data.ort_first = curr_data(:,56:63);
-    data.ort_second = curr_data(:,64:71);
+    data.ort_first = curr_data(:,56:59);
+    data.ort_second = curr_data(:,64:67);
     data.ecc_first = curr_data(:,39:42);
     data.ecc_second = curr_data(:,47:50);
     
