@@ -17,7 +17,7 @@ end
 delta_bin_vec = linspace(eps,pi/2+eps,num_delta_bins);
 
 % load subject data
-load ../data/Subj_data_cell.mat
+load Subj_data_cell.mat
 Subj_data_cell = revert_data(Subj_data_cell);
 num_subj = length(Subj_data_cell);
 
