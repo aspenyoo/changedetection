@@ -450,7 +450,7 @@ keyCode = ones(1,256);
 while sum(keyCode(1:254))>0
     [keyIsDown,secs,keyCode] = KbCheck;
 end
-while sum(keyCode(1:254))==0
+while sum(keyCode(1:254))~=1
     [keyIsDown,secs,keyCode] = KbCheck;
 end
 keyCode = min(find(keyCode==1));
