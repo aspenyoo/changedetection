@@ -50,3 +50,41 @@ for isubj = 1:nSubj;
     end
     defaultplot
 end
+
+%% fit models
+clear all
+
+subjid = 'POO';
+pres2stimuli = 'Ellipse';
+
+model_mat = ...
+    [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
+    1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
+    2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
+    2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
+
+for imodel = 2:size(model_mat,1)
+    run_model_reliability(subjid, pres2stimuli, model_mat(imodel,:));
+end
+
+
+%% model comparson
+clear all
+
+subj_id_cell = {'POO'};
+pres2stimuli = 'Ellipse';
+
+model_mat = ...
+    [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
+    1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
+    2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
+    2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
+
+nModels = size(model_mat,1);
+nSubj = length(subj_id_cell);
+
+LLMat = nan(nSubj,nModels);
+for imodel = 1:nModels
+    currmodel = model_mat(imodel,:);
+    LLMat(:,imodel) = compute_BMC(currmodel,subj_id_cell,pres2stimuli);
+end

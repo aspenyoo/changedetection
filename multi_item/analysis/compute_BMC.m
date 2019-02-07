@@ -1,13 +1,13 @@
 % compute model posterior for bayesian model comparison
 % computed per model over all subjects
 
-function bars = compute_BMC(model_idx)
+function bars = compute_BMC(model_idx,subj_id_cell,pres2timuli)
 
 % load parameter ranges & data
 load('param_data_file.mat');
-load('Subj_data_cell.mat');
-
-bars = NaN(length(Subj_data_cell),1);
+% load('Subj_data_cell.mat');
+nSubj = length(subj_id_cell);
+bars = NaN(nSubj,1);
 
 % model indices
 encoding = model_idx(1);
@@ -28,9 +28,12 @@ theta_range = log(max(theta_vec)-min(theta_vec));
 crit_range = log(max(crit_vec)-min(crit_vec));
 
 % for each subject
-for ii = 1:length(Subj_data_cell)
+for isubj = 1:nSubj
+    
+    subjid = subj_id_cell{isubj};
+    
     % load the current subject and model
-    load(['LL/LL_' num2str(ii) '_' num2str(encoding) '_' ...
+    load(['LL/LL_' subjid '_' pres2timuli '_' num2str(encoding) '_' ...
         num2str(variability) '_' num2str(decision_rule) '_' ...
         num2str(decision_noise) '.mat']);
 
@@ -89,7 +92,7 @@ for ii = 1:length(Subj_data_cell)
     
     % get the log posterior by taking log, adding back in the max value,
     % and adding in punishment terms
-    bars(ii) = log(temp_LL) + LL_max + temp_pun;
+    bars(isubj) = log(temp_LL) + LL_max + temp_pun;
     
 end
 end

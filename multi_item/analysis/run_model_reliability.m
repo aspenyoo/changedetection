@@ -328,8 +328,8 @@ for J_high_idx = 1:length(J_vec)
         end
         
         % display time remaining. NOT VERY ACCURATE
-        t = toc;
-        fprintf('Time left: about %g min\n',(sum((length(J_vec)):-1:0)-time_idx)*t/60);
+%         t = toc;
+%         fprintf('Time left: about %g min\n',(sum((length(J_vec)):-1:0)-time_idx)*t/60);
         time_idx = time_idx+1;
         
     end
