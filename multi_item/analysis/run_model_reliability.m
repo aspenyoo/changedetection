@@ -21,7 +21,7 @@
 %           3-> Global decision noise
 %           4-> Both global and local decision noise (NOT IN PAPER)
 
-function [LL,P_C_HAT] = run_model_reliability(subjid, pres2stimuli,model_idx)
+function [LL,P_C_HAT] = run_model_reliability(subjid,pres2stimuli,model_idx)
 
 % model indices
 encoding = model_idx(1); 
@@ -97,8 +97,7 @@ else
 end
 
 % J_low, J_high locations initialized to speed up encoding in VR
-J_init = zeros(num_samples,N,num_trials);
-delta_noise = J_init;
+[J_init, delta_noise] = deal(zeros(num_samples,N,num_trials));
 
 % Lookup tables for modified bessel function and J to Kappa equation
 highest_J = 700.92179;
@@ -122,33 +121,33 @@ highest_J = max(J_range);
 t = []; 
 
 % Get data into [rel], [delta] format
-Data_rel = Subj_data(:,39:(38+N)); % reliabilities
+Data_rel = Subj_data(:,39:(38+N)); % reliabilities of first presentations
 Data_delta = -Subj_data(:,56:(55+N))*(pi/90) + Subj_data(:,64:(63+N))*(pi/90); % y-x
-C_hat = Subj_data(:,2);
+C_hat = Subj_data(:,2);             % subject response (change/no change)
 
 % SORT DATA
-% First, sort each trial. Low to high reliability
-[rel_sorted, I_t] = sort(Data_rel,2);               % sorting reliabilities for each trial from low to high
+% First, sort reliability within each trial, so low rel items appear first
+[rel_sorted, I_t] = sort(Data_rel,2);   
 Delta_sorted = zeros(size(Data_delta));             
 for j = 1:size(rel_sorted,1)
     Delta_sorted(j,:) = Data_delta(j,I_t(j,:));
 end
 
-% Now, sort by number of reliabilities. Low to high
+% Now, sort across trials by number of low reliability items. Low to high
 rels = unique(Data_rel);            % unique reliabilities across experiment
 high_num = sum(Data_rel==rels(2),2);% number of high rel items on each trial
 [high_sorted, I] = sort(high_num);  % sorted (ascending order) and original indices of high_num
-I_LATER = I;                        % renaming (ASPEN: not sure why necessary)
+I_LATER = I;                        % 
 low_sorted = N-high_sorted;         % number of low rel items, in descending order
-delta = Delta_sorted(I,:);          % 
-rel_sorted = rel_sorted(I,:);
-low_rel = rel_sorted == rels(1);
-high_rel = rel_sorted == rels(2);
-C_hat = C_hat(I);
-delta = bsxfun(@plus,shiftdim(delta',-1),J_init);
-low_rel = bsxfun(@plus,shiftdim(low_rel',-1),J_init);
-high_rel = bsxfun(@plus,shiftdim(high_rel',-1),J_init);
-low_rel = low_rel==1;
+delta = Delta_sorted(I,:);          % sorted trial delta
+rel_sorted = rel_sorted(I,:);       % sorted reliability
+low_rel = rel_sorted == rels(1);    % idxs of low rel items
+high_rel = rel_sorted == rels(2);   % idxs of high rel items
+C_hat = C_hat(I);                   % sorted subject response
+delta = bsxfun(@plus,shiftdim(delta',-1),J_init);           % changing dimensions of delta
+low_rel = bsxfun(@plus,shiftdim(low_rel',-1),J_init);       % changing dimensions of low_rel
+high_rel = bsxfun(@plus,shiftdim(high_rel',-1),J_init);     % changing dimensions of high_rel
+low_rel = low_rel==1;           % ASPEN: i dont think these two lines are necessary, but leaving them in just in case
 high_rel = high_rel==1;
 
 % create LL matrix. J_LOW x J_HIGH x THETA x J_ASS x CRITERIA x LOCAL D
@@ -157,7 +156,7 @@ LL = zeros(length(J_vec),length(J_vec),length(theta_vec),length(J_ass_vec),...
     length(crit_vec),length(local_d_noise_vec),length(global_d_noise_vec),length(prior_vec));
 P_C_HAT = zeros(size(Subj_data,1));
 
-time_idx = 1;
+% time_idx = 1;
 num_samples
 % loop over parameters
 for J_high_idx = 1:length(J_vec)
@@ -263,11 +262,11 @@ for J_high_idx = 1:length(J_vec)
                         
                         switch decision_noise
                             case 1
-                                d_temp = permute(shiftdim(d,-2),[3 1 2 4 5]);
-                                d_temp_3 = bsxfun(@plus,log(sum(d_temp,4))-log(N),logprior_vec);
-                                p_C_hat_temp = shiftdim((mean(d_temp_3>0,1)),1);
+                                d_temp = permute(shiftdim(d,-2),[3 1 2 4 5]);                       % num_samples x 1 x 1 x N(items) x num_trials (these comments are for model [1 1 1 1]. dimensions change for other models)
+                                d_temp_3 = bsxfun(@plus,log(sum(d_temp,4))-log(N),logprior_vec);    % posterior sum over items (dimensions: num_samples x 1 x 1 x 1 (sum over items) x num_trials x 11 (length of prior_vec))
+                                p_C_hat_temp = shiftdim((mean(d_temp_3>0,1)),1);                    % mean over samples, make 1 x 1 x 1 x num_trials x 11 (prior vec length)
                                 clear d_temp_3
-                                p_C_hat = permute(p_C_hat_temp,[4 1 2 5 3]);
+                                p_C_hat = permute(p_C_hat_temp,[4 1 2 5 3]);                        % num_trials x 1 x 1 x 11 (prior vec length)
                                 clear p_C_hat_temp
                             case 2 % local decision noise
                                 d_temp = permute(shiftdim(d,-2),[3 1 2 4 5]);
@@ -304,19 +303,19 @@ for J_high_idx = 1:length(J_vec)
                         p_C_hat = squeeze(mean(d_temp));
                 end
                 
-                p_resp = bsxfun(@times,(C_hat == 1),p_C_hat) + bsxfun(@times,(C_hat == 0),(1-p_C_hat));
+                p_resp = bsxfun(@times,(C_hat == 1),p_C_hat) + bsxfun(@times,(C_hat == 0),(1-p_C_hat)); % num_trials x 1 x 1 x 11 (prior vec length)
                 
                 % Fix very small p_resp
                 p_resp(p_resp==0) = 1/(100*num_samples);
                 
                 % record log(p_resp) for parameter combination, summing
                 % over trials
-                curr_LL = shiftdim(sum(log(p_resp),1),1);
+                curr_LL = shiftdim(sum(log(p_resp),1),1);       % 1 x 1 x 11 (length of priorvec)
                 
                 % save maximizing P_C_HAT
                 if max(curr_LL(:))>max(LL(LL~=0))
                     [X, I] = max(curr_LL(:));
-                    Subj_data_temp = Subj_data(I_LATER,:);
+                    Subj_data_temp = Subj_data(I_LATER,:);          % rows sorted by increasing number of high rel items
                     Subj_data_temp(:,2) = squeeze(p_C_hat(:,I));
                     P_C_HAT = Subj_data_temp;
                 end
@@ -330,7 +329,7 @@ for J_high_idx = 1:length(J_vec)
         % display time remaining. NOT VERY ACCURATE
 %         t = toc;
 %         fprintf('Time left: about %g min\n',(sum((length(J_vec)):-1:0)-time_idx)*t/60);
-        time_idx = time_idx+1;
+%         time_idx = time_idx+1;
         
     end
     
@@ -341,9 +340,7 @@ save(['analysis/LL/LL_' subjid '_' pres2stimuli '_' num2str(encoding) '_' num2st
 % helper functions
 
     function [delta_noise, kappa_x, kappa_y] = encode_VR()
-        kappa_x = J_init;
-        kappa_y = J_init;
-        delta_noise = kappa_x;
+        [kappa_x, kappa_y, delta_noise] = deal(J_init); % set zero matrices
         
         % generate J_low and J_high samples
         J_low_sample = gamrnd(J_low/theta_val,theta_val,[num_samples 2*N]);
@@ -374,6 +371,7 @@ save(['analysis/LL/LL_' subjid '_' pres2stimuli '_' num2str(encoding) '_' num2st
             
             BigY = [kappa_low_sample(:,(N+1):(N+low_num_curr)) kappa_high_sample(:,(N+1):(N+high_num_curr))...
                 noise_low_i(:,(N+1):(N+low_num_curr)) noise_high_i(:,(N+1):(N+high_num_curr))];
+            % ASPEN: i don't understand why rows are shifted upward
             shift = mod(kk,size(BigY,1))+1;
             BigY_shifted = [BigY(shift:end,:); BigY(1:(shift-1),:)];
             
