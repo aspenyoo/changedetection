@@ -1,11 +1,11 @@
 
 %% set up data into useable format
 
-subj_ID_cell = {'POO'};
-pres2stimuli_cell = {'Ellipse'};
-Subj_data_cell = combine_all_data(subj_ID_cell,pres2stimuli_cell);
+subj_ID_cell = {'POO','POO','METEST'};
+pres2stimuli_cell = {'Ellipse','Line','Line'};
+Subj_data_cell = combine_convert_all_data(subj_ID_cell,pres2stimuli_cell);
 
-save('Subj_data_cell.mat','Subj_data_cell')
+save('analysis/Subj_data_cell.mat','Subj_data_cell')
 
 %% plot psychometric function of current dataset
 
@@ -63,7 +63,7 @@ model_mat = ...
     2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
     2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
 
-for imodel = 2:size(model_mat,1)
+for imodel = 1:size(model_mat,1)
     run_model_reliability(subjid, pres2stimuli, model_mat(imodel,:));
 end
 
