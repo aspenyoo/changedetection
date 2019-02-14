@@ -1,7 +1,7 @@
 % compute model posterior for bayesian model comparison
 % computed per model over all subjects
 
-function bars = compute_BMC(model_idx,subj_id_cell,pres2timuli)
+function bars = compute_BMC(model_idx,subj_id_cell,pres2stimuli_cell)
 
 % load parameter ranges & data
 load('param_data_file.mat');
@@ -31,9 +31,10 @@ crit_range = log(max(crit_vec)-min(crit_vec));
 for isubj = 1:nSubj
     
     subjid = subj_id_cell{isubj};
+    pres2stimuli = pres2stimuli_cell{isubj};
     
     % load the current subject and model
-    load(['LL/LL_' subjid '_' pres2timuli '_' num2str(encoding) '_' ...
+    load(['LL/LL_' subjid '_' pres2stimuli '_' num2str(encoding) '_' ...
         num2str(variability) '_' num2str(decision_rule) '_' ...
         num2str(decision_noise) '.mat']);
 

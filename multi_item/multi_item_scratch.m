@@ -1,8 +1,8 @@
 
 %% set up data into useable format
 
-subj_ID_cell = {'POO','POO','METEST'};
-pres2stimuli_cell = {'Ellipse','Line','Line'};
+subj_ID_cell = {'POO','METEST','POO','METEST'};
+pres2stimuli_cell = {'Ellipse','Ellipse','Line','Line'};
 Subj_data_cell = combine_convert_all_data(subj_ID_cell,pres2stimuli_cell);
 
 save('analysis/Subj_data_cell.mat','Subj_data_cell')
@@ -51,6 +51,95 @@ for isubj = 1:nSubj;
     defaultplot
 end
 
+%% stats about difference in performance as a function of condition
+
+clear all
+subjid_cell = {'POO','METEST'};
+pres2stimuli_cell = {'Line','Ellipse'};
+N = 4;
+highrel_vec = 0:N; % number of high reliability stimuli
+PC_mat = nan(length(subjid_cell), length(pres2stimuli_cell), length(highrel_vec));
+
+for isubj = 1:length(subjid_cell);
+    subjid = subjid_cell{isubj};
+    
+    for icond = 1:length(pres2stimuli_cell)
+        pres2stimuli = pres2stimuli_cell{icond};
+        
+        % load subject data
+        load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
+        
+        % get data in correct form
+        was_change = trialMat(:,1) > 0;
+        respond_change = trialMat(:,2);
+        num_highrel = sum(trialMat(:,39:(39+N-1))==0.9,2);
+        
+        for irel = 1:length(highrel_vec)
+            rel = highrel_vec(irel);
+            idx = num_highrel == rel;
+            
+            PC_mat(isubj,icond,irel) = mean(was_change(idx) == respond_change(idx));
+        end
+        
+    end
+end
+
+
+%% playing around with LL calc
+clear all
+
+subjid = 'POO'; 
+pres2stimuli = 'Ellipse';
+load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
+
+model = [1 2 1]; % encoding, inference, decision rule
+theta = [2 1 0.3 0.5];
+nSamples = 200;
+
+
+% ======== EDIT DATA FORMAT =============
+% data = trialMat(1:200,:);
+data = trialMat;
+
+nItems = 4;
+nTrials = size(data,1);
+
+data_rel = data(:,39:(38+nItems));   % reliabilities of items on first presentation
+data_Delta = -data(:,56:(55+nItems))*(pi/90) + data(:,64:(63+nItems))*(pi/90); % y-x
+data_resp = data(:,2);             % subject response (change/no change)
+
+% first, sort by item reliabilities within each trial
+[data_rel_sorted, I_rel_sorted] = sort(data_rel,2);
+data_Delta_sorted = nan(size(data_Delta));
+for itrial = 1:nTrials
+    data_Delta_sorted(itrial,:) = data_Delta(itrial,I_rel_sorted(itrial,:));
+end
+
+% next, sort across trials by number of high reliability items (ascending)
+rels = unique(data_rel);            % unique reliabilities across experiment
+high_num = sum(data_rel==rels(2),2);% number of high rel items on each trial
+[~, I] = sort(high_num);  % sorted (ascending order) and original indices of high_num
+datt.Delta = data_Delta_sorted(I,:);          % sorted trial delta
+datt.rel = data_rel_sorted(I,:);       % sorted reliability
+datt.resp = data_resp(I);                   % sorted subject response
+datt.pres2stimuli = pres2stimuli;
+
+%% 
+% CALC LILEIHOOD
+tic;
+[LL,pc] =calculate_LL(theta,datt,model,pres2stimuli,nSamples);
+LL
+toc
+
+%% fit parameter one time
+tic;
+runlist = 1;
+runmax = 1;
+nSamples = 20;
+[bfp, LLVec, completedruns] = find_ML_parameters(datt,model,runlist,runmax,nSamples)
+toc
+
+
 %% fit models
 clear all
 
@@ -71,8 +160,8 @@ end
 %% model comparson
 clear all
 
-subj_id_cell = {'POO'};
-pres2stimuli = 'Ellipse';
+subj_id_cell = {'METEST','POO'};
+pres2stimuli_cell = {'Ellipse','Ellipse'};
 
 model_mat = ...
     [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
@@ -86,5 +175,8 @@ nSubj = length(subj_id_cell);
 LLMat = nan(nSubj,nModels);
 for imodel = 1:nModels
     currmodel = model_mat(imodel,:);
-    LLMat(:,imodel) = compute_BMC(currmodel,subj_id_cell,pres2stimuli);
+    
+    LLMat(:,imodel) = compute_BMC(currmodel,subj_id_cell,pres2stimuli_cell);
 end
+
+bar(bsxfun(@minus,LLMat,max(LLMat,[],2))')
