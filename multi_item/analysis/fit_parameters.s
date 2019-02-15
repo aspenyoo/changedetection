@@ -1,7 +1,6 @@
 #!/bin/bash
 #
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=36:00:00
 #SBATCH --mem=2GB
@@ -21,7 +20,7 @@ addpath(genpath('/home/ay963/changedetection/multi_item'))
 blah = num2str($SLURM_ARRAY_TASK_ID);
 modelidx = str2double(blah(1));
 subjidx = str2double(blah(2));
-conditionidx = str2doubld(blah(3));
+conditionidx = str2double(blah(3));
 
 % model fitting settings
 runmax = 50;
