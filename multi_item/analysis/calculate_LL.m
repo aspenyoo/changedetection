@@ -26,18 +26,17 @@ if (encoding == 1); % if VP
     counter = counter+1;
 end
 
-if (decision_rule == 1) % if optimal decision rule
-    if (infering == 3) % if assumed same precision
-        Jbar_assumed = x(counter);
-        counter = counter+1;
-        
-        if strcmp(condition,'Line')
-            Jbar_line_assumed = x(counter);
-        end
+if (infering == 3) % if assumed same precision
+    Jbar_assumed = x(counter);
+    counter = counter+1;
+    
+    if strcmp(condition,'Line')
+        Jbar_line_assumed = x(counter);
     end
-    
+end
+
+if (decision_rule == 1) % if optimal decision rule
     p_change = x(end);
-    
 else % max rule
     criterion = x(end);
 end

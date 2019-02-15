@@ -138,10 +138,16 @@ LL
 toc
 
 %% fit parameter one time
-tic;
+
+model = [2 3 2]; % encoding, inference, decision rule
+theta = [2 1 0.3 0.5];
+nSamples = 200;
+
 runlist = 1;
 runmax = 1;
 nSamples = 20;
+
+tic;
 [bfp, LLVec, completedruns] = find_ML_parameters(datt,model,runlist,runmax,nSamples)
 toc
 
