@@ -110,9 +110,16 @@ rng(0); % Same set for all
 nvars = numel(PLB);
 x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
 
-[bfp, LLVec, completedruns] = deal([]);
+filename = sprintf('fits_subj%s_%s_model%d%d%d.mat',data.subjid,condition,model(1),model(2),model(3));
+if exist(sprintf('fits/%s',filename),'file')
+else
+    [bfp, LLVec, completedruns] = deal([]);
+end
+
+
 for iter = 1:numel(runlist)
     runlist(iter)
+    tic;
     
     % Fix random seed based on iteration (for reproducibility)
     rng(runlist(iter));
@@ -121,11 +128,12 @@ for iter = 1:numel(runlist)
     [xbest,LL,~,~] = ...
         bads(@(x) -calculate_LL(x,data,model,logflag,nSamples),x0,LB,UB,PLB,PUB,[],options);
 
-    
+    xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
     bfp = [bfp; xbest];
     LLVec = [LLVec; LL];
     completedruns = [completedruns; runlist(iter)];
-    
+    save(filename,'bfp','LLVec','completedruns')
+    toc
 end
 
 end

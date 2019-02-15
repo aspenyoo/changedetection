@@ -85,17 +85,12 @@ for isubj = 1:length(subjid_cell);
 end
 
 
-%% playing around with LL calc
+%% save data in format for fitting data
 clear all
 
-subjid = 'POO'; 
+subjid = 'METEST'; 
 pres2stimuli = 'Ellipse';
 load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
-
-model = [1 2 1]; % encoding, inference, decision rule
-theta = [2 1 0.3 0.5];
-nSamples = 200;
-
 
 % ======== EDIT DATA FORMAT =============
 % data = trialMat(1:200,:);
@@ -119,13 +114,24 @@ end
 rels = unique(data_rel);            % unique reliabilities across experiment
 high_num = sum(data_rel==rels(2),2);% number of high rel items on each trial
 [~, I] = sort(high_num);  % sorted (ascending order) and original indices of high_num
+
 datt.Delta = data_Delta_sorted(I,:);          % sorted trial delta
 datt.rel = data_rel_sorted(I,:);       % sorted reliability
 datt.resp = data_resp(I);                   % sorted subject response
 datt.pres2stimuli = pres2stimuli;
+datt.subjid = subjid;
+
+data = datt;
+
+save(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,pres2stimuli),'data')
 
 %% 
 % CALC LILEIHOOD
+
+model = [1 2 1]; % encoding, inference, decision rule
+theta = [2 1 0.3 0.5];
+nSamples = 200;
+
 tic;
 [LL,pc] =calculate_LL(theta,datt,model,pres2stimuli,nSamples);
 LL
