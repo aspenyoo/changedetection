@@ -41,7 +41,7 @@ model = modelMat(modelidx,:);
 condition = conditionVec{conditionidx};
 
 % load data
-load(sprintf('/home/ay963/changedetection/multi-item/data/fitting_data/%s_%s_simple.mat',subjid,condition))
+load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
 
 find_ML_parameters(data,model,runlist,runmax,nSamples)
 
