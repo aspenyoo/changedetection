@@ -14,6 +14,7 @@ module load matlab/2016b
 
 cat<<EOF | matlab -nodisplay
 addpath(genpath('/home/ay963/matlab-scripts'))
+addpath(genpath('/home/ay963/changedetection/helper_functions')
 addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % get indices of data and model
@@ -34,8 +35,8 @@ conditionVec = {'Ellipse','Line'};
 modelMat = ...
    [1 1 1;  1 2 1; 1 3 1; ... % VVO, VFO, VSO
     1 1 2;  1 2 2; 1 3 2; ... % VVM, VFM, VSM
-    2 1 1;  2 2 1; 2 3 1; ... % FVO, FFO, FSO
-    2 1 2;  2 2 2; 2 3 2];    % FVM, FFM, FSM
+            2 2 1; 2 3 1; ... % FVO, FFO, FSO
+            2 2 2; 2 3 2];    % FVM, FFM, FSM
 subjid = subjVec{subjidx};
 model = modelMat(modelidx,:);
 condition = conditionVec{conditionidx};
