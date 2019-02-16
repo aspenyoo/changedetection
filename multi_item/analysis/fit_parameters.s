@@ -3,25 +3,25 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=36:00:00
-#SBATCH --mem=2GB
+#SBATCH --mem=6GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
-#SBATCH --output=fit_parameters_%a.out
+#SBATCH --output=o_%a.out
 
 module purge
 module load matlab/2016b
 
 cat<<EOF | matlab -nodisplay
 addpath(genpath('/home/ay963/matlab-scripts'))
-addpath(genpath('/home/ay963/changedetection/helper_functions')
+addpath(genpath('/home/ay963/changedetection/helper_functions'))
 addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % get indices of data and model
 blah = num2str($SLURM_ARRAY_TASK_ID);
-modelidx = str2double(blah(1));
-subjidx = str2double(blah(2));
-conditionidx = str2double(blah(3));
+modelidx = str2double(blah(3:4));
+subjidx = str2double(blah(1));
+conditionidx = str2double(blah(2));
 
 % model fitting settings
 runmax = 50;
