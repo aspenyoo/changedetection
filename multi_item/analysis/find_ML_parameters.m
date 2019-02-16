@@ -110,7 +110,7 @@ rng(0); % Same set for all
 nvars = numel(PLB);
 x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
 
-filename = sprintf('fits_subj%s_%s_model%d%d%d.mat',data.subjid,condition,model(1),model(2),model(3));
+filename = sprintf('fits/subj%s_%s_model%d%d%d.mat',data.subjid,condition,model(1),model(2),model(3));
 if exist(sprintf('fits/%s',filename),'file')
 else
     [bfp, LLVec, completedruns] = deal([]);
