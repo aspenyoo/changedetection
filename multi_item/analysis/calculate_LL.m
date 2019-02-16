@@ -26,16 +26,15 @@ if (encoding == 1); % if VP
     counter = counter+1;
 end
 
-if (infering == 3) % if assumed same precision
-    Jbar_assumed = x(counter);
-    counter = counter+1;
-    
-    if strcmp(condition,'Line')
-        Jbar_line_assumed = x(counter);
-    end
-end
-
 if (decision_rule == 1) % if optimal decision rule
+    if (infering == 3) % if assumed same precision
+        Jbar_assumed = x(counter);
+        counter = counter+1;
+        
+        if strcmp(condition,'Line')
+            Jbar_line_assumed = x(counter);
+        end
+    end
     p_change = x(end);
 else % max rule
     criterion = x(end);
@@ -49,10 +48,9 @@ end
 
 % Lookup tables for modified bessel function and J to Kappa equation
 highest_J = 700.92179;
-Lookup(:,1) = linspace(0,highest_J,3500)';
-Lookup(:,2) = besseli(0,Lookup(:,1));
-LookupY = Lookup(:,2);
-LookupSpacing = 1/(Lookup(2,1)-Lookup(1,1));
+Lookup = linspace(0,highest_J,3500)';
+LookupY = besseli(0,Lookup);
+LookupSpacing = 1/(Lookup(2)-Lookup(1));
 cdfLin = linspace(-pi,pi,1000)';
 K_interp = [0 logspace(log10(1e-3),log10(highest_J),1999)];
 
@@ -70,22 +68,26 @@ get_deltas = 1;
 [delta_noise, kappa_x_i, kappa_y_i] = generate_representations(encoding);
 get_deltas = 0;
 
-if (encoding ~= infering) % if there is a mismatch in generative and inference process
-    if (infering == 3);
-        [kappa_x_i, kappa_y_i] = deal(Jbar_assumed);
-        if (strcmp(condition,'Line'))
-            kappa_y_i = Jbar_line_assumed;
+if (infering==3) && (decision_rule==2)      % if model is ESM
+    d_i_Mat = abs(delta_noise);
+else
+    if (encoding ~= infering) % if there is a mismatch in generative and inference process
+        if (infering == 3);
+            [kappa_x_i, kappa_y_i] = deal(Jbar_assumed);
+            if (strcmp(condition,'Line'))
+                kappa_y_i = Jbar_line_assumed;
+            end
+        else
+            [~, kappa_x_i, kappa_y_i] = generate_representations(infering);
         end
-    else
-        [~, kappa_x_i, kappa_y_i] = generate_representations(infering);
     end
+    
+    Kc = bsxfun(@times,2.*kappa_x_i.*kappa_y_i,cos(bsxfun(@plus,data.Delta,delta_noise)));
+    Kc = sqrt(bsxfun(@plus,kappa_x_i.^2+kappa_y_i.^2,Kc)); % dims: mat_dims
+    Kc(Kc>Lookup(end)) = Lookup(end); % clip large values
+    d_i_Mat = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY),...
+        myBessel(Kc,LookupSpacing,LookupY));
 end
-
-Kc = bsxfun(@times,2.*kappa_x_i.*kappa_y_i,cos(bsxfun(@plus,data.Delta,delta_noise)));
-Kc = sqrt(bsxfun(@plus,kappa_x_i.^2+kappa_y_i.^2,Kc)); % dims: mat_dims
-Kc(Kc>Lookup(end,1)) = Lookup(end,1); % clip large values
-d_i_Mat = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY),...
-    myBessel(Kc,LookupSpacing,LookupY));
 
 if (decision_rule == 1); % if optimal
     p_C_hat = log(sum(d_i_Mat,2))-log(nItems)+log(p_change)-log(1-p_change);  % actually d, not p_C_hat
@@ -100,7 +102,6 @@ p_C_hat(p_C_hat==1) = 1-eps;
 
 % calculate LL across trials
 LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
-
 
     % ================================================================
     %                      HELPER FUNCTIONS

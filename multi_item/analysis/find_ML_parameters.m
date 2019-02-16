@@ -118,7 +118,7 @@ end
 
 
 for iter = 1:numel(runlist)
-    runlist(iter)
+    fprintf('iteration number: %d \n',runlist(iter))
     tic;
     
     % Fix random seed based on iteration (for reproducibility)

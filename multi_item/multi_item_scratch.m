@@ -136,20 +136,18 @@ tic;
 [LL,pc] =calculate_LL(theta,datt,model,pres2stimuli,nSamples);
 LL
 toc
-
+i
 %% fit parameter one time
 
-model = [2 3 2]; % encoding, inference, decision rule
-theta = [2 1 0.3 0.5];
+model = [2 2 2]; % encoding, inference, decision rule
 nSamples = 200;
 
 runlist = 1;
 runmax = 1;
 nSamples = 20;
 
-tic;
-[bfp, LLVec, completedruns] = find_ML_parameters(datt,model,runlist,runmax,nSamples)
-toc
+[bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
+
 
 
 %% fit models
