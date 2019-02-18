@@ -2,7 +2,7 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=60:00:00
+#SBATCH --time=12:00:00
 #SBATCH --mem=8GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
@@ -19,13 +19,14 @@ addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % get indices of data and model
 blah = num2str($SLURM_ARRAY_TASK_ID);
-modelidx = str2double(blah(3:4));
 subjidx = str2double(blah(1));
 conditionidx = str2double(blah(2));
+modelidx = str2double(blah(3:4));
+runlist = str2double(blah(5:6));
 
 % model fitting settings
 runmax = 50;
-runlist = 2:50;
+% runlist = 1:50;
 % runlist = runlistidx:5:(45+runlistidx);
 nSamples = 200;
 

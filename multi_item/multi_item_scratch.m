@@ -127,9 +127,8 @@ save(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,pres2stimuli),'data')
 
 
 %% ==============================================================
-%           MODEL RELATED STUFF
-%
-%
+%           MODEL FITTING
+%  ===============================================================
 
 %% look at gamma
 
@@ -144,7 +143,19 @@ samps(:,2) = gamrnd(Jbar2/tau, tau, 1e3, 1);
 
 hist(samps,100)
 
-%% CALC LILEIHOOD
+%% simulate fake data (for parameter and model recovery)
+
+% load subject data (just to get the deltas and reliabilities)
+
+% get theta value (made up or from fits)
+
+% generate p_C_hat
+
+% generate fake data
+
+% save
+
+%% CALC LIKELIHOOD
 
 model = [1 2 1]; % encoding, inference, decision rule
 theta = [2 1 0.3 0.5];
@@ -154,8 +165,9 @@ tic;
 [LL,pc] =calculate_LL(theta,datt,model,pres2stimuli,nSamples);
 LL
 toc
-i
-%% fit parameter one time
+
+%% fit model one time
+% actually going to be done on cluster. see fit_parameters.s
 
 model = [2 2 2]; % encoding, inference, decision rule
 nSamples = 200;
@@ -166,25 +178,6 @@ nSamples = 20;
 
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
-
-
-%% fit models
-% actually going to be done on cluster. see fit_parameters.s
-
-clear all
-
-subjid = 'POO';
-pres2stimuli = 'Ellipse';
-
-modelMat = ...
-    [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
-    1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
-    2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
-    2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
-
-for imodel = 1:size(modelMat,1)
-    run_model_reliability(subjid, pres2stimuli, modelMat(imodel,:));
-end
 
 
 %% load current fits of models
@@ -202,9 +195,11 @@ nModels = size(modelMat,1);
 
 nCompleteVec = nan(1,nModels);
 for imodel = 1:nModels
+    imodel
     model = modelMat(imodel,:);
     
     load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+    disp(completedruns')
     nCompleteVec(imodel) = length(completedruns);
 end
 
@@ -249,11 +244,11 @@ end
 
 save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
-%% model comparison
+%% model comparison (AICc and BIC)
 
 clear all
 
-condition = 'Ellipse';
+condition = 'Line';
 load(sprintf('analysis/fits/bfp_%s.mat',condition));
 
 
@@ -270,7 +265,25 @@ barh(AICcMat)
 figure;
 barh(BICMat)
 
-%% model comparison
+%% old fit models (keshvari way)
+
+clear all
+
+subjid = 'POO';
+pres2stimuli = 'Ellipse';
+
+modelMat = ...
+    [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
+    1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
+    2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
+    2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
+
+for imodel = 1:size(modelMat,1)
+    run_model_reliability(subjid, pres2stimuli, modelMat(imodel,:));
+end
+
+%% old model comparison (keshvari way)
+
 clear all
 
 subjidCell = {'METEST','POO'};
