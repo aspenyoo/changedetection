@@ -178,6 +178,56 @@ nSamples = 20;
 
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
+%% make mat file of setting for model fitting
+
+clear all
+
+filename = 'analysis/clusterfittingsettings.mat';
+
+subjidCell = {'POO','METEST'};
+conditionCell = {'Ellipse','Line'};
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+nSubj = length(subjidCell);
+nConds = length(conditionCell);
+nModels = size(modelMat,1);
+runlistpermodel = ones(1,nModels);
+
+counter = 1;
+for isubj = 1:nSubj
+    subjid = subjidCell{isubj};
+    
+    for icond = 1:nConds
+        condition = conditionCell{icond};
+        
+        for imodel = 1:nModels
+            model = modelMat(imodel,:);
+            
+            load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)));
+            
+            incompleteRuns = 1:50;
+            incompleteRuns(completedruns) = [];
+            nRunsleft = length(incompleteRuns);
+            
+            for irun = 1:nRunsleft
+                runlist = incompleteRuns(irun);
+                
+                clustersettings{counter}.subjid = subjid;
+                clustersettings{counter}.condition = condition;
+                clustersettings{counter}.model = model;
+                clustersettings{counter}.runlist = runlist;
+            
+            counter = counter+1;
+            end
+        end
+    end
+    
+end
+
+save(filename,'clustersettings')
 
 
 %% load current fits of models
@@ -185,7 +235,7 @@ nSamples = 20;
 clear all
 
 subjid = 'POO';
-condition = 'Line';
+condition = 'Ellipse';
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
