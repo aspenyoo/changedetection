@@ -2,8 +2,8 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=36:00:00
-#SBATCH --mem=6GB
+#SBATCH --time=60:00:00
+#SBATCH --mem=8GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
@@ -25,7 +25,7 @@ conditionidx = str2double(blah(2));
 
 % model fitting settings
 runmax = 50;
-runlist = 1;
+runlist = 2:50;
 % runlist = runlistidx:5:(45+runlistidx);
 nSamples = 200;
 
