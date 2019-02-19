@@ -6,12 +6,12 @@ function [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,run
 if nargin < 5 || isempty(runmax); runmax = 50; end
 if nargin < 6 || isempty(nSamples); nSamples = 1e4; end
 
-% # samples for high-precision estimate
-if numel(nSamples) > 1
-    nSamplesFinal = nSamples(2);
-else
-    nSamplesFinal = 2000;
-end
+% % # samples for high-precision estimate
+% if numel(nSamples) > 1
+%     nSamplesFinal = nSamples(2);
+% else
+%     nSamplesFinal = 2000;
+% end
 
 % get model fitting settings
 condition = data.pres2stimuli;
@@ -36,7 +36,7 @@ for iter = 1:numel(runlist)
     x0 = x0_list(runlist(iter),:);
     [xbest,~,~,~] = ...
         bads(@(x) -calculate_LL(x,data,model,logflag,nSamples),x0,LB,UB,PLB,PUB,[],options);
-    LL = -calculate_LL(xbest,data,model,logflag,nSamplesFinal);
+%     LL = -calculate_LL(xbest,data,model,logflag,nSamplesFinal);
     
     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
     

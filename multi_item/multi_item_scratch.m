@@ -265,7 +265,7 @@ modelMat = ...
              2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
-condition = 'Line';
+condition = 'Ellipse';
 
 LLMat = nan(nModels,nSubj);
 bfpMat = cell(1,nModels);
@@ -377,9 +377,9 @@ bar(bsxfun(@minus,LLMat,max(LLMat,[],2))')
 %% model fits
 
 clear all
-condition = 'Ellipse';
+condition = 'Line';
 subjidx = 1;
-modelidx = 2;
+modelidx = 4;
 nBins = 6;
 
 subjVec = {'POO','METEST'};
@@ -399,7 +399,7 @@ bfp = bfpMat{modelidx}(subjidx,:);
 load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
 
 % get predictions
-nSamples = 2000;
+nSamples = 200;
 [LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
 
 % plot it
