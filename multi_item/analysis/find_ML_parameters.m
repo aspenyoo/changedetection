@@ -26,15 +26,9 @@ nvars = numel(PLB);
 x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
 
 filename = sprintf('fits/subj%s_%s_model%d%d%d.mat',data.subjid,condition,model(1),model(2),model(3));
-if exist(sprintf('fits/%s',filename),'file')
-else
-    [bfp, LLVec, completedruns] = deal([]);
-end
-
 
 for iter = 1:numel(runlist)
     fprintf('iteration number: %d \n',runlist(iter))
-    tic;
     
     % Fix random seed based on iteration (for reproducibility)
     rng(runlist(iter));
@@ -45,11 +39,20 @@ for iter = 1:numel(runlist)
     LL = -calculate_LL(xbest,data,model,logflag,nSamplesFinal);
     
     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
+    
+    % it is necessary to reload the file at every iteration in case multiple processors are
+    % saving the file at the same time
+    if exist(sprintf('fits/%s',filename),'file')
+        load(filename,'bfp','LLVec','completedruns')
+    else
+        [bfp, LLVec, completedruns] = deal([]);
+    end
+    
+    % update and save variables
     bfp = [bfp; xbest];
     LLVec = [LLVec; LL];
     completedruns = [completedruns; runlist(iter)];
     save(filename,'bfp','LLVec','completedruns')
-    toc
 end
 
 end

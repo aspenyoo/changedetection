@@ -2,8 +2,8 @@
 %% set up data into useable format
 
 subj_ID_cell = {'POO','METEST','POO','METEST'};
-pres2stimuli_cell = {'Ellipse','Ellipse','Line','Line'};
-Subj_data_cell = combine_convert_all_data(subj_ID_cell,pres2stimuli_cell);
+conditionCell = {'Ellipse','Ellipse','Line','Line'};
+Subj_data_cell = combine_convert_all_data(subj_ID_cell,conditionCell);
 
 save('analysis/Subj_data_cell.mat','Subj_data_cell')
 
@@ -54,17 +54,17 @@ end
 %% stats about difference in performance as a function of condition
 
 clear all
-subjid_cell = {'POO','METEST'};
-pres2stimuli_cell = {'Line','Ellipse'};
+subjidCell = {'POO','METEST'};
+conditionCell = {'Line','Ellipse'};
 N = 4;
 highrel_vec = 0:N; % number of high reliability stimuli
-PC_mat = nan(length(subjid_cell), length(pres2stimuli_cell), length(highrel_vec));
+PC_mat = nan(length(subjidCell), length(conditionCell), length(highrel_vec));
 
-for isubj = 1:length(subjid_cell);
-    subjid = subjid_cell{isubj};
+for isubj = 1:length(subjidCell);
+    subjid = subjidCell{isubj};
     
-    for icond = 1:length(pres2stimuli_cell)
-        pres2stimuli = pres2stimuli_cell{icond};
+    for icond = 1:length(conditionCell)
+        pres2stimuli = conditionCell{icond};
         
         % load subject data
         load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
@@ -125,8 +125,37 @@ data = datt;
 
 save(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,pres2stimuli),'data')
 
-%% 
-% CALC LILEIHOOD
+
+%% ==============================================================
+%           MODEL FITTING
+%  ===============================================================
+
+%% look at gamma
+
+Jbar = 12;
+Jbar2 = 13;
+tau = 5;
+tau2 = 7; 
+
+samps = nan(1e3,2);
+samps(:,1) = gamrnd(Jbar/tau, tau, 1e3, 1);
+samps(:,2) = gamrnd(Jbar2/tau, tau, 1e3, 1);
+
+hist(samps,100)
+
+%% simulate fake data (for parameter and model recovery)
+
+% load subject data (just to get the deltas and reliabilities)
+
+% get theta value (made up or from fits)
+
+% generate p_C_hat
+
+% generate fake data
+
+% save
+
+%% CALC LIKELIHOOD
 
 model = [1 2 1]; % encoding, inference, decision rule
 theta = [2 1 0.3 0.5];
@@ -136,8 +165,9 @@ tic;
 [LL,pc] =calculate_LL(theta,datt,model,pres2stimuli,nSamples);
 LL
 toc
-i
-%% fit parameter one time
+
+%% fit model one time
+% actually going to be done on cluster. see fit_parameters.s
 
 model = [2 2 2]; % encoding, inference, decision rule
 nSamples = 200;
@@ -148,45 +178,193 @@ nSamples = 20;
 
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
+%% make mat file of setting for model fitting
+
+clear all
+
+filename = 'analysis/clusterfittingsettings.mat';
+
+subjidCell = {'POO','METEST'};
+conditionCell = {'Ellipse','Line'};
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+nSubj = length(subjidCell);
+nConds = length(conditionCell);
+nModels = size(modelMat,1);
+runlistpermodel = ones(1,nModels);
+
+counter = 1;
+for isubj = 1:nSubj
+    subjid = subjidCell{isubj};
+    
+    for icond = 1:nConds
+        condition = conditionCell{icond};
+        
+        for imodel = 1:nModels
+            model = modelMat(imodel,:);
+            
+            load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)));
+            
+            incompleteRuns = 1:50;
+            incompleteRuns(completedruns) = [];
+            nRunsleft = length(incompleteRuns);
+            
+            for irun = 1:nRunsleft
+                runlist = incompleteRuns(irun);
+                
+                clustersettings{counter}.subjid = subjid;
+                clustersettings{counter}.condition = condition;
+                clustersettings{counter}.model = model;
+                clustersettings{counter}.runlist = runlist;
+            
+            counter = counter+1;
+            end
+        end
+    end
+    
+end
+
+save(filename,'clustersettings')
 
 
-%% fit models
+%% load current fits of models
+
+clear all
+
+subjid = 'POO';
+condition = 'Ellipse';
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+nModels = size(modelMat,1);
+
+nCompleteVec = nan(1,nModels);
+for imodel = 1:nModels
+    imodel
+    model = modelMat(imodel,:);
+    
+    load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+    disp(completedruns')
+    nCompleteVec(imodel) = length(completedruns);
+end
+
+%% get best fit param for subjects, for a particular condition
+
+clear all
+
+subjidVec = {'POO','METEST'};
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+nSubj = length(subjidVec);    
+nModels = size(modelMat,1);
+condition = 'Line';
+
+LLMat = nan(nModels,nSubj);
+bfpMat = cell(1,nModels);
+nParamsVec = nan(1,nModels);
+for imodel = 1:nModels;
+    model = modelMat(imodel,:);
+    
+    for isubj = 1:nSubj
+        subjid = subjidVec{isubj};
+        
+        load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+
+        if (isubj==1); 
+            nParamsVec(imodel) = size(bfp,2);
+            bfpMat{imodel} = nan(nSubj, nParamsVec(imodel)); 
+        end
+        
+        idx_posLL = LLVec >0;
+        idx_minLL = find(LLVec==min(LLVec(idx_posLL)),1,'first');
+        LLMat(imodel,isubj) = LLVec(idx_minLL);
+        bfpMat{imodel}(isubj,:) = bfp(idx_minLL,:);
+        
+    end
+    
+end
+
+save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+
+%% model comparison (AICc and BIC)
+
+clear all
+
+condition = 'Ellipse';
+load(sprintf('analysis/fits/bfp_%s.mat',condition));
+modelnames = {  'VVO', 'VFO', 'VSO',...
+                'VVM', 'VFM', 'VSM',...
+                       'FFO', 'FSO',...
+                       'FFM', 'FSM'};
+
+nTrials = 2000;
+
+% calculated AIC, AICc, and BIC
+AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
+AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
+
+figure;
+bar(AICcMat)
+title('AICc')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
+
+
+figure;
+bar(BICMat)
+title('BIC')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
+
+%% old fit models (keshvari way)
+
 clear all
 
 subjid = 'POO';
 pres2stimuli = 'Ellipse';
 
-model_mat = ...
+modelMat = ...
     [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
     1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
     2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
     2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
 
-for imodel = 1:size(model_mat,1)
-    run_model_reliability(subjid, pres2stimuli, model_mat(imodel,:));
+for imodel = 1:size(modelMat,1)
+    run_model_reliability(subjid, pres2stimuli, modelMat(imodel,:));
 end
 
+%% old model comparison (keshvari way)
 
-%% model comparson
 clear all
 
-subj_id_cell = {'METEST','POO'};
-pres2stimuli_cell = {'Ellipse','Ellipse'};
+subjidCell = {'METEST','POO'};
+conditionCell = {'Ellipse','Ellipse'};
 
-model_mat = ...
-    [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
-    1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
-    2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
-    2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
 
-nModels = size(model_mat,1);
-nSubj = length(subj_id_cell);
+nModels = size(modelMat,1);
+nSubj = length(subjidCell);
 
 LLMat = nan(nSubj,nModels);
 for imodel = 1:nModels
-    currmodel = model_mat(imodel,:);
+    currmodel = modelMat(imodel,:);
     
-    LLMat(:,imodel) = compute_BMC(currmodel,subj_id_cell,pres2stimuli_cell);
+    LLMat(:,imodel) = compute_BMC(currmodel,subjidCell,conditionCell);
 end
 
 bar(bsxfun(@minus,LLMat,max(LLMat,[],2))')
