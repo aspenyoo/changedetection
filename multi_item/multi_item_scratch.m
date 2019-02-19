@@ -1,5 +1,8 @@
-
-%% set up data into useable format
+% ============================================================
+%                   DATA RELATED
+% =============================================================
+% 
+%% old -- keshvari. set up data into useable format
 
 subj_ID_cell = {'POO','METEST','POO','METEST'};
 conditionCell = {'Ellipse','Ellipse','Line','Line'};
@@ -7,7 +10,7 @@ Subj_data_cell = combine_convert_all_data(subj_ID_cell,conditionCell);
 
 save('analysis/Subj_data_cell.mat','Subj_data_cell')
 
-%% plot psychometric function of current dataset
+%% old -- keshvari. plot psychometric function of current dataset
 
 % close all
 nBins = 6;
@@ -155,7 +158,9 @@ hist(samps,100)
 
 % save
 
-%% CALC LIKELIHOOD
+%% calc likelihood of single condition
+
+clear all
 
 model = [1 2 1]; % encoding, inference, decision rule
 theta = [2 1 0.3 0.5];
@@ -165,6 +170,24 @@ tic;
 [LL,pc] =calculate_LL(theta,datt,model,pres2stimuli,nSamples);
 LL
 toc
+
+%% calc likelihood of joint condition
+
+clear all
+subjid = 'POO';
+nSamples = 200;
+model = [1 1 1];
+theta = [2 1 3 0.3 0.5];
+
+[~,~,~,~,logflag] = getFittingSettings(model, 'Line');
+
+% load data and save as appropriate variables
+load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid))
+data_E = data;
+load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid))
+data_L = data;
+
+LL = calculate_joint_LL(theta,data_E,data_L,model,logflag,nSamples)
 
 %% fit model one time
 % actually going to be done on cluster. see fit_parameters.s
