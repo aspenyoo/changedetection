@@ -368,3 +368,42 @@ for imodel = 1:nModels
 end
 
 bar(bsxfun(@minus,LLMat,max(LLMat,[],2))')
+
+
+%% ====================================================================
+%                   PLOTS
+% ====================================================================
+
+%% model fits
+
+clear all
+condition = 'Ellipse';
+subjidx = 1;
+modelidx = 2;
+nBins = 6;
+
+subjVec = {'POO','METEST'};
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+model = modelMat(modelidx,:);         
+subjid = subjVec{subjidx};
+
+% load bfp fits
+load(sprintf('analysis/fits/bfp_%s.mat',condition))
+bfp = bfpMat{modelidx}(subjidx,:);
+
+% load data
+load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
+
+% get predictions
+nSamples = 2000;
+[LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
+
+% plot it
+LL
+figure;
+plot_psychometric_fn(data,nBins,p_C_hat)
+

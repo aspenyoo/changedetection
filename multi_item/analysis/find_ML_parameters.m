@@ -10,7 +10,7 @@ if nargin < 6 || isempty(nSamples); nSamples = 1e4; end
 if numel(nSamples) > 1
     nSamplesFinal = nSamples(2);
 else
-    nSamplesFinal = 2e3;
+    nSamplesFinal = 2000;
 end
 
 % get model fitting settings
