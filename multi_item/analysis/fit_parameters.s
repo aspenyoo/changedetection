@@ -25,10 +25,10 @@ nSamples = 200;
 load('clusterfittingsettings.mat'); % load settings
 idx = num2str($SLURM_ARRAY_TASK_ID);
 settings = clustersettings{idx};
-subjid = settings.subjid;
-model = settings.model;
-condition = settings.condition;
-runlist = settings.runlist;
+subjid = settings.subjid
+model = settings.model
+condition = settings.condition
+runlist = settings.runlist
 
 % load data
 load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
