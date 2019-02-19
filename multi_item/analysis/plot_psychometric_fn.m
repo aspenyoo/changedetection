@@ -1,4 +1,22 @@
-function plot_psychometric_fn(data,nBins,prediction)
+function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction)
+%PLOT_PSYCHOMETRIC_FN plots proportion report change as a function of
+%number of high reliability items and amount of change
+% 
+% ================ INPUT VARIABLES ==============
+% DATA: struct
+%   follows format from 'data/fitting_data' files
+% NBINS: scalar
+%   number of bins desired
+% PREDICTION: nTrials x 1 vector (optional)
+%   probability of responding change on every trial (matches data)
+% 
+% ================= OUTPUT VARIABLES ================
+% X_MEAN: nRels x nBins matrix
+%   average delta for current bin
+% PC_DATA: nRels x nBins matrix
+%   average proportion respond change for current bin
+% PC_PRED: nRels x nBins matrix
+%   average predicted proportion of responding change
 
 if nargin < 2; nBins = 6; end
 if nargin < 3; prediction = []; end
@@ -23,7 +41,7 @@ close(h)
 idxs = round(linspace(1,size(cmap,1),length(n_high_vec)));
 colorMat = cmap(idxs,:);
 
-
+ [x_mean, pc_data, pc_pred] = deal(zeros(length(n_high_vec),nBins));
 for ihigh = 1:length(n_high_vec)
     % get indices of current reliability number
     idx_start = idx_high(ihigh)+1;       % which row starts this n_high
@@ -35,27 +53,25 @@ for ihigh = 1:length(n_high_vec)
     
     % sort rows by delta
     subdata = sortrows(subdata,1);
-    [x_mean, pc_data, pc_pred] = deal(nan(1,nBins));
-    
+   
     % get mean for all no change trial
     idx_nochange = find(subdata(:,1)==0,1,'last');
-    x_mean(1) = 0;
-    pc_data(1) = mean(subdata(1:idx_nochange,2));
-    if ~isempty(prediction); pc_pred(1) = mean(subdata(1:idx_nochange,3));end
+    pc_data(ihigh,1) = mean(subdata(1:idx_nochange,2));
+    if ~isempty(prediction); pc_pred(ihigh,1) = mean(subdata(1:idx_nochange,3));end
     
     % bin the rest of the change trials
     binedges = round(linspace(idx_nochange+1,size(subdata,1),nBins));
     for ibin = 1:(nBins-1)
         idxs_bin = (binedges(ibin)+1):(binedges(ibin+1));
-        x_mean(ibin+1) = mean(subdata(idxs_bin,1));
-        pc_data(ibin+1) = mean(subdata(idxs_bin,2));
-        if ~isempty(prediction); pc_pred(ibin+1) =  mean(subdata(idxs_bin,3)); end
+        x_mean(ihigh,ibin+1) = mean(subdata(idxs_bin,1));
+        pc_data(ihigh,ibin+1) = mean(subdata(idxs_bin,2));
+        if ~isempty(prediction); pc_pred(ihigh,ibin+1) =  mean(subdata(idxs_bin,3)); end
     end
     
     % plot
     hold on;
-    plot(x_mean,pc_data,'o-','Color',colorMat(ihigh,:))
-    if nargin > 1; plot(x_mean,pc_pred,'Color',colorMat(ihigh,:)); end
+    plot(x_mean(ihigh,:),pc_data(ihigh,:),'o-','Color',colorMat(ihigh,:))
+    if nargin > 1; plot(x_mean(ihigh,:),pc_pred(ihigh,:),'Color',colorMat(ihigh,:)); end
 end
 
 

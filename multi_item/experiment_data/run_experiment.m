@@ -345,7 +345,7 @@ try
                 Screen('fillRect',windowPtr,bgdac);
 
                 if strcmp(expID,'Reliability'); 
-                    Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Press get the experimenter. '],100,Screen_center(2)-110,[255 255 255]);
+                    Screen('DrawText',windowPtr,['You are halfway. You got ' num2str(HalfPC*100) '% correct so far. Please get the experimenter. '],100,Screen_center(2)-110,[255 255 255]);
                     graphProgress(windowPtr,breaknum,PC); % plot progress graph
                     Screen('Flip', windowPtr);
                     

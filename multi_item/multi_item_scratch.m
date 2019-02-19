@@ -265,7 +265,29 @@ modelMat = ...
              2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
-condition = 'Ellipse';
+condition = 'Line';
+% 
+% for isubj = 1:nSubj
+%     subjid = subjidVec{isubj}
+%     
+%     load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+%     
+%     for imodel = 1:nModels;
+%         model = modelMat(imodel,:)    
+%    
+%         load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+%         
+%         nRuns = length(completedruns);
+%         for irun = 1:nRuns;
+%             LLVec(irun) = -calculate_LL(bfp(irun,:),data,model,[],200);
+%         end
+%         save(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)),...
+%             'completedruns','LLVec','bfp')
+%         
+%     end
+% end
+% 
+% %%
 
 LLMat = nan(nModels,nSubj);
 bfpMat = cell(1,nModels);
@@ -379,7 +401,7 @@ bar(bsxfun(@minus,LLMat,max(LLMat,[],2))')
 clear all
 condition = 'Line';
 subjidx = 1;
-modelidx = 4;
+modelidx = 10;
 nBins = 6;
 
 subjVec = {'POO','METEST'};
