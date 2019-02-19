@@ -178,7 +178,7 @@ nSamples = 20;
 
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
-%% make mat file of setting for model fitting
+%% make mat file of settings for different cluster indices
 
 clear all
 
