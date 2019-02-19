@@ -298,9 +298,12 @@ save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec',
 
 clear all
 
-condition = 'Line';
+condition = 'Ellipse';
 load(sprintf('analysis/fits/bfp_%s.mat',condition));
-
+modelnames = {  'VVO', 'VFO', 'VSO',...
+                'VVM', 'VFM', 'VSM',...
+                       'FFO', 'FSO',...
+                       'FFM', 'FSM'};
 
 nTrials = 2000;
 
@@ -310,10 +313,19 @@ AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParams
 BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
 
 figure;
-barh(AICcMat)
+bar(AICcMat)
+title('AICc')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
+
 
 figure;
-barh(BICMat)
+bar(BICMat)
+title('BIC')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
 
 %% old fit models (keshvari way)
 
