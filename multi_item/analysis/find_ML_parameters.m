@@ -42,7 +42,7 @@ for iter = 1:numel(runlist)
     
     % it is necessary to reload the file at every iteration in case multiple processors are
     % saving the file at the same time
-    if exist(sprintf('fits/%s',filename),'file')
+    if exist(filename,'file')
         load(filename,'bfp','LLVec','completedruns')
     else
         [bfp, LLVec, completedruns] = deal([]);
