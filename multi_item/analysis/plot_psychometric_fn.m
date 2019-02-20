@@ -74,5 +74,8 @@ for ihigh = 1:length(n_high_vec)
     if nargin > 1; plot(x_mean(ihigh,:),pc_pred(ihigh,:),'Color',colorMat(ihigh,:)); end
 end
 
+xlabel('amount of orientation change')
+ylabel('proportion respond change')
+defaultplot
 
 end

@@ -406,7 +406,9 @@ try
     % Compute 65% correct threshold        
     if strcmp(expID,'Threshold')
         low_rel = compute_ellipse_thresholds(TrialMat,0);
-        save(['./output/' subjid '/lowrel_' pres2stimuli],'low_rel')
+        if ~isnan(low_rel); % save only if not nan!
+            save(['./output/' subjid '/lowrel_' pres2stimuli],'low_rel')
+        end
     end
     
     % ====== SHOW END SCREEN =====

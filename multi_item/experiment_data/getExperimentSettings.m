@@ -25,12 +25,18 @@ if ~dir_present
 end
 
 % If this is an existing experimental setup, use those parameters
-while ~(strcmp(expID,'Reliability') || strcmp(expID,'Threshold') || strcmp(expID,'Practice'))
+while ~(strcmp(expID,'R') || strcmp(expID,'T') || strcmp(expID,'P') || strcmp(expID,'R2'))
     expID = input('Experiment ID (Reliability/Threshold/Practice)............: ','s');
 end
-while ~(strcmp(pres2stimuli,'Ellipse') || strcmp(pres2stimuli,'Line'))
+while ~(strcmp(pres2stimuli,'E') || strcmp(pres2stimuli,'L'))
     pres2stimuli = input('Stimuli in second presentation (Ellipse/Line)............: ','s');
 end
+if (strcmp(expID,'P')); expID = 'Practice'; end
+if (strcmp(expID,'T')); expID = 'Threshold'; end
+if (strcmp(expID,'R')); expID = 'Reliability'; end
+if (strcmp(expID,'R2')); expID = 'Reliability2'; end
+if (strcmp(pres2stimuli,'E')); pres2stimuli = 'Ellipse'; end
+if (strcmp(pres2stimuli,'L')); pres2stimuli = 'Line'; end
 
 try
     load(['./output/' subjid '/lowrel_' pres2stimuli])
@@ -63,41 +69,54 @@ settings.stimecc         = 7;      % stimulus eccentricity (deg)
 settings.ITI             = 1;      % inter stimulus time (sec)
 settings.breaktime       = 10;     % mandatory breaktime (sec)
 
-if(strcmp(expID,'Reliability'))
+switch expID
+    case 'Practice' % Practice
+        
+        % Set parameters for the practice trials
+        deltavartyperange = 180;
+        reliabilitytype='constant';
+        reliabilityval= linspace(.3,.9,16);
+        setsizeval= 4;
+        nTrials = 256;
+        breaknum = 2;
+        stim_on_time = 0.333;
+        feedback = 1;
+            
+    case 'Threshold' % Threshold
+        
+        % Set parameters for the threshold trials
+        deltavartyperange = 180;
+        reliabilitytype='constant';
+        reliabilityval= linspace(.3,.9,16);
+        setsizeval= 4;
+        nTrials = 400;
+        breaknum = 4;
+        stim_on_time = 0.1;
+        feedback = 1;
+        
+    case 'Reliability' % Reliability
+        
+        % Set parameters for the experimental trials
+        deltavartyperange = 180;
+        reliabilitytype='mixed';
+        reliabilityval= [low_rel .9];
+        setsizeval= 4;
+        nTrials = 900;
+        breaknum = 8;
+        stim_on_time = 0.1;
+        feedback    = 0;    % feedback flag
 
-    % Set parameters for the experimental trials
-    deltavartyperange = 180;
-    reliabilitytype='mixed';
-    reliabilityval= [low_rel .9];
-    setsizeval= 4;    
-    nTrials = 800;
-    breaknum = 8;
-    stim_on_time = 0.1;
-    feedback    = 0;    % feedback flag
-    
-elseif(strcmp(expID,'Threshold'))
-
-    % Set parameters for the threshold trials
-    deltavartyperange = 180;
-    reliabilitytype='constant';
-    reliabilityval= linspace(.3,.9,16);
-    setsizeval= 4;    
-    nTrials = 400;
-    breaknum = 4;
-    stim_on_time = 0.1;
-    feedback = 1;
-
-elseif(strcmp(expID,'Practice'))
-
-    % Set parameters for the practice trials    
-    deltavartyperange = 180;
-    reliabilitytype='constant';
-    reliabilityval= linspace(.3,.9,16);
-    setsizeval= 4;    
-    nTrials = 256;
-    breaknum = 2;
-    stim_on_time = 0.333;
-    feedback = 1;
+    case 'Reliability2' % Reliability (short version)
+        
+        % Set parameters for the experimental trials
+        deltavartyperange = 180;
+        reliabilitytype='mixed';
+        reliabilityval= [low_rel .9];
+        setsizeval= 4;
+        nTrials = 100;
+        breaknum = 0;
+        stim_on_time = 0.1;
+        feedback    = 0;    % feedback flag
     
 end
 

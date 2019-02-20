@@ -148,15 +148,38 @@ hist(samps,100)
 
 %% simulate fake data (for parameter and model recovery)
 
-% load subject data (just to get the deltas and reliabilities)
+clear all
+close all
+
+model = [1 1 1];
+modelidx = 1;
+condition = 'Ellipse';
+
+% load any subject's data (just to get the deltas and reliabilities)
+load('data/fitting_data/POO_Ellipse_simple.mat')
+data.subjid = 'FAKE03';
+data.pres2stimuli = condition;
 
 % get theta value (made up or from fits)
+load(sprintf('analysis/fits/bfp_%s.mat',condition))
+bfpMat = bfpMat{modelidx};
+M = mean(bfpMat);
+sem = std(bfpMat)./size(bfpMat,1);
+% theta = [6 2 8 0.5];
+theta = sem.*randn(1,size(bfpMat,2))+M
 
 % generate p_C_hat
+nSamples = 200;
+[~,p_C_hat] = calculate_LL(theta,data,model,[],nSamples);
 
 % generate fake data
+data.resp = rand(length(p_C_hat),1) < p_C_hat;
+
+% plot to make sure it makes sense
+plot_psychometric_fn(data,6,p_C_hat);
 
 % save
+save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
 
 %% calc likelihood of single condition
 
