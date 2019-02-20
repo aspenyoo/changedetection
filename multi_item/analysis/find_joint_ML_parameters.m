@@ -19,7 +19,7 @@ rng(0); % Same set for all
 nvars = numel(PLB);
 x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
 
-filename = sprintf('fits/subj%s_combined_model%d%d%d.mat',data.subjid,model(1),model(2),model(3));
+filename = sprintf('fits/subj%s_combined_model%d%d%d.mat',data_E.subjid,model(1),model(2),model(3));
 
 for iter = 1:numel(runlist)
     fprintf('iteration number: %d \n',runlist(iter))
@@ -28,7 +28,7 @@ for iter = 1:numel(runlist)
     rng(runlist(iter));
     
     x0 = x0_list(runlist(iter),:);
-    [xbest,~,~,~] = ...
+    [xbest,LL,~,~] = ...
         bads(@(x) -calculate_joint_LL(x,data_E,data_L,model,logflag,nSamples),x0,LB,UB,PLB,PUB,[],options);
 %     LL = -calculate_LL(xbest,data,model,logflag,nSamplesFinal);
     

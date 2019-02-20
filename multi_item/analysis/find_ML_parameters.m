@@ -34,7 +34,7 @@ for iter = 1:numel(runlist)
     rng(runlist(iter));
     
     x0 = x0_list(runlist(iter),:);
-    [xbest,~,~,~] = ...
+    [xbest,LL,~,~] = ...
         bads(@(x) -calculate_LL(x,data,model,logflag,nSamples),x0,LB,UB,PLB,PUB,[],options);
 %     LL = -calculate_LL(xbest,data,model,logflag,nSamplesFinal);
     
