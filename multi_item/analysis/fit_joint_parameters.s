@@ -23,9 +23,10 @@ nSamples = 200;
 
 % fitting settings (determined by index)
 blah = num2str($SLURM_ARRAY_TASK_ID);
-subjidx = str2double(blah(1));
-runlist = str2double(blah(2:3));
-
+subjidx = str2double(blah);
+runlist = 2:50;
+% subjidx = str2double(blah(1));
+% runlist = str2double(blah(2:3));
 subjidVec = {'POO','METEST'};
 subjid = subjidVec{subjidx};
 model = [1 1 1];
