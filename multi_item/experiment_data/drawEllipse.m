@@ -18,7 +18,7 @@ end
 im = ones(2*d2,2*d2)*bgcol;
 minX = -d2;
 maxX = minX + 2*d2 - 1; 
-[X Y] = meshgrid(minX:maxX,minX:maxX);
+[X, Y] = meshgrid(minX:maxX,minX:maxX);
 X_new = X * cos(rot) - Y * sin(rot);
 Y = X * sin(rot) + Y * cos(rot);
 X = X_new;

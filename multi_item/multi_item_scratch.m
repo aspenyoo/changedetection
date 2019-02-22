@@ -226,7 +226,7 @@ nSamples = 20;
 
 %% make mat file of settings for different cluster indices
 
-clear all
+% clear all
 
 filename = 'analysis/clusterfittingsettings.mat';
 
