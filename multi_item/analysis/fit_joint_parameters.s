@@ -23,13 +23,20 @@ nSamples = 200;
 
 % fitting settings (determined by index)
 blah = num2str($SLURM_ARRAY_TASK_ID);
-subjidx = str2double(blah);
-runlist = 2:50;
-% subjidx = str2double(blah(1));
-% runlist = str2double(blah(2:3));
+subjidx = str2double(blah(1));
+modelidx = str2double(blah(2:3));
+runlist = 1:20;
+
+
 subjidVec = {'POO','METEST'};
 subjid = subjidVec{subjidx};
-model = [1 1 1];
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+model = modelMat(modelidx,:);
+
 
 % load data and save as appropriate variables
 load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid))
