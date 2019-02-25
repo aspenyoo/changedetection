@@ -146,40 +146,6 @@ samps(:,2) = gamrnd(Jbar2/tau, tau, 1e3, 1);
 
 hist(samps,100)
 
-%% simulate fake data (for parameter and model recovery)
-
-clear all
-close all
-
-model = [1 1 1];
-modelidx = 1;
-condition = 'Ellipse';
-
-% load any subject's data (just to get the deltas and reliabilities)
-load('data/fitting_data/POO_Ellipse_simple.mat')
-data.subjid = 'FAKE03';
-data.pres2stimuli = condition;
-
-% get theta value (made up or from fits)
-load(sprintf('analysis/fits/bfp_%s.mat',condition))
-bfpMat = bfpMat{modelidx};
-M = mean(bfpMat);
-sem = std(bfpMat)./size(bfpMat,1);
-% theta = [6 2 8 0.5];
-theta = sem.*randn(1,size(bfpMat,2))+M
-
-% generate p_C_hat
-nSamples = 200;
-[~,p_C_hat] = calculate_LL(theta,data,model,[],nSamples);
-
-% generate fake data
-data.resp = rand(length(p_C_hat),1) < p_C_hat;
-
-% plot to make sure it makes sense
-plot_psychometric_fn(data,6,p_C_hat);
-
-% save
-save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
 
 %% calc likelihood of single condition
 
@@ -437,7 +403,79 @@ end
 
 bar(bsxfun(@minus,LLMat,max(LLMat,[],2))')
 
+%% ====================================================================
+%               PARAMETER/MODEL RECOVERY
+% =====================================================================
 
+
+%% simulate fake data (for parameter and model recovery)
+
+clear all
+close all
+
+model = [1 1 1];
+modelidx = 1;
+condition = 'Ellipse';
+
+% load any subject's data (just to get the deltas and reliabilities)
+load('data/fitting_data/POO_Ellipse_simple.mat')
+data.subjid = 'FAKE03';
+data.pres2stimuli = condition;
+
+% get theta value (made up or from fits)
+load(sprintf('analysis/fits/bfp_%s.mat',condition))
+bfpMat = bfpMat{modelidx};
+M = mean(bfpMat);
+sem = std(bfpMat)./size(bfpMat,1);
+% theta = [6 2 8 0.5];
+theta = sem.*randn(1,size(bfpMat,2))+M
+
+% generate p_C_hat
+nSamples = 200;
+[~,p_C_hat] = calculate_LL(theta,data,model,[],nSamples);
+
+% generate fake data
+data.resp = rand(length(p_C_hat),1) < p_C_hat;
+
+% plot to make sure it makes sense
+plot_psychometric_fn(data,6,p_C_hat);
+
+% save
+save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
+
+%% load actual and estimated parameter
+clear all
+
+subjid = 'FAKE01';
+condition = 'Ellipse';
+truemodel = [1 1 1];
+estmodel = truemodel;
+
+% load data
+load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+
+% load fits
+load(sprintf('subj%s_%s_model%d%d%d.mat',subjid,condition,estmodel(1),estmodel(2),estmodel(3)))
+
+% print stuff
+theta
+bfp
+
+% find best fitting parameters
+idx_minLL = find(LLVec==min(LLVec),1,'first');
+BFP = bfp(idx_minLL,:)
+
+%% calculate entropy and cross entropy for simulated/recovered parameters
+% (run cell above before this one)
+
+% get predictions of best fit param
+[~,q_C_hat] = calculate_LL(BFP,data,estmodel);
+
+p_logp = sum(data.resp.*p_C_hat.*log(p_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-p_C_hat))
+p_logq = sum(data.resp.*p_C_hat.*log(q_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-q_C_hat))
+ - p_logp - p_logq
+
+ 
 %% ====================================================================
 %                   PLOTS
 % ====================================================================
