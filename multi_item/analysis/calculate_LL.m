@@ -1,4 +1,6 @@
 function [LL,p_C_hat] = calculate_LL(x,data,model,logflag,nSamples)
+if nargin < 4; logflag = []; end
+if nargin < 5; nSamples = 200; end
 
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP
