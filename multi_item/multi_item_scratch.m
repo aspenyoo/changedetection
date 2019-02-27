@@ -91,8 +91,11 @@ end
 %% save data in format for fitting data
 clear all
 
-subjid = 'METEST'; 
+subjid = 'S04'; 
 pres2stimuli = 'Ellipse';
+
+combine_data(subjid, pres2stimuli);
+
 load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
 
 % ======== EDIT DATA FORMAT =============
