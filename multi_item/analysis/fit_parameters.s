@@ -2,7 +2,7 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mem=8GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
@@ -24,11 +24,25 @@ nSamples = 200;
 % fitting settings (determined by index)
 load('clusterfittingsettings.mat'); % load settings
 idx = num2str($SLURM_ARRAY_TASK_ID);
-settings = clustersettings{idx};
-subjid = settings.subjid
-model = settings.model
-condition = settings.condition
-runlist = settings.runlist
+isubj = str2double(idx(1));
+imodel = str2double(idx(2:3));
+condition = 'Ellipse';
+runlist = 1:20;
+
+subjidVec = {'POO','METEST','S02','S03','S04','S06','S07','S08'};
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+subjid = subjidVec{isubj};
+model = modelMat(imodel,:);
+
+% settings = clustersettings{idx};
+% subjid = settings.subjid
+% model = settings.model
+% condition = settings.condition
+% runlist = settings.runlist
 
 % load data
 load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
