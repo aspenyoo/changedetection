@@ -44,19 +44,11 @@ end
 
 
 % ====== CALCULATE P(\HAT{C}==1|\Theta) FOR nSamples SAMPLES =====
-% d_i_Mat = nan(nTrials,nItems,nSamples);
-
-
-
-% Lookup tables for modified bessel function and J to Kappa equation
-highest_J = 700.92179;
-Lookup = linspace(0,highest_J,3500)';
-LookupY = besseli(0,Lookup);
-LookupSpacing = 1/(Lookup(2)-Lookup(1));
-cdfLin = linspace(-pi,pi,1000)';
-K_interp = [0 logspace(log10(1e-3),log10(highest_J),1999)];
 
 % make CDF for interpolating J to Kappa
+highest_J = 700.92179;
+cdfLin = linspace(-pi,pi,1000)';
+K_interp = [0 logspace(log10(1e-3),log10(highest_J),1999)];
 cdf = make_cdf_table(K_interp,cdfLin);
 
 k_range = linspace(0,700.92179,6001)';
@@ -86,9 +78,11 @@ else
     
     Kc = bsxfun(@times,2.*kappa_x_i.*kappa_y_i,cos(bsxfun(@plus,data.Delta,delta_noise)));
     Kc = sqrt(bsxfun(@plus,kappa_x_i.^2+kappa_y_i.^2,Kc)); % dims: mat_dims
-    Kc(Kc>Lookup(end)) = Lookup(end); % clip large values
-    d_i_Mat = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY),...
-        myBessel(Kc,LookupSpacing,LookupY));
+    d_i_Mat = bsxfun(@rdivide,besseli(0,kappa_x_i,1).*besseli(0,kappa_y_i,1),...
+        besseli(0,Kc,1));
+%     Kc(Kc>Lookup(end)) = Lookup(end); % clip large values
+%     d_i_Mat = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY),...
+%         myBessel(Kc,LookupSpacing,LookupY));
 end
 
 if (decision_rule == 1); % if optimal

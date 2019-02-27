@@ -162,13 +162,15 @@ toc
 
 %% calc likelihood of joint condition
 
-clear all
+% clear all
 subjid = 'POO';
 nSamples = 200;
 model = [1 1 1];
-theta = [2 1 3 0.3 0.5];
+% theta = [1.56303725054700,0.453115357333784,2.73752936332438,2.00893833208493,0.743587962404854];
+theta = [13.4925771287636,25.4226227004200,5.86566220663474,9.64037313579704,0.551541656814516];
 
 [~,~,~,~,logflag] = getFittingSettings(model, 'Line');
+theta(logflag) = log(theta(logflag));
 
 % load data and save as appropriate variables
 load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid))
@@ -176,8 +178,9 @@ data_E = data;
 load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid))
 data_L = data;
 
+tic;
 LL = calculate_joint_LL(theta,data_E,data_L,model,logflag,nSamples)
-
+toc
 %% fit model one time
 % actually going to be done on cluster. see fit_parameters.s
 
