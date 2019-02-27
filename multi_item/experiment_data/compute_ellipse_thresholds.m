@@ -13,8 +13,16 @@ for ii = 1:length(X)
     Y(ii) = sum((curr_ecc_trials(:,1)~=0)==curr_ecc_trials(:,2))/size(curr_ecc_trials,1);
 end
 
-% fit
-fitpars = fminsearch(@(fitpars) fitfun(fitpars,X,Y),[.5 .5 .2]);
+% fit with different starting values
+nEvals = 10;
+fitpars = nan(nEvals,3);
+fval = nan(1,nEvals);
+for ival = 1:nEvals;
+    [fitpars(ival,:), fval(ival)] = fminsearch(@(fitpars) fitfun(fitpars,X,Y),rand(1,3));
+end
+idx_min = find(fval == min(fval),1,'first');
+fitpars = fitpars(idx_min,:);
+
 X_fit = 0:.001:1;
 Y_fit = 0.5 + fitpars(3) * normcdf(X_fit,fitpars(1),fitpars(2));
 Y_fit = Y_fit + randn(size(Y_fit)).*1e-6;
