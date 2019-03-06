@@ -138,15 +138,16 @@ save(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,pres2stimuli),'data')
 
 %% look at gamma
 
-Jbar = 12;
-Jbar2 = 13;
-tau = 5;
-tau2 = 7; 
+Jbar = 24;
+Jbar2 = 24;
+tau = 1;
+tau2 = 3; 
 
 samps = nan(1e3,2);
 samps(:,1) = gamrnd(Jbar/tau, tau, 1e3, 1);
-samps(:,2) = gamrnd(Jbar2/tau, tau, 1e3, 1);
+samps(:,2) = gamrnd(Jbar2/tau2, tau2, 1e3, 1);
 
+mean(samps)
 hist(samps,100)
 
 
@@ -187,12 +188,15 @@ toc
 %% fit model one time
 % actually going to be done on cluster. see fit_parameters.s
 
+clear all
+subjid = 'POO';
+
+load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid))
+
 model = [2 2 2]; % encoding, inference, decision rule
 nSamples = 200;
-
 runlist = 1;
 runmax = 1;
-nSamples = 20;
 
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
@@ -366,7 +370,7 @@ modelMat = ...
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
              2 2 1; 2 3 1; ...  % F_O model variants
              2 2 2; 2 3 2];     % F_M model variants
-imodel = 4;
+imodel = 1;
 model = modelMat(imodel,:);
 condition = 'Ellipse';
 
@@ -375,17 +379,14 @@ load('data/fitting_data/POO_Ellipse_simple.mat')
 data.subjid = sprintf('F_%d%d%d_01',model(1),model(2),model(3));
 data.pres2stimuli = condition;
 
-% get theta value (made up or from fits)
-load(sprintf('analysis/fits/bfp_%s.mat',condition))
-bfpMat = bfpMat{imodel};
-M = mean(bfpMat);
-sem = std(bfpMat)./size(bfpMat,1);
+% % get theta value (made up or from fits)
+% load(sprintf('analysis/fits/bfp_%s.mat',condition))
+% bfpMat = bfpMat{imodel};
+% M = mean(bfpMat);
+% sem = std(bfpMat)./size(bfpMat,1);
 
-% theta =  [13 2 10 2 0.5];
-theta = sem.*randn(1,size(bfpMat,2))+M
-
-
-theta = [5 2 2 3];
+theta =  [24 12 2 0.5];
+% theta = sem.*randn(1,size(bfpMat,2))+M
 
 % generate p_C_hat
 nSamples = 200;
@@ -399,7 +400,7 @@ clf
 plot_psychometric_fn(data,6,p_C_hat);
 
 % save
-save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
+% save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
 
 %% load actual and estimated parameter
 clear all
@@ -461,7 +462,7 @@ LL_vec
 % ====================================================================
 
 
-%% subject data for particular condition
+%% all subject data for a particular condition
 
 clear all
 condition = 'Ellipse';
@@ -506,7 +507,7 @@ end
 clear all
 condition = 'Ellipse';
 subjidx = 1;
-modelidx = 4;
+modelidx = 9;
 nBins = 6;
 
 subjVec = {'POO','METEST','S02','S04'};
@@ -518,10 +519,11 @@ modelMat = ...
 model = modelMat(modelidx,:);         
 subjid = subjVec{subjidx};
 
-% load bfp fits
-load(sprintf('analysis/fits/bfp_%s.mat',condition))
-bfp = bfpMat{modelidx}(subjidx,:);
+% % load bfp fits
+% load(sprintf('analysis/fits/bfp_%s.mat',condition))
+% bfp = bfpMat{modelidx}(subjidx,:);
 
+bfp = [49.3333    0.4506    9.4590];
 % load data
 load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
 

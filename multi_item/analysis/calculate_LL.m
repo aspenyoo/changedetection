@@ -78,15 +78,15 @@ else
     
     Kc = bsxfun(@times,2.*kappa_x_i.*kappa_y_i,cos(bsxfun(@plus,data.Delta,delta_noise)));
     Kc = sqrt(bsxfun(@plus,kappa_x_i.^2+kappa_y_i.^2,Kc)); % dims: mat_dims
-    d_i_Mat = bsxfun(@rdivide,besseli(0,kappa_x_i,1).*besseli(0,kappa_y_i,1),...
-        besseli(0,Kc,1));
+    d_i_Mat = bsxfun(@minus,log(besseli(0,kappa_x_i,1).*besseli(0,kappa_y_i,1))+...
+        (kappa_x_i+kappa_y_i),log(besseli(0,Kc,1))+Kc); % actually log d_i_Mat
 %     Kc(Kc>Lookup(end)) = Lookup(end); % clip large values
 %     d_i_Mat = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY),...
 %         myBessel(Kc,LookupSpacing,LookupY));
 end
 
 if (decision_rule == 1); % if optimal
-    p_C_hat = log(sum(d_i_Mat,2))-log(nItems)+log(p_change)-log(1-p_change);  % actually d, not p_C_hat
+    p_C_hat = log(sum(exp(d_i_Mat),2))-log(nItems)+log(p_change)-log(1-p_change);  % the value is actually of d, not p_C_hat
     p_C_hat = p_C_hat > 1;      % respond 1 if d > 1
 else
     p_C_hat = max(d_i_Mat,[],2);
