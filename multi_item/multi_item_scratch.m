@@ -94,9 +94,9 @@ clear all
 subjid = 'S04'; 
 pres2stimuli = 'Ellipse';
 
-combine_data(subjid, pres2stimuli);
+trialMat = combine_data(subjid, pres2stimuli);
 
-load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
+% load(sprintf('data/combined_data/%s_%s_combined.mat',subjid,pres2stimuli),'trialMat');
 
 % ======== EDIT DATA FORMAT =============
 % data = trialMat(1:200,:);
@@ -283,7 +283,7 @@ modelMat = ...
              2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
-condition = 'Line';
+condition = 'combined';
 
 LLMat = nan(nModels,nSubj);
 bfpMat = cell(1,nModels);
@@ -294,18 +294,22 @@ for imodel = 1:nModels;
     for isubj = 1:nSubj
         subjid = subjidVec{isubj};
         
-        load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
-
-        if (isubj==1); 
-            nParamsVec(imodel) = size(bfp,2);
-            bfpMat{imodel} = nan(nSubj, nParamsVec(imodel)); 
+        try
+            load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+            
+            if (isubj==1);
+                nParamsVec(imodel) = size(bfp,2);
+                bfpMat{imodel} = nan(nSubj, nParamsVec(imodel));
+            end
+            
+            idx_posLL = LLVec >0;
+            idx_minLL = find(LLVec==min(LLVec(idx_posLL)),1,'first');
+            LLMat(imodel,isubj) = LLVec(idx_minLL);
+            bfpMat{imodel}(isubj,:) = bfp(idx_minLL,:);
+        catch
+            fprintf('model %d%d%d does not exist for subject %s \n',...
+                model(1),model(2),model(3),subjid)
         end
-        
-        idx_posLL = LLVec >0;
-        idx_minLL = find(LLVec==min(LLVec(idx_posLL)),1,'first');
-        LLMat(imodel,isubj) = LLVec(idx_minLL);
-        bfpMat{imodel}(isubj,:) = bfp(idx_minLL,:);
-        
     end
     
 end
@@ -453,18 +457,59 @@ LL_vec
 
  
 %% ====================================================================
-%                   PLOTS
+%                         PLOTS
 % ====================================================================
 
-%% model fits
+
+%% subject data for particular condition
 
 clear all
-condition = 'Line';
+condition = 'Ellipse';
+         
+subjidVec = {'POO','METEST','S02','S04'};
+nSubj = length(subjidVec);
+
+nBins = 6;
+quantilebinedges = 0;
+[x_mean, pc_data] = deal(nan(5,nBins,nSubj));
+for isubj = 1:nSubj
+    subjid = subjidVec{isubj};
+
+    % load data
+    load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
+
+    figure;
+    [x_mean(:,:,isubj), pc_data(:,:,isubj)] = plot_psychometric_fn(data,nBins,[],quantilebinedges);
+end
+
+% get participant and model means
+xrange = mean(x_mean,3);
+partM = mean(pc_data,3);
+partSEM = std(pc_data,[],3)./sqrt(nSubj);
+
+% get colormap info
+h = figure(99);
+cmap = colormap('parula'); % get a rough colormap
+close(h)
+idxs = round(linspace(1,size(cmap,1),5));
+colorMat = cmap(idxs,:);
+
+figure;
+for ii = 1:5;
+plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),[],...
+    [],colorMat(ii,:),[])
+end
+
+
+%% model fits for single subject
+
+clear all
+condition = 'Ellipse';
 subjidx = 1;
-modelidx = 10;
+modelidx = 4;
 nBins = 6;
 
-subjVec = {'POO','METEST'};
+subjVec = {'POO','METEST','S02','S04'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
@@ -488,6 +533,66 @@ nSamples = 200;
 LL
 figure;
 plot_psychometric_fn(data,nBins,p_C_hat)
+
+%% model fits for particular condition, all subjects
+
+clear all
+condition = 'Ellipse';
+modelidx = 10;
+
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+model = modelMat(modelidx,:);
+         
+% load bfp fits
+load(sprintf('analysis/fits/bfp_%s.mat',condition))
+bfpMat = bfpMat{modelidx};
+nSubj = length(subjidVec);
+
+% prediction stuff
+nSamples = 200;
+nBins = 6;
+
+[x_mean, pc_data, pc_pred] = deal(nan(5,nBins,nSubj));
+for isubj = 1:nSubj
+    subjid = subjidVec{isubj};
+    bfp = bfpMat(isubj,:);
+    
+    % load data
+    load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
+
+    % get predictions
+    [~,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
+
+    figure;
+    [x_mean(:,:,isubj), pc_data(:,:,isubj), pc_pred(:,:,isubj)] = plot_psychometric_fn(data,nBins,p_C_hat);
+    pause;
+end
+
+% get participant and model means
+xrange = mean(x_mean,3);
+partM = mean(pc_data,3);
+partSEM = std(pc_data,[],3)./sqrt(nSubj);
+modelM = mean(pc_pred,3);
+modelSEM = std(pc_pred,[],3)./sqrt(nSubj);
+
+
+% get colormap info
+h = figure(99);
+cmap = colormap('parula'); % get a rough colormap
+close(h)
+idxs = round(linspace(1,size(cmap,1),5));
+colorMat = cmap(idxs,:);
+
+figure;
+for ii = 1:5;
+plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
+    modelSEM(ii,:),colorMat(ii,:),colorMat(ii,:))
+end
+
 
 %% plot of joint model fits
 

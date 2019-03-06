@@ -1,4 +1,4 @@
-function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction)
+function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction, quantilebinedges)
 %PLOT_PSYCHOMETRIC_FN plots proportion report change as a function of
 %number of high reliability items and amount of change
 % 
@@ -7,8 +7,11 @@ function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction
 %   follows format from 'data/fitting_data' files
 % NBINS: scalar
 %   number of bins desired
-% PREDICTION: nTrials x 1 vector (optional)
+% PREDICTION: nTrials x 1 vector ([] default)
 %   probability of responding change on every trial (matches data)
+% QUANTILEBINEDGES: binary (1, default)
+%   whether you want the bins of "change trials" to determined by
+%   quantiling trials (1), or be the same across conditions (0)
 % 
 % ================= OUTPUT VARIABLES ================
 % X_MEAN: nRels x nBins matrix
@@ -20,6 +23,7 @@ function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction
 
 if nargin < 2; nBins = 6; end
 if nargin < 3; prediction = []; end
+if nargin < 4; quantilebinedges = 1; end
 
 nItems = 4;
 n_high_vec = 0:nItems;
@@ -32,7 +36,8 @@ for n_high = n_high_vec;
 end
 
 % change delta to be absolute change, and up to pi/2
-data.Delta = abs(mod(data.Delta,pi/2));
+data.Delta = 0.5*circ_dist(sum(data.Delta,2),0);
+binedges = linspace(eps,pi/2,nBins);
 
 % get colormap info
 h = figure(99);
@@ -41,28 +46,34 @@ close(h)
 idxs = round(linspace(1,size(cmap,1),length(n_high_vec)));
 colorMat = cmap(idxs,:);
 
- [x_mean, pc_data, pc_pred] = deal(zeros(length(n_high_vec),nBins));
+[x_mean, pc_data, pc_pred] = deal(zeros(length(n_high_vec),nBins));
 for ihigh = 1:length(n_high_vec)
     % get indices of current reliability number
     idx_start = idx_high(ihigh)+1;       % which row starts this n_high
     idx_stop = idx_high(ihigh+1);        % end of this thing
     
     % get subset of relevant data
-    subdata = [sum(data.Delta(idx_start:idx_stop,:),2) data.resp(idx_start:idx_stop)];
+    subdata = [data.Delta(idx_start:idx_stop) data.resp(idx_start:idx_stop)];
     if ~isempty(prediction); subdata = [subdata prediction(idx_start:idx_stop)]; end
     
     % sort rows by delta
     subdata = sortrows(subdata,1);
    
     % get mean for all no change trial
-    idx_nochange = find(subdata(:,1)==0,1,'last');
+    idx_nochange = find(subdata(:,1)<eps,1,'last');
     pc_data(ihigh,1) = mean(subdata(1:idx_nochange,2));
     if ~isempty(prediction); pc_pred(ihigh,1) = mean(subdata(1:idx_nochange,3));end
     
     % bin the rest of the change trials
-    binedges = round(linspace(idx_nochange+1,size(subdata,1),nBins));
+    if (quantilebinedges) % get binedges based on number of trials (quantile binning)
+        binedges = round(linspace(idx_nochange+1,size(subdata,1),nBins)); 
+    end
     for ibin = 1:(nBins-1)
-        idxs_bin = (binedges(ibin)+1):(binedges(ibin+1));
+        if (quantilebinedges)
+            idxs_bin = (binedges(ibin)+1):(binedges(ibin+1));
+        else
+            idxs_bin = find((subdata(:,1)>=binedges(ibin)) & (subdata(:,1)<binedges(ibin+1)));
+        end
         x_mean(ihigh,ibin+1) = mean(subdata(idxs_bin,1));
         pc_data(ihigh,ibin+1) = mean(subdata(idxs_bin,2));
         if ~isempty(prediction); pc_pred(ihigh,ibin+1) =  mean(subdata(idxs_bin,3)); end
