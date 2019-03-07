@@ -47,16 +47,24 @@ end
 
 % make CDF for interpolating J to Kappa
 tempp = load('cdf_table.mat');
-highest_J = tempp.highest_J;
 K_interp = tempp.K_interp;
 cdf = tempp.cdf;
+k_range = tempp.k_range;
+J_lin = tempp.J_lin;
+highest_J = tempp.highest_J;
 clear tempp
 
-k_range = linspace(0,700.92179,6001)';
-J_range = k_range.*(besseli(1,k_range)./besseli(0,k_range));
-J_lin = linspace(min(J_range),max(J_range),6001)';
-k_range = interp1(J_range,k_range,J_lin);
-highest_J = max(J_range);
+% highest_J = 700.92179;
+% cdfLin = linspace(-pi,pi,1000)';
+% K_interp = [0 logspace(log10(1e-3),log10(highest_J),1999)];
+% cdf = make_cdf_table(K_interp,cdfLin);
+% tic;
+% k_range = linspace(0,700.92179,6001)';
+% J_range = k_range.*(besseli(1,k_range)./besseli(0,k_range));
+% J_lin = linspace(min(J_range),max(J_range),6001)';
+% k_range = interp1(J_range,k_range,J_lin);
+% highest_J = max(J_range);
+% toc
 
 % calculate actual kappa and noisy representations
 get_deltas = 1;
@@ -162,8 +170,12 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
         J_y_mat(J_y_mat > highest_J) = highest_J;
         
         % convert J to kappa
-        kappa_x = qinterp1(1/(J_lin(2)-J_lin(1)),k_range,J_x_mat);
-        kappa_y = qinterp1(1/(J_lin(2)-J_lin(1)),k_range,J_y_mat);
+        xi = 1/diff(J_lin(1:2))*J_x_mat+1;
+        kappa_x = k_range(round(xi));
+        xi = 1/diff(J_lin(1:2))*J_y_mat+1;
+        kappa_y = k_range(round(xi));
+%         kappa_x = qinterp1(1/(J_lin(2)-J_lin(1)),k_range,J_x_mat);
+%         kappa_y = qinterp1(1/(J_lin(2)-J_lin(1)),k_range,J_y_mat);
         
         if (get_deltas) % only used in generative stage
             % get matrices in correct dimensions
