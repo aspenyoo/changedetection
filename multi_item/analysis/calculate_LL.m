@@ -46,10 +46,11 @@ end
 % ====== CALCULATE P(\HAT{C}==1|\Theta) FOR nSamples SAMPLES =====
 
 % make CDF for interpolating J to Kappa
-highest_J = 700.92179;
-cdfLin = linspace(-pi,pi,1000)';
-K_interp = [0 logspace(log10(1e-3),log10(highest_J),1999)];
-cdf = make_cdf_table(K_interp,cdfLin);
+tempp = load('cdf_table.mat');
+highest_J = tempp.highest_J;
+K_interp = tempp.K_interp;
+cdf = tempp.cdf;
+clear tempp
 
 k_range = linspace(0,700.92179,6001)';
 J_range = k_range.*(besseli(1,k_range)./besseli(0,k_range));

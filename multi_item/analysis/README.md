@@ -6,13 +6,13 @@ All files and file directories are described below. More detailed descriptions c
 - fits/: directory containing fits for subjects and models
 - calculate_joint_LL.m: calculates the likelihood of data given model for data in both Ellipse and Line conditions
 - calculate_LL.m: calculates the likelihood of data given model for one condition (Line or Ellipse)
+- cdf_table.mat: a matrix of cdfs of von Mises with different kappas, to use for sampling quickly in calculate_LL.m
 - clusterfittingsettings.mat: matrix data file used to fit models on HPC (probably not useful for you)
 - find_joint_ML_parameters.m: finds the ML parameter estimates for all data (Ellipse and Line conditions)
 - find_ML_parameters.m: finds the ML parameter estimates for just one condition (Ellipse or Line)
 - fit_joint_parameters: bash script used to fit joint parameters on HPC (may not be useful for you)
 - fit_parameters.s: bash script used to fit single-condition parameters on HPC (may not be useful for you)
 - getFittingSettings.m: contains settings for parameter estimation
-- make_cdf_table.m: used to sample kappas faster in calculate_LL.m
 - plot_psychometric_fn.m: bins and plots data
 - qinterp1.m: interpolation function used in calculate_LL.m
 - simulate_data.m: simulates data for some model and parameter combination

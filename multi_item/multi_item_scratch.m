@@ -40,7 +40,7 @@ end
 %% save data in format for fitting data
 clear all
 
-subjid = 'S08'; 
+subjid = 'S07'; 
 pres2stimuli = 'Line';
 
 trialMat = combine_data(subjid, pres2stimuli);
