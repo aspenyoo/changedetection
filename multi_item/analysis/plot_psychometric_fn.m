@@ -1,4 +1,4 @@
-function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction, quantilebinedges)
+function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction,quantilebinedges)
 %PLOT_PSYCHOMETRIC_FN plots proportion report change as a function of
 %number of high reliability items and amount of change
 % 
@@ -23,7 +23,7 @@ function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction
 
 if nargin < 2; nBins = 6; end
 if nargin < 3; prediction = []; end
-if nargin < 4; quantilebinedges = 1; end
+% if nargin < 4; quantilebinedges = 1; end
 
 nItems = 4;
 n_high_vec = 0:nItems;
@@ -82,7 +82,7 @@ for ihigh = 1:length(n_high_vec)
     % plot
     hold on;
     plot(x_mean(ihigh,:),pc_data(ihigh,:),'o-','Color',colorMat(ihigh,:))
-    if nargin > 1; plot(x_mean(ihigh,:),pc_pred(ihigh,:),'Color',colorMat(ihigh,:)); end
+    if ~isempty(prediction); plot(x_mean(ihigh,:),pc_pred(ihigh,:),'Color',colorMat(ihigh,:)); end
 end
 
 xlabel('amount of orientation change')

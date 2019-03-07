@@ -2,57 +2,6 @@
 %                   DATA RELATED
 % =============================================================
 % 
-%% old -- keshvari. set up data into useable format
-
-subj_ID_cell = {'POO','METEST','POO','METEST'};
-conditionCell = {'Ellipse','Ellipse','Line','Line'};
-Subj_data_cell = combine_convert_all_data(subj_ID_cell,conditionCell);
-
-save('analysis/Subj_data_cell.mat','Subj_data_cell')
-
-%% old -- keshvari. plot psychometric function of current dataset
-
-% close all
-nBins = 6;
-plot_subjdata = 1;
-[delta_bin_vec,p_C_hat_mat_subj,HR_subj,FA_subj] = compute_psych_curves(nBins,plot_subjdata);
-
-% plot indvl psychometric curves
-nSubj = size(FA_subj,1);
-N_vec = (0:4)';
-
-
-% plot
-figure
-for isubj = 1:nSubj;
-    
-    % proportion report change
-    subplot(nSubj,2,2*isubj-1)
-    hold on;
-    for irel = 1:length(N_vec);
-        plot(delta_bin_vec,squeeze(p_C_hat_mat_subj(isubj,irel,:)));
-    end
-    ylim([0 1]);
-    if isubj == nSubj; 
-        xlabel('Magnitude of change in radians')
-        legend([repmat('N_H=',length(N_vec),1) num2str(N_vec)])
-    end;
-    if isubj == 1; title('Probability report "Change"'), end;
-    defaultplot
-    
-    % HR and FA
-    subplot(nSubj,2,2*isubj)
-    hold on; 
-    plot(N_vec,HR_subj(isubj,:)); % hit rate
-    plot(N_vec,FA_subj(isubj,:)); % false alarm
-    ylim([0 1]);
-    if (isubj == 1); title('Hit and false alarm rates'), end
-    if (isubj == nSubj);
-        legend('Hit Rate','False Alarm Rate')
-        xlabel('Number of high reliability items (N_H)')
-    end
-    defaultplot
-end
 
 %% stats about difference in performance as a function of condition
 
@@ -91,8 +40,8 @@ end
 %% save data in format for fitting data
 clear all
 
-subjid = 'S04'; 
-pres2stimuli = 'Ellipse';
+subjid = 'S08'; 
+pres2stimuli = 'Line';
 
 trialMat = combine_data(subjid, pres2stimuli);
 
@@ -154,13 +103,17 @@ hist(samps,100)
 %% calc likelihood of single condition
 
 clear all
+subjid = 'POO';
+condition = 'Ellipse';
 
-model = [1 2 1]; % encoding, inference, decision rule
-theta = [2 1 0.3 0.5];
+model = [2 2 3]; % encoding, inference, decision rule
+theta = [2 1 2];
 nSamples = 200;
 
+load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+
 tic;
-[LL,pc] =calculate_LL(theta,datt,model,pres2stimuli,nSamples);
+[LL,pc] =calculate_LL(theta,data,model,[],nSamples);
 LL
 toc
 
@@ -462,12 +415,18 @@ LL_vec
 % ====================================================================
 
 
-%% all subject data for a particular condition
+%% plot all subject data (for a particular condition)
 
 clear all
-condition = 'Ellipse';
-         
-subjidVec = {'POO','METEST','S02','S04'};
+close all
+condition = 'Line';
+
+switch condition
+    case 'Ellipse'
+        subjidVec = {'POO','METEST','S02','S04','S06'};
+    case 'Line'
+        subjidVec = {'POO','METEST','S02','S03','S07','S08'};
+end
 nSubj = length(subjidVec);
 
 nBins = 6;
@@ -507,7 +466,7 @@ end
 clear all
 condition = 'Ellipse';
 subjidx = 1;
-modelidx = 9;
+modelidx = 3;
 nBins = 6;
 
 subjVec = {'POO','METEST','S02','S04'};
@@ -520,19 +479,19 @@ model = modelMat(modelidx,:);
 subjid = subjVec{subjidx};
 
 % % load bfp fits
-% load(sprintf('analysis/fits/bfp_%s.mat',condition))
-% bfp = bfpMat{modelidx}(subjidx,:);
+load(sprintf('analysis/fits/bfp_%s.mat',condition))
+bfp = bfpMat{modelidx}(subjidx,:);
+% bfp = [49.3333    0.4506    9.4590];
 
-bfp = [49.3333    0.4506    9.4590];
 % load data
 load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
 
 % get predictions
 nSamples = 200;
 [LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
+LL
 
 % plot it
-LL
 figure;
 plot_psychometric_fn(data,nBins,p_C_hat)
 
@@ -632,8 +591,59 @@ plot_psychometric_fn(data,nBins,p_C_hat)
 %% ==================================================================
 %                        KESHVARI
 % ====================================================================
+%% old -- keshvari. set up data into useable format
 
-%% old fit models (keshvari way)
+subj_ID_cell = {'POO','METEST','POO','METEST'};
+conditionCell = {'Ellipse','Ellipse','Line','Line'};
+Subj_data_cell = combine_convert_all_data(subj_ID_cell,conditionCell);
+
+save('analysis/Subj_data_cell.mat','Subj_data_cell')
+
+%% old -- keshvari. plot psychometric function of current dataset
+
+% close all
+nBins = 6;
+plot_subjdata = 1;
+[delta_bin_vec,p_C_hat_mat_subj,HR_subj,FA_subj] = compute_psych_curves(nBins,plot_subjdata);
+
+% plot indvl psychometric curves
+nSubj = size(FA_subj,1);
+N_vec = (0:4)';
+
+
+% plot
+figure
+for isubj = 1:nSubj;
+    
+    % proportion report change
+    subplot(nSubj,2,2*isubj-1)
+    hold on;
+    for irel = 1:length(N_vec);
+        plot(delta_bin_vec,squeeze(p_C_hat_mat_subj(isubj,irel,:)));
+    end
+    ylim([0 1]);
+    if isubj == nSubj; 
+        xlabel('Magnitude of change in radians')
+        legend([repmat('N_H=',length(N_vec),1) num2str(N_vec)])
+    end;
+    if isubj == 1; title('Probability report "Change"'), end;
+    defaultplot
+    
+    % HR and FA
+    subplot(nSubj,2,2*isubj)
+    hold on; 
+    plot(N_vec,HR_subj(isubj,:)); % hit rate
+    plot(N_vec,FA_subj(isubj,:)); % false alarm
+    ylim([0 1]);
+    if (isubj == 1); title('Hit and false alarm rates'), end
+    if (isubj == nSubj);
+        legend('Hit Rate','False Alarm Rate')
+        xlabel('Number of high reliability items (N_H)')
+    end
+    defaultplot
+end
+
+%% fit models (keshvari way)
 
 clear all
 
@@ -650,7 +660,7 @@ for imodel = 1:size(modelMat,1)
     run_model_reliability(subjid, pres2stimuli, modelMat(imodel,:));
 end
 
-%% old model comparison (keshvari way)
+%% model comparison (keshvari way)
 
 clear all
 
