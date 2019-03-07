@@ -18,7 +18,7 @@ addpath(genpath('/home/ay963/changedetection/helper_functions'))
 addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
-runmax = 50;
+runmax = 20;
 nSamples = 200;
 
 % fitting settings (determined by index)
