@@ -41,7 +41,7 @@ end
 clear all
 
 subjid = 'S06'; 
-pres2stimuli = 'Ellipse';
+pres2stimuli = 'Line';
 
 trialMat = combine_data(subjid, pres2stimuli);
 
