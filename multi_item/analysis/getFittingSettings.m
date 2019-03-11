@@ -1,4 +1,4 @@
-function [LB,UB,PLB,PUB,logflag] = getFittingSettings(model, condition)
+function [logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition)
 
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP

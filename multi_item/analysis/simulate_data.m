@@ -13,7 +13,7 @@ rel = [0.5 0.5 0.5 0.5;
        0.9 0.9 0.9 0.9];
 
 % get settings for current model
-[~,~,PLB,PUB,logflag] = getFittingSettings(model, condition);
+[logflag,~,~,PLB,PUB] = getFittingSettings(model, condition);
 
 % get simulated theta
 nParams = length(PLB);
