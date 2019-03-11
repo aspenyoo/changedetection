@@ -155,11 +155,11 @@ runmax = 1;
 
 %% make mat file of settings for different cluster indices
 
-% clear all
+clear all
 
 filename = 'analysis/clusterfittingsettings.mat';
 
-subjidCell = {'POO','METEST','S02','S04','S05','S06','S08'};
+subjidCell = {'POO','METEST','S02','S04','S06','S08'};
 conditionCell = {'Ellipse'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -180,23 +180,44 @@ for isubj = 1:nSubj
         
         for imodel = 1:nModels
             model = modelMat(imodel,:);
-            
+            try
             load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)));
             
-            incompleteRuns = 1:50;
+            % get the indices of runlists left
+            incompleteRuns = 1:20;
             incompleteRuns(completedruns) = [];
             nRunsleft = length(incompleteRuns);
             
-            for irun = 1:nRunsleft
-                runlist = incompleteRuns(irun);
-                
+            % assume that the number completed is the amount that can be
+            % completed in the same amount of time. set number of jobs
+            % based on that
+            nRunsperJob = length(completedruns)*2;
+            while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
                 clustersettings{counter}.subjid = subjid;
                 clustersettings{counter}.condition = condition;
                 clustersettings{counter}.model = model;
-                clustersettings{counter}.runlist = runlist;
-            
-            counter = counter+1;
+                
+                try
+                    clustersettings{counter}.runlist = incompleteRuns(1:nRunsperJob);
+                    incompleteRuns(1:nRunsperJob) = [];
+                catch
+                    clustersettings{counter}.runlist = incompleteRuns;
+                    incompleteRuns = [];
+                end
+                
+                counter = counter+1;
             end
+            end
+%             for irun = 1:nRunsleft
+%                 runlist = incompleteRuns(irun);
+%                 
+%                 clustersettings{counter}.subjid = subjid;
+%                 clustersettings{counter}.condition = condition;
+%                 clustersettings{counter}.model = model;
+%                 clustersettings{counter}.runlist = runlist;
+%             
+%             counter = counter+1;
+%             end
         end
     end
     
