@@ -41,7 +41,7 @@ end
 clear all
 
 subjid = 'S06'; 
-pres2stimuli = 'Ellipse';
+pres2stimuli = 'Line';
 
 trialMat = combine_data(subjid, pres2stimuli);
 
@@ -232,7 +232,7 @@ end
 
 clear all
 
-subjidVec = {'POO','METEST'};
+subjidVec = {'POO','METEST','S02','S04','S06','S07','S08'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
@@ -240,7 +240,7 @@ modelMat = ...
              2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
-condition = 'combined';
+condition = 'Ellipse';
 
 LLMat = nan(nModels,nSubj);
 bfpMat = cell(1,nModels);
@@ -419,11 +419,11 @@ LL_vec
 
 clear all
 close all
-condition = 'Line';
+condition = 'Ellipse';
 
 switch condition
     case 'Ellipse'
-        subjidVec = {'POO','METEST','S02','S04','S06'};
+        subjidVec = {'POO','METEST','S02','S03','S04','S06','S07','S08'};
     case 'Line'
         subjidVec = {'POO','METEST','S02','S03','S07','S08'};
 end
@@ -466,10 +466,10 @@ end
 clear all
 condition = 'Ellipse';
 subjidx = 1;
-modelidx = 3;
+modelidx = 1;
 nBins = 6;
 
-subjVec = {'POO','METEST','S02','S04'};
+subjVec = {'POO','METEST','S02','S03','S04','S05','S06','S07','S08'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
@@ -493,13 +493,15 @@ LL
 
 % plot it
 figure;
-plot_psychometric_fn(data,nBins,p_C_hat)
+quantilebinedges = 0;
+plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
+
 
 %% model fits for particular condition, all subjects
 
 clear all
 condition = 'Ellipse';
-modelidx = 10;
+modelidx = 2;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -518,7 +520,7 @@ nSamples = 200;
 nBins = 6;
 
 [x_mean, pc_data, pc_pred] = deal(nan(5,nBins,nSubj));
-for isubj = 1:nSubj
+for isubj = [ 1 2 3 4 5 7]
     subjid = subjidVec{isubj};
     bfp = bfpMat(isubj,:);
     
@@ -529,16 +531,16 @@ for isubj = 1:nSubj
     [~,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
 
     figure;
-    [x_mean(:,:,isubj), pc_data(:,:,isubj), pc_pred(:,:,isubj)] = plot_psychometric_fn(data,nBins,p_C_hat);
+    [x_mean(:,:,isubj), pc_data(:,:,isubj), pc_pred(:,:,isubj)] = plot_psychometric_fn(data,nBins,p_C_hat,0);
     pause;
 end
 
 % get participant and model means
-xrange = mean(x_mean,3);
-partM = mean(pc_data,3);
-partSEM = std(pc_data,[],3)./sqrt(nSubj);
-modelM = mean(pc_pred,3);
-modelSEM = std(pc_pred,[],3)./sqrt(nSubj);
+xrange = nanmean(x_mean,3);
+partM = nanmean(pc_data,3);
+partSEM = nanstd(pc_data,[],3)./sqrt(nSubj-1);
+modelM = nanmean(pc_pred,3);
+modelSEM = nanstd(pc_pred,[],3)./sqrt(nSubj-1);
 
 
 % get colormap info
