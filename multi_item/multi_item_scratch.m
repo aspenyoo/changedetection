@@ -1,4 +1,4 @@
-% ============================================================
+%% ============================================================
 %                   DATA RELATED
 % =============================================================
 % 
@@ -82,7 +82,7 @@ save(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,pres2stimuli),'data')
 
 
 %% ==============================================================
-%           MODEL FITTING
+%                     MODEL FITTING
 %  ===============================================================
 
 %% look at gamma
@@ -126,7 +126,7 @@ model = [1 1 1];
 % theta = [1.56303725054700,0.453115357333784,2.73752936332438,2.00893833208493,0.743587962404854];
 theta = [13.4925771287636,25.4226227004200,5.86566220663474,9.64037313579704,0.551541656814516];
 
-[~,~,~,~,logflag] = getFittingSettings(model, 'Line');
+logflag = getFittingSettings(model, 'Line');
 theta(logflag) = log(theta(logflag));
 
 % load data and save as appropriate variables
@@ -155,12 +155,12 @@ runmax = 1;
 
 %% make mat file of settings for different cluster indices
 
-% clear all
+clear all
 
 filename = 'analysis/clusterfittingsettings.mat';
 
-subjidCell = {'POO','METEST'};
-conditionCell = {'Ellipse','Line'};
+subjidCell = {'POO','METEST','S02','S04','S06','S08'};
+conditionCell = {'Ellipse'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
@@ -180,23 +180,44 @@ for isubj = 1:nSubj
         
         for imodel = 1:nModels
             model = modelMat(imodel,:);
-            
+            try
             load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)));
             
-            incompleteRuns = 1:50;
+            % get the indices of runlists left
+            incompleteRuns = 1:20;
             incompleteRuns(completedruns) = [];
             nRunsleft = length(incompleteRuns);
             
-            for irun = 1:nRunsleft
-                runlist = incompleteRuns(irun);
-                
+            % assume that the number completed is the amount that can be
+            % completed in the same amount of time. set number of jobs
+            % based on that
+            nRunsperJob = length(completedruns)*2;
+            while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
                 clustersettings{counter}.subjid = subjid;
                 clustersettings{counter}.condition = condition;
                 clustersettings{counter}.model = model;
-                clustersettings{counter}.runlist = runlist;
-            
-            counter = counter+1;
+                
+                try
+                    clustersettings{counter}.runlist = incompleteRuns(1:nRunsperJob);
+                    incompleteRuns(1:nRunsperJob) = [];
+                catch
+                    clustersettings{counter}.runlist = incompleteRuns;
+                    incompleteRuns = [];
+                end
+                
+                counter = counter+1;
             end
+            end
+%             for irun = 1:nRunsleft
+%                 runlist = incompleteRuns(irun);
+%                 
+%                 clustersettings{counter}.subjid = subjid;
+%                 clustersettings{counter}.condition = condition;
+%                 clustersettings{counter}.model = model;
+%                 clustersettings{counter}.runlist = runlist;
+%             
+%             counter = counter+1;
+%             end
         end
     end
     
@@ -232,7 +253,11 @@ end
 
 clear all
 
-subjidVec = {'POO','METEST','S02','S04','S06','S07','S08'};
+subjidVec = {'POO','METEST','S02','S04','S06','S08'};
+% subjidVec = {'POO'};
+condition = 'combined';
+
+
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
@@ -240,7 +265,7 @@ modelMat = ...
              2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
-condition = 'Ellipse';
+
 
 LLMat = nan(nModels,nSubj);
 bfpMat = cell(1,nModels);
@@ -277,7 +302,7 @@ save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec',
 
 clear all
 
-condition = 'Ellipse';
+condition = 'combined';
 load(sprintf('analysis/fits/bfp_%s.mat',condition));
 modelnames = {  'VVO', 'VFO', 'VSO',...
                 'VVM', 'VFM', 'VSM',...
@@ -415,10 +440,9 @@ LL_vec
 % ====================================================================
 
 
-%% plot all subject data (for a particular condition)
+%% DATA: all subjects for Ellipse/Line
 
 clear all
-close all
 condition = 'Ellipse';
 
 switch condition
@@ -461,11 +485,11 @@ plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),[],...
 end
 
 
-%% model fits for single subject
+%% SINGLE SUBJECT MODEL FITS: Ellipse/Line
 
 clear all
 condition = 'Ellipse';
-subjidx = 1;
+subjidx = 8;
 modelidx = 1;
 nBins = 6;
 
@@ -496,12 +520,63 @@ figure;
 quantilebinedges = 0;
 plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
 
+%% SINGLE SUBJECT MODEL FITS: combined
 
-%% model fits for particular condition, all subjects
+clear all
+condition = 'combined';
+subjidx = 1;
+modelidx = 1;
+nBins = 6;
+nSamples = 200;
+
+% get correct settings
+subjVec = {'POO','METEST','S02','S03','S04','S05','S06','S07','S08'};
+modelMat = ...
+    [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
+             2 2 1;  2 3 1; ...  % F_O model variants
+             2 2 2;  2 3 2];     % F_M model variants
+model = modelMat(modelidx,:);         
+subjid = subjVec{subjidx};
+infering = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
+decision_rule = model(3);   % decision rule. 1: optimal, 2: max
+
+% load ML parameter estimates
+load(sprintf('analysis/fits/bfp_%s.mat',condition))
+bfp = bfpMat{modelidx}(subjidx,:);
+
+x_ellipse = bfp;
+if (decision_rule == 1) && (infering == 3);
+    idx_Lonly = [3 6];
+else
+    idx_Lonly = [3];
+end
+x_ellipse(idx_Lonly) = [];
+
+% load data
+load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid),'data');
+data_E = data;
+load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid),'data');
+data_L = data;
+
+% get predictions
+[LL,p_C_hat] = calculate_joint_LL(bfp,data_E,data_L,model,[],nSamples);
+LL
+
+% plot it
+figure;
+quantilebinedges = 0;
+subplot(1,2,1)
+plot_psychometric_fn(data_E,nBins,p_C_hat.Ellipse,quantilebinedges);
+subplot(1,2,2)
+plot_psychometric_fn(data_L,nBins,p_C_hat.Line,quantilebinedges);
+
+
+%% ALL SUBJ MODEL FITS: Ellipse/Line
 
 clear all
 condition = 'Ellipse';
-modelidx = 2;
+modelidx = 1;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -520,7 +595,7 @@ nSamples = 200;
 nBins = 6;
 
 [x_mean, pc_data, pc_pred] = deal(nan(5,nBins,nSubj));
-for isubj = [ 1 2 3 4 5 7]
+for isubj = 1:nSubj
     subjid = subjidVec{isubj};
     bfp = bfpMat(isubj,:);
     
@@ -528,7 +603,8 @@ for isubj = [ 1 2 3 4 5 7]
     load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
 
     % get predictions
-    [~,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
+    [LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
+    fprintf('subj %s: %5.2f \n',subjid,LL)
 
     figure;
     [x_mean(:,:,isubj), pc_data(:,:,isubj), pc_pred(:,:,isubj)] = plot_psychometric_fn(data,nBins,p_C_hat,0);
@@ -541,7 +617,6 @@ partM = nanmean(pc_data,3);
 partSEM = nanstd(pc_data,[],3)./sqrt(nSubj-1);
 modelM = nanmean(pc_pred,3);
 modelSEM = nanstd(pc_pred,[],3)./sqrt(nSubj-1);
-
 
 % get colormap info
 h = figure(99);
@@ -589,6 +664,88 @@ LL
 figure;
 plot_psychometric_fn(data,nBins,p_C_hat)
 
+%% ====================================================================
+%                DEBUGGING STUFF (SHOULD BE ONE OFF)
+% =====================================================================
+
+%% low_rel for S07
+% problem: the "low_rel" for the ellipse condition for subject S07 was
+% actually set to a higher reliability than the "high_rel"
+% solution: switch previous low_rel to 0.9. change previous high_rel (which
+% was 0.9), to some arbitrary number below 0.9. sort data to
+% fit with this new rel organization
+
+clear all
+
+load('data/fitting_data/S07_Ellipse_simple.mat')
+
+% locations of what should have been the highrel
+idx_newlowrel = data.rel == 0.9;
+
+% change low and high rel reliabilties
+data.rel(idx_newlowrel) = 0.6; % arbitrary low number
+data.rel(~idx_newlowrel) = 0.9;
+
+% % flip data so that it is the correct sorting structure
+% data.Delta = fliplr(data.Delta);
+% data.Delta = flipud(data.Delta);
+% data.rel = fliplr(data.rel);
+% data.rel = flipud(data.rel);
+% data.resp = flipud(data.resp);
+
+save('data/fitting_data/S07_Ellipse_simple.mat','data')
+
+
+%% bfp and LL for 'combined' condition
+% bug: when calculating the LL of parameters, log scaled parameters were
+% double exponentiated. when saving the ML parameter estimates, it was
+% single exponentiated. 
+% fix: go through current fits and exponentiate log-scaled parameters one
+% more time. fix calculate_joint_LL.m so that it only exponentiates once.
+%
+% bug2: LL vecs were wrong
+% fix: recalculate LL
+
+clear all
+
+subjid = 'POO';
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+nModels = size(modelMat,1);
+
+% load data
+load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid),'data');
+data_E = data;
+load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid),'data');
+data_L = data;
+
+for imodel = 2:nModels
+    model = modelMat(imodel,:)
+    
+    % get logflag info
+    logflag = getFittingSettings(model,'Line');
+    logflag = find(logflag);
+    
+    % load fits and stuff
+    load(sprintf('subj%s_combined_model%d%d%d.mat',subjid,model(1),model(2),model(3)))
+    %     % change bfp
+    %     bfp(:,logflag) = exp(bfp(:,logflag));
+    
+    % recalculate LL
+    ncompruns = length(completedruns);
+    for irun = 1:ncompruns
+        x = bfp(irun,:);
+        LLVec(irun) = -calculate_joint_LL(x,data_E,data_L,model,[],200);
+        
+    end
+    
+    % save
+    save(sprintf('analysis/fits/subj%s_combined_model%d%d%d.mat',subjid,model(1),model(2),model(3)),'bfp','completedruns','LLVec')
+
+end
 
 %% ==================================================================
 %                        KESHVARI

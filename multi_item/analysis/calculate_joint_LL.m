@@ -1,4 +1,4 @@
-function LL = calculate_joint_LL(x,data_E,data_L,model,logflag,nSamples)
+function [LL,p_C_hat] = calculate_joint_LL(x,data_E,data_L,model,logflag,nSamples)
 
 
 % model indices
@@ -23,11 +23,12 @@ x(logflag) = exp(x(logflag));
 % calculate LL for ellipse data
 xx = x;
 xx(idx_Lonly) = [];
-lf = logflag;
-lf(idx_Lonly) = [];
-LL = calculate_LL(xx,data_E,model,lf,nSamples);
+[LL, pch] = calculate_LL(xx,data_E,model,[],nSamples);
+p_C_hat.Ellipse = pch;
 
-% add it to LL for ellipse data
-LL = LL + calculate_LL(x,data_L,model,logflag,nSamples);
+% add it to LL for line data
+[ll, pch] = calculate_LL(x,data_L,model,[],nSamples);
+LL = LL + ll;
+p_C_hat.Line = pch;
 
 

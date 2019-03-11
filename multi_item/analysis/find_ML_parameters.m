@@ -15,7 +15,7 @@ if nargin < 6 || isempty(nSamples); nSamples = 1e4; end
 
 % get model fitting settings
 condition = data.pres2stimuli;
-[LB,UB,PLB,PUB,logflag] = getFittingSettings(model, condition);
+[logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition);
 
 % BPS options
 options.UncertaintyHandling = 'on';

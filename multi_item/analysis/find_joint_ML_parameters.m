@@ -9,7 +9,7 @@ if nargin < 6 || isempty(nSamples); nSamples = 200; end
 % get model fitting settings
 % condition = data.pres2stimuli;
 condition = 'Line'; % parameters for VVO in combined are same as in just Line condition
-[LB,UB,PLB,PUB,logflag] = getFittingSettings(model, condition);
+[logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition);
 
 % BPS options
 options.UncertaintyHandling = 'on';
