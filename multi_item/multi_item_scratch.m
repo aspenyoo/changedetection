@@ -80,6 +80,48 @@ data = datt;
 
 save(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,pres2stimuli),'data')
 
+%% ==============================================================
+%               QUALITATIVE DIFFERENCES IN DATA
+%  ===============================================================
+
+clear all
+
+subjidVec = {'POO','METEST'};
+nSubj = length(subjidVec);
+
+conditionVec = {'Ellipse','Line'};
+nConditions = length(conditionVec);
+
+PC = nan(nSubj,5,nConditions);
+for icondition = 1:nConditions
+    condition = conditionVec{icondition};
+    
+    for isubj = 1:nSubj;
+        subjid = subjidVec{isubj};
+        
+        % load data
+        load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+        data_waschange = sum(data.Delta,2)>0;
+        data_nrels = sum(data.rel == 0.9,2);
+        data_correct = data.resp == data_waschange;
+        
+        for irel = 0:4;
+            idx = data_nrels==irel;
+            PC(isubj,irel+1,icondition) = mean(data_correct(idx));
+            
+        end
+        
+    end
+end
+
+figure; hold on
+boxplot(PC(:,:,1),'Colors','r')
+boxplot(PC(:,:,2),'Colors','b')
+title('line')
+xlabel('nrels')
+ylabel('PC')
+ylim([0.5 0.8])
+defaultplot
 
 %% ==============================================================
 %                     MODEL FITTING
