@@ -1,5 +1,18 @@
 function [logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition)
 
+
+% CURRENT: PARAMETER VALUES FOR DIFFERENT MODELS
+% [1 1 1], [1 1 2], [1 2 1], [1 2 2]: 
+%   [Jbar_high, Jbar_low,( Jbar_line,) tau, p_change/criterion]
+% [1 3 1]:
+%   [Jbar_high, Jbar_low,( Jbar_line,) tau, Jbar_assumedellipse, p_change/criterion]
+
+% OLD: PARAMETER VALUES FOR DIFFERENT MODELS
+% [1 1 1], [1 1 2], [1 2 1], [1 2 2]: 
+%   [Jbar_high, Jbar_low,( Jbar_line,) tau, p_change/criterion]
+% [1 3 1]:
+%   [Jbar_high, Jbar_low,( Jbar_line,) tau, Jbar_assumedellipse,( Jbar_assumedline,) p_change/criterion]
+
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP
 variability = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
@@ -51,14 +64,14 @@ switch decision_rule
             PUB = [PUB jbar_pbounds(2)];
             logflag = [logflag 1];
             
-            % if Line condition, need an additional Jbar value for assumed Jbar
-            if strcmp(condition,'Line')
-                LB = [LB jbar_bounds(1)];
-                UB = [UB jbar_bounds(2)];
-                PLB = [PLB jbar_pbounds(1)];
-                PUB = [PUB jbar_pbounds(2)];
-                logflag = [logflag 1];
-            end
+%             % if Line condition, need an additional Jbar value for assumed Jbar
+%             if strcmp(condition,'Line')
+%                 LB = [LB jbar_bounds(1)];
+%                 UB = [UB jbar_bounds(2)];
+%                 PLB = [PLB jbar_pbounds(1)];
+%                 PUB = [PUB jbar_pbounds(2)];
+%                 logflag = [logflag 1];
+%             end
         end
         
         % p(change)
