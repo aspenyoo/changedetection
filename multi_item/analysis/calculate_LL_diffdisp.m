@@ -36,11 +36,11 @@ end
 if (decision_rule == 1) % if optimal decision rule
     if (infering == 3) % if assumed same precision
         Jbar_assumed = x(counter);
-        counter = counter+1;
-        
-        if strcmp(condition,'Line')
-            Jbar_line_assumed = x(counter);
-        end
+%         counter = counter+1;
+%         
+%         if strcmp(condition,'Line')
+%             Jbar_line_assumed = x(counter);
+%         end
     end
     p_change = x(end);
 else % max rule

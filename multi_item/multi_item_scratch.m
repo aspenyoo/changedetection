@@ -319,7 +319,7 @@ for imodel = 1:nModels;
         subjid = subjidVec{isubj};
         
         try
-            load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+            load(sprintf('analysis/fits/samedisp/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
             
             if (isubj==1);
                 nParamsVec(imodel) = size(bfp,2);
@@ -531,7 +531,8 @@ end
 
 clear all
 condition = 'Ellipse';
-subjidx = 8;
+disptype = 'same';
+subjidx = 3;
 modelidx = 1;
 nBins = 6;
 
@@ -545,7 +546,7 @@ model = modelMat(modelidx,:);
 subjid = subjVec{subjidx};
 
 % % load bfp fits
-load(sprintf('analysis/fits/bfp_%s.mat',condition))
+load(sprintf('analysis/fits/%sdisp/bfp_%s.mat',disptype,condition))
 bfp = bfpMat{modelidx}(subjidx,:);
 % bfp = [49.3333    0.4506    9.4590];
 
@@ -566,6 +567,7 @@ plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
 
 clear all
 condition = 'combined';
+disptype = 'same';
 subjidx = 1;
 modelidx = 1;
 nBins = 6;
@@ -584,7 +586,7 @@ infering = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
 decision_rule = model(3);   % decision rule. 1: optimal, 2: max
 
 % load ML parameter estimates
-load(sprintf('analysis/fits/bfp_%s.mat',condition))
+load(sprintf('analysis/fits/%sdisp/bfp_%s.mat',disptype,condition))
 bfp = bfpMat{modelidx}(subjidx,:);
 
 x_ellipse = bfp;
