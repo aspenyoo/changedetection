@@ -29,7 +29,7 @@ imodel = str2double(idx(2:3));
 condition = 'Ellipse';
 runlist = 1:20;
 
-subjidVec = {'POO','METEST','S02','S03','S04','S06','S07','S08'};
+subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
