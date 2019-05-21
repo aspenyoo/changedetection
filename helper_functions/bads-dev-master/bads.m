@@ -1,4 +1,4 @@
-rfunction [x,fval,exitflag,output,optimState,gpstruct] = bads(fun,x0,LB,UB,PLB,PUB,nonbcon,options,varargin)
+function [x,fval,exitflag,output,optimState,gpstruct] = bads(fun,x0,LB,UB,PLB,PUB,nonbcon,options,varargin)
 %BADS Constrained optimization using Bayesian Adaptive Direct Search
 %   BADS attempts to solve problems of the form:
 %       min F(X)  subject to:  LB <= X <= UB
