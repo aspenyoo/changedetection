@@ -295,9 +295,10 @@ end
 
 clear all
 
-subjidVec = {'POO','METEST','S02','S04','S06','S08'};
+subjidVec = {'POO','METEST','S02','S03','S06','S08','S10','S11','S14'};
 % subjidVec = {'POO'};
-condition = 'combined';
+condition = 'Ellipse';
+foldername = 'ellipse_keshvari';
 
 
 modelMat = ...
@@ -319,7 +320,7 @@ for imodel = 1:nModels;
         subjid = subjidVec{isubj};
         
         try
-            load(sprintf('analysis/fits/samedisp/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+            load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',foldername,subjid,condition,model(1),model(2),model(3)))
             
             if (isubj==1);
                 nParamsVec(imodel) = size(bfp,2);
@@ -338,14 +339,15 @@ for imodel = 1:nModels;
     
 end
 
-save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 %% model comparison (AICc and BIC)
 
 clear all
 
-condition = 'combined';
-load(sprintf('analysis/fits/bfp_%s.mat',condition));
+condition = 'Ellipse';
+foldername = 'ellipse_keshvari';
+load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition));
 modelnames = {  'VVO', 'VFO', 'VSO',...
                 'VVM', 'VFM', 'VSM',...
                        'FFO', 'FSO',...
@@ -373,6 +375,48 @@ xlim([0.5 10.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
+%% AICc BIC relatve to VVO
+
+AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
+BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
+
+figure;
+bar(AICcMat)
+title('AICc')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
+
+
+figure;
+bar(BICMat)
+title('BIC')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
+
+%% mean sem of same thing
+nSubj = 6;%size(AICcMat,2);
+
+M_AICc = nanmean(AICcMat,2);
+SEM_AICc = nanstd(AICcMat,[],2)/sqrt(nSubj);
+
+M_BIC = nanmean(BICMat,2);
+SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubj);
+
+figure;
+errorbar(M_AICc,SEM_AICc,'k','LineStyle','none')
+title('AICc')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
+
+figure
+errorbar(M_BIC,SEM_BIC,'k','LineStyle','none')
+title('BIC')
+xlim([0.5 10.5])
+set(gca,'XTick',1:10,'XTickLabel',modelnames);
+defaultplot
 
 
 %% ====================================================================
@@ -485,18 +529,14 @@ LL_vec
 %% DATA: all subjects for Ellipse/Line
 
 clear all
-condition = 'Ellipse';
+condition = 'Line';
 
-switch condition
-    case 'Ellipse'
-        subjidVec = {'POO','METEST','S02','S03','S04','S06','S07','S08'};
-    case 'Line'
-        subjidVec = {'POO','METEST','S02','S03','S07','S08'};
-end
+subjidVec = {'POO','METEST','S02','S03','S06','S07','S08','S10','S11','S14'};
 nSubj = length(subjidVec);
 
 nBins = 6;
 quantilebinedges = 0;
+figure; 
 [x_mean, pc_data] = deal(nan(5,nBins,nSubj));
 for isubj = 1:nSubj
     subjid = subjidVec{isubj};
@@ -504,7 +544,6 @@ for isubj = 1:nSubj
     % load data
     load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
 
-    figure;
     [x_mean(:,:,isubj), pc_data(:,:,isubj)] = plot_psychometric_fn(data,nBins,[],quantilebinedges);
 end
 
@@ -520,7 +559,7 @@ close(h)
 idxs = round(linspace(1,size(cmap,1),5));
 colorMat = cmap(idxs,:);
 
-figure;
+clf
 for ii = 1:5;
 plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),[],...
     [],colorMat(ii,:),[])
@@ -531,7 +570,7 @@ end
 
 clear all
 condition = 'Ellipse';
-disptype = 'same';
+foldername = 'ellipse_keshvari';
 subjidx = 3;
 modelidx = 1;
 nBins = 6;
@@ -546,7 +585,7 @@ model = modelMat(modelidx,:);
 subjid = subjVec{subjidx};
 
 % % load bfp fits
-load(sprintf('analysis/fits/%sdisp/bfp_%s.mat',disptype,condition))
+load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition))
 bfp = bfpMat{modelidx}(subjidx,:);
 % bfp = [49.3333    0.4506    9.4590];
 
@@ -707,183 +746,3 @@ nSamples = 200;
 LL
 figure;
 plot_psychometric_fn(data,nBins,p_C_hat)
-
-%% ====================================================================
-%                DEBUGGING STUFF (SHOULD BE ONE OFF)
-% =====================================================================
-
-%% low_rel for S07
-% problem: the "low_rel" for the ellipse condition for subject S07 was
-% actually set to a higher reliability than the "high_rel"
-% solution: switch previous low_rel to 0.9. change previous high_rel (which
-% was 0.9), to some arbitrary number below 0.9. sort data to
-% fit with this new rel organization
-
-clear all
-
-load('data/fitting_data/S07_Ellipse_simple.mat')
-
-% locations of what should have been the highrel
-idx_newlowrel = data.rel == 0.9;
-
-% change low and high rel reliabilties
-data.rel(idx_newlowrel) = 0.6; % arbitrary low number
-data.rel(~idx_newlowrel) = 0.9;
-
-% % flip data so that it is the correct sorting structure
-% data.Delta = fliplr(data.Delta);
-% data.Delta = flipud(data.Delta);
-% data.rel = fliplr(data.rel);
-% data.rel = flipud(data.rel);
-% data.resp = flipud(data.resp);
-
-save('data/fitting_data/S07_Ellipse_simple.mat','data')
-
-
-%% bfp and LL for 'combined' condition
-% bug: when calculating the LL of parameters, log scaled parameters were
-% double exponentiated. when saving the ML parameter estimates, it was
-% single exponentiated. 
-% fix: go through current fits and exponentiate log-scaled parameters one
-% more time. fix calculate_joint_LL.m so that it only exponentiates once.
-%
-% bug2: LL vecs were wrong
-% fix: recalculate LL
-
-clear all
-
-subjid = 'POO';
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
-nModels = size(modelMat,1);
-
-% load data
-load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid),'data');
-data_E = data;
-load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid),'data');
-data_L = data;
-
-for imodel = 2:nModels
-    model = modelMat(imodel,:)
-    
-    % get logflag info
-    logflag = getFittingSettings(model,'Line');
-    logflag = find(logflag);
-    
-    % load fits and stuff
-    load(sprintf('subj%s_combined_model%d%d%d.mat',subjid,model(1),model(2),model(3)))
-    %     % change bfp
-    %     bfp(:,logflag) = exp(bfp(:,logflag));
-    
-    % recalculate LL
-    ncompruns = length(completedruns);
-    for irun = 1:ncompruns
-        x = bfp(irun,:);
-        LLVec(irun) = -calculate_joint_LL(x,data_E,data_L,model,[],200);
-        
-    end
-    
-    % save
-    save(sprintf('analysis/fits/subj%s_combined_model%d%d%d.mat',subjid,model(1),model(2),model(3)),'bfp','completedruns','LLVec')
-
-end
-
-%% ==================================================================
-%                        KESHVARI
-% ====================================================================
-%% old -- keshvari. set up data into useable format
-
-subj_ID_cell = {'POO','METEST','POO','METEST'};
-conditionCell = {'Ellipse','Ellipse','Line','Line'};
-Subj_data_cell = combine_convert_all_data(subj_ID_cell,conditionCell);
-
-save('analysis/Subj_data_cell.mat','Subj_data_cell')
-
-%% old -- keshvari. plot psychometric function of current dataset
-
-% close all
-nBins = 6;
-plot_subjdata = 1;
-[delta_bin_vec,p_C_hat_mat_subj,HR_subj,FA_subj] = compute_psych_curves(nBins,plot_subjdata);
-
-% plot indvl psychometric curves
-nSubj = size(FA_subj,1);
-N_vec = (0:4)';
-
-
-% plot
-figure
-for isubj = 1:nSubj;
-    
-    % proportion report change
-    subplot(nSubj,2,2*isubj-1)
-    hold on;
-    for irel = 1:length(N_vec);
-        plot(delta_bin_vec,squeeze(p_C_hat_mat_subj(isubj,irel,:)));
-    end
-    ylim([0 1]);
-    if isubj == nSubj; 
-        xlabel('Magnitude of change in radians')
-        legend([repmat('N_H=',length(N_vec),1) num2str(N_vec)])
-    end;
-    if isubj == 1; title('Probability report "Change"'), end;
-    defaultplot
-    
-    % HR and FA
-    subplot(nSubj,2,2*isubj)
-    hold on; 
-    plot(N_vec,HR_subj(isubj,:)); % hit rate
-    plot(N_vec,FA_subj(isubj,:)); % false alarm
-    ylim([0 1]);
-    if (isubj == 1); title('Hit and false alarm rates'), end
-    if (isubj == nSubj);
-        legend('Hit Rate','False Alarm Rate')
-        xlabel('Number of high reliability items (N_H)')
-    end
-    defaultplot
-end
-
-%% fit models (keshvari way)
-
-clear all
-
-subjid = 'POO';
-pres2stimuli = 'Ellipse';
-
-modelMat = ...
-    [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ... % VPO model variants
-    1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ... % VPM model variants
-    2 2 1 1;  2 3 1 1; 2 4 1 1; ...  % EPO model variants
-    2 2 2 1;  2 3 2 1; 2 4 2 1]; % EPM model variants
-
-for imodel = 1:size(modelMat,1)
-    run_model_reliability(subjid, pres2stimuli, modelMat(imodel,:));
-end
-
-%% model comparison (keshvari way)
-
-clear all
-
-subjidCell = {'METEST','POO'};
-conditionCell = {'Ellipse','Ellipse'};
-
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
-
-nModels = size(modelMat,1);
-nSubj = length(subjidCell);
-
-LLMat = nan(nSubj,nModels);
-for imodel = 1:nModels
-    currmodel = modelMat(imodel,:);
-    
-    LLMat(:,imodel) = compute_BMC(currmodel,subjidCell,conditionCell);
-end
-
-bar(bsxfun(@minus,LLMat,max(LLMat,[],2))')
