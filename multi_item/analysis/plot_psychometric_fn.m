@@ -36,7 +36,7 @@ for n_high = n_high_vec;
 end
 
 % change delta to be absolute change, and up to pi/2
-data.Delta = 0.5*circ_dist(sum(data.Delta,2),0);
+data.Delta = circ_dist(0.5*sum(data.Delta,2),0);
 binedges = linspace(eps,pi/2,nBins);
 
 % get colormap info
