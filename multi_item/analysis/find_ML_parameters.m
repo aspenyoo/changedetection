@@ -25,7 +25,7 @@ rng(0); % Same set for all
 nvars = numel(PLB);
 x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
 
-filename = sprintf('fits/subj%s_%s_model%d%d%d.mat',data.subjid,condition,model(1),model(2),model(3));
+filename = sprintf('fits/ellipse_keshvari/subj%s_%s_model%d%d%d.mat',data.subjid,condition,model(1),model(2),model(3));
 
 for iter = 1:numel(runlist)
     fprintf('iteration number: %d \n',runlist(iter))

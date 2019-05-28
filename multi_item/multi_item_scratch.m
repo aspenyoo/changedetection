@@ -201,7 +201,7 @@ clear all
 
 filename = 'analysis/clusterfittingsettings.mat';
 
-subjidCell = {'POO','METEST','S02','S04','S06','S08'};
+subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 conditionCell = {'Ellipse'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -223,7 +223,7 @@ for isubj = 1:nSubj
         for imodel = 1:nModels
             model = modelMat(imodel,:);
             try
-            load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)));
+            load(sprintf('analysis/fits/ellipse_keshvari/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)));
             
             % get the indices of runlists left
             incompleteRuns = 1:20;
