@@ -196,6 +196,8 @@ runmax = 1;
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
 %% make mat file of settings for different cluster indices
+% this is to continue going through the runlist, based on what runlists
+% were complete already
 
 clear all
 
@@ -295,17 +297,17 @@ end
 
 clear all
 
-subjidVec = {'POO','METEST','S02','S03','S06','S08','S10','S11','S14'};
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
 % subjidVec = {'POO'};
-condition = 'Ellipse';
-foldername = 'ellipse_keshvari';
+condition = 'combined';
+foldername = 'combined'; % ellipse_keshvari
 
-
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
+% modelMat = ...
+%     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+%      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+%              2 2 1; 2 3 1; ...  % F_O model variants
+%              2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
 
@@ -320,7 +322,7 @@ for imodel = 1:nModels;
         subjid = subjidVec{isubj};
         
         try
-            load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',foldername,subjid,condition,model(1),model(2),model(3)))
+            load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
             
             if (isubj==1);
                 nParamsVec(imodel) = size(bfp,2);
@@ -339,20 +341,24 @@ for imodel = 1:nModels;
     
 end
 
-save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+
+% save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 %% model comparison (AICc and BIC)
 
 clear all
 
-condition = 'Ellipse';
-foldername = 'ellipse_keshvari';
-load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition));
-modelnames = {  'VVO', 'VFO', 'VSO',...
-                'VVM', 'VFM', 'VSM',...
-                       'FFO', 'FSO',...
-                       'FFM', 'FSM'};
-
+condition = 'combined';
+load(sprintf('analysis/fits/bfp_%s.mat',condition));
+% foldername = 'ellipse_keshvari';
+% load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition));
+modelnames = {'VVO','VVM','VSO','VSM'};
+% modelnames = {  'VVO', 'VFO', 'VSO',...
+%                 'VVM', 'VFM', 'VSM',...
+%                        'FFO', 'FSO',...
+%                        'FFM', 'FSM'};
+nModels = length(modelnames);
 nTrials = 2000;
 
 % calculated AIC, AICc, and BIC
@@ -363,7 +369,7 @@ BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
 figure;
 bar(AICcMat)
 title('AICc')
-xlim([0.5 10.5])
+xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
@@ -371,7 +377,7 @@ defaultplot
 figure;
 bar(BICMat)
 title('BIC')
-xlim([0.5 10.5])
+xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
@@ -383,7 +389,7 @@ BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
 figure;
 bar(AICcMat)
 title('AICc')
-xlim([0.5 10.5])
+xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
@@ -391,7 +397,7 @@ defaultplot
 figure;
 bar(BICMat)
 title('BIC')
-xlim([0.5 10.5])
+xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
@@ -407,14 +413,14 @@ SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubj);
 figure;
 errorbar(M_AICc,SEM_AICc,'k','LineStyle','none')
 title('AICc')
-xlim([0.5 10.5])
+xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
 figure
 errorbar(M_BIC,SEM_BIC,'k','LineStyle','none')
 title('BIC')
-xlim([0.5 10.5])
+xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
@@ -522,7 +528,7 @@ LL_vec
 
  
 %% ====================================================================
-%                         PLOTS
+%                      PLOTS: ONE CONDITION
 % ====================================================================
 
 
@@ -602,58 +608,6 @@ figure;
 quantilebinedges = 0;
 plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
 
-%% SINGLE SUBJECT MODEL FITS: combined
-
-clear all
-condition = 'combined';
-disptype = 'same';
-subjidx = 1;
-modelidx = 1;
-nBins = 6;
-nSamples = 200;
-
-% get correct settings
-subjVec = {'POO','METEST','S02','S03','S04','S05','S06','S07','S08'};
-modelMat = ...
-    [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
-             2 2 1;  2 3 1; ...  % F_O model variants
-             2 2 2;  2 3 2];     % F_M model variants
-model = modelMat(modelidx,:);         
-subjid = subjVec{subjidx};
-infering = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
-decision_rule = model(3);   % decision rule. 1: optimal, 2: max
-
-% load ML parameter estimates
-load(sprintf('analysis/fits/%sdisp/bfp_%s.mat',disptype,condition))
-bfp = bfpMat{modelidx}(subjidx,:);
-
-x_ellipse = bfp;
-if (decision_rule == 1) && (infering == 3);
-    idx_Lonly = [3 6];
-else
-    idx_Lonly = [3];
-end
-x_ellipse(idx_Lonly) = [];
-
-% load data
-load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid),'data');
-data_E = data;
-load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid),'data');
-data_L = data;
-
-% get predictions
-[LL,p_C_hat] = calculate_joint_LL(bfp,data_E,data_L,model,[],nSamples);
-LL
-
-% plot it
-figure;
-quantilebinedges = 0;
-subplot(1,2,1)
-plot_psychometric_fn(data_E,nBins,p_C_hat.Ellipse,quantilebinedges);
-subplot(1,2,2)
-plot_psychometric_fn(data_L,nBins,p_C_hat.Line,quantilebinedges);
-
 
 %% ALL SUBJ MODEL FITS: Ellipse/Line
 
@@ -669,7 +623,7 @@ modelMat = ...
 model = modelMat(modelidx,:);
          
 % load bfp fits
-load(sprintf('analysis/fits/bfp_%s.mat',condition))
+load(sprintf('analysis/fits/ellipse_keshvari/bfp_%s.mat',condition))
 bfpMat = bfpMat{modelidx};
 nSubj = length(subjidVec);
 
@@ -715,34 +669,136 @@ plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
 end
 
 
-%% plot of joint model fits
+%% ====================================================================
+%                      PLOTS: BOTH CONDITION
+% ====================================================================
+
+%% SINGLE SUBJECT MODEL FITS: combined
 
 clear all
-
-subjid = 'POO';
+condition = 'combined';
+% disptype = 'same';
+subjidx = 4;
 modelidx = 1;
 nBins = 6;
+nSamples = 200;
 
-conditionCell = {'Ellipse','Line'};
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+% get correct settings
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
+modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
+
 model = modelMat(modelidx,:);         
+subjid = subjidVec{subjidx};
+infering = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
+decision_rule = model(3);   % decision rule. 1: optimal, 2: max
 
-% load bfp fits
+% load ML parameter estimates
 load(sprintf('analysis/fits/bfp_%s.mat',condition))
+% load(sprintf('analysis/fits/%sdisp/bfp_%s.mat',disptype,condition))
 bfp = bfpMat{modelidx}(subjidx,:);
 
 % load data
-load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
+load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid),'data');
+data_E = data;
+load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid),'data');
+data_L = data;
 
 % get predictions
-nSamples = 200;
-[LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
+[LL,p_C_hat] = calculate_joint_LL(bfp,data_E,data_L,model,[],nSamples);
+LL
 
 % plot it
-LL
 figure;
-plot_psychometric_fn(data,nBins,p_C_hat)
+quantilebinedges = 0;
+subplot(1,2,1)
+plot_psychometric_fn(data_E,nBins,p_C_hat.Ellipse,quantilebinedges);
+subplot(1,2,2)
+plot_psychometric_fn(data_L,nBins,p_C_hat.Line,quantilebinedges);
+
+%% model fits of all subject
+
+clear all
+condition = 'combined';
+% disptype = 'same';
+imodel = 1;
+nBins = 6;
+nSamples = 200;
+
+% get correct settings
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
+modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
+nSubj = length(subjidVec);
+nModels = size(modelMat,1);
+
+model = modelMat(modelidx,:);         
+
+% load ML parameter estimates
+load(sprintf('analysis/fits/bfp_%s.mat',condition))
+% load(sprintf('analysis/fits/%sdisp/bfp_%s.mat',disptype,condition))
+
+% [p_C_hat_Line, p_C_hat_Ellipse] = deal(2000,nSubj);
+% % get predictions for each subject
+% for isubj = 1:nSubj
+% [LL,pchat] = calculate_joint_LL(bfp,data_E,data_L,model,[],nSamples);
+% LL
+% p_C_hat_Line(:,isubj) = pchat.Line;
+% p_C_hat_Ellipse(:,isubj) = pchat.Ellipse;
+% end
+
+
+[x_mean_e, pc_data_e, pc_pred_e, x_mean_l, pc_data_l, pc_pred_l] = deal(nan(5,nBins,nSubj));
+for isubj = 1:nSubj
+    subjid = subjidVec{isubj};
+    bfp = bfpMat{imodel}(isubj,:);
+    
+    % load data
+    load(sprintf('data/fitting_data/%s_Ellipse_simple.mat',subjid),'data');
+    data_E = data;
+    load(sprintf('data/fitting_data/%s_Line_simple.mat',subjid),'data');
+    data_L = data;
+    
+    % get predictions
+    [LL,p_C_hat] = calculate_joint_LL(bfp,data_E,data_L,model,[],nSamples);
+    fprintf('subj %s: %5.2f \n',subjid,LL)
+
+    figure(1);
+    [x_mean_e(:,:,isubj), pc_data_e(:,:,isubj), pc_pred_e(:,:,isubj)] = plot_psychometric_fn(data_E,nBins,p_C_hat.Ellipse,0);
+    [x_mean_l(:,:,isubj), pc_data_l(:,:,isubj), pc_pred_l(:,:,isubj)] = plot_psychometric_fn(data_L,nBins,p_C_hat.Line,0);
+    pause;
+end
+
+% get participant and model means
+xrange_e = nanmean(x_mean_e,3);
+partM_e = nanmean(pc_data_e,3);
+partSEM_e = nanstd(pc_data_e,[],3)./sqrt(nSubj-1);
+modelM_e = nanmean(pc_pred_e,3);
+modelSEM_e = nanstd(pc_pred_e,[],3)./sqrt(nSubj-1);
+
+xrange_l = nanmean(x_mean_l,3);
+partM_l = nanmean(pc_data_l,3);
+partSEM_l = nanstd(pc_data_l,[],3)./sqrt(nSubj-1);
+modelM_l = nanmean(pc_pred_l,3);
+modelSEM_l = nanstd(pc_pred_l,[],3)./sqrt(nSubj-1);
+
+% get colormap info
+h = figure(99);
+cmap = colormap('parula'); % get a rough colormap
+close(h)
+idxs = round(linspace(1,size(cmap,1),5));
+colorMat = cmap(idxs,:);
+
+figure;
+subplot(1,2,1)
+for ii = 1:5;
+plot_summaryfit(xrange_e(ii,:),partM_e(ii,:),partSEM_e(ii,:),modelM_e(ii,:),...
+    modelSEM_e(ii,:),colorMat(ii,:),colorMat(ii,:))
+end
+title('Ellipse')
+defaultplot
+subplot(1,2,2)
+for ii = 1:5;
+plot_summaryfit(xrange_l(ii,:),partM_l(ii,:),partSEM_l(ii,:),modelM_l(ii,:),...
+    modelSEM_l(ii,:),colorMat(ii,:),colorMat(ii,:))
+end
+title('Ellipse')
+defaultplot

@@ -129,10 +129,11 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
         mat_dims = [nTrials,nItems,nSamples];
         %     [delta_noise, kappa_x, kappa_y] = deal(nan(nTrials,nItems,nSamples));
         n_high_vec = 0:nItems;
+        rels = unique(data.rel);            % unique reliabilities across experiment
         
         idx_high = [0 nan(1,nItems+1)];
         for n_high = n_high_vec;
-            idx_high(n_high+2) = find(sum(data.rel == 0.9,2)==n_high,1,'last');
+            idx_high(n_high+2) = find(sum(data.rel == rels(2),2)==n_high,1,'last');
         end
         
         % fill in matrix J_mat according to trial precisions

@@ -53,7 +53,7 @@ for ihigh = 1:length(n_high_vec)
     idx_stop = idx_high(ihigh+1);        % end of this thing
     
     % get subset of relevant data
-    subdata = [data.Delta(idx_start:idx_stop) data.resp(idx_start:idx_stop)];
+    subdata = [data.Delta(idx_start:idx_stop) data.resp(idx_start:idx_stop)];    
     if ~isempty(prediction); subdata = [subdata prediction(idx_start:idx_stop)]; end
     
     % sort rows by delta
