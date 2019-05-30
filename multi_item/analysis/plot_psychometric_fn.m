@@ -30,13 +30,14 @@ n_high_vec = 0:nItems;
 
 % get indices of sections of data with nItems
 % note: data must be sorted already by number of high reliability items
+rels = unique(data.rel);
 idx_high = [0 nan(1,nItems+1)];
 for n_high = n_high_vec;
-    idx_high(n_high+2) = find(sum(data.rel == 0.9,2)==n_high,1,'last');
+    idx_high(n_high+2) = find(sum(data.rel ==rels(2),2)==n_high,1,'last');
 end
 
-% change delta to be absolute change, and up to pi/2
-data.Delta = circ_dist(0.5*sum(data.Delta,2),0);
+% change delta to be change, and up to pi/2
+data.Delta = 0.5*abs(circ_dist(sum(data.Delta,2),0));
 binedges = linspace(eps,pi/2,nBins);
 
 % get colormap info
@@ -45,6 +46,7 @@ cmap = colormap('parula'); % get a rough colormap
 close(h)
 idxs = round(linspace(1,size(cmap,1),length(n_high_vec)));
 colorMat = cmap(idxs,:);
+
 
 [x_mean, pc_data, pc_pred] = deal(zeros(length(n_high_vec),nBins));
 for ihigh = 1:length(n_high_vec)

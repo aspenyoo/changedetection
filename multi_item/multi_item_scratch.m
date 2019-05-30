@@ -535,13 +535,14 @@ LL_vec
 %% DATA: all subjects for Ellipse/Line
 
 clear all
-condition = 'Line';
+condition = 'Ellipse';
 
-subjidVec = {'POO','METEST','S02','S03','S06','S07','S08','S10','S11','S14'};
+ subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
+%subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 nSubj = length(subjidVec);
 
-nBins = 6;
-quantilebinedges = 0;
+nBins = 8;
+quantilebinedges = 11;
 figure; 
 [x_mean, pc_data] = deal(nan(5,nBins,nSubj));
 for isubj = 1:nSubj
@@ -577,18 +578,18 @@ end
 clear all
 condition = 'Ellipse';
 foldername = 'ellipse_keshvari';
-subjidx = 3;
+subjidx = 2;
 modelidx = 1;
 nBins = 6;
 
-subjVec = {'POO','METEST','S02','S03','S04','S05','S06','S07','S08'};
+subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
              2 2 1; 2 3 1; ...  % F_O model variants
              2 2 2; 2 3 2];     % F_M model variants
 model = modelMat(modelidx,:);         
-subjid = subjVec{subjidx};
+subjid = subjidVec{subjidx};
 
 % % load bfp fits
 load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition))
@@ -605,7 +606,7 @@ LL
 
 % plot it
 figure;
-quantilebinedges = 0;
+quantilebinedges = 1;
 plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
 
 
@@ -629,7 +630,8 @@ nSubj = length(subjidVec);
 
 % prediction stuff
 nSamples = 200;
-nBins = 6;
+nBins = 8;
+quantilebinning=1;
 
 [x_mean, pc_data, pc_pred] = deal(nan(5,nBins,nSubj));
 for isubj = 1:nSubj
@@ -644,7 +646,7 @@ for isubj = 1:nSubj
     fprintf('subj %s: %5.2f \n',subjid,LL)
 
     figure;
-    [x_mean(:,:,isubj), pc_data(:,:,isubj), pc_pred(:,:,isubj)] = plot_psychometric_fn(data,nBins,p_C_hat,0);
+    [x_mean(:,:,isubj), pc_data(:,:,isubj), pc_pred(:,:,isubj)] = plot_psychometric_fn(data,nBins,p_C_hat,quantilebinning);
     pause;
 end
 
