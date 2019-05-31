@@ -19,7 +19,7 @@ addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
 runmax = 20;
-nSamples = 200;
+nSamples = 100;
 
 % fitting settings (determined by index)
 load('clusterfittingsettings.mat'); % load settings
@@ -27,7 +27,7 @@ idx = num2str($SLURM_ARRAY_TASK_ID);
 isubj = str2double(idx(1));
 imodel = str2double(idx(2:3));
 condition = 'Ellipse';
-runlist = 1:20;
+runlist = 20:-1:1;
 
 % subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
