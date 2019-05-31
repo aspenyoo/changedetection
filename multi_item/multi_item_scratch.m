@@ -297,17 +297,17 @@ end
 
 clear all
 
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
-% subjidVec = {'POO'};
-condition = 'combined';
-foldername = 'combined'; % ellipse_keshvari
+% subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
+subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+condition = 'Ellipse';
+additionalpaths = 'ellipse_keshvari/'; % ellipse_keshvari
 
-modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
-% modelMat = ...
-%     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-%      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-%              2 2 1; 2 3 1; ...  % F_O model variants
-%              2 2 2; 2 3 2];     % F_M model variants
+% modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
 
@@ -322,7 +322,7 @@ for imodel = 1:nModels;
         subjid = subjidVec{isubj};
         
         try
-            load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+            load(sprintf('analysis/fits/%ssubj%s_%s_model%d%d%d.mat',additionalpaths,subjid,condition,model(1),model(2),model(3)))
             
             if (isubj==1);
                 nParamsVec(imodel) = size(bfp,2);
@@ -341,7 +341,7 @@ for imodel = 1:nModels;
     
 end
 
-save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('analysis/fits/bfp_%s_keshvari.mat',condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 % save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
@@ -349,15 +349,15 @@ save(sprintf('analysis/fits/bfp_%s.mat',condition),'LLMat','bfpMat','subjidVec',
 
 clear all
 
-condition = 'combined';
+condition = 'Ellipse_keshvari';
 load(sprintf('analysis/fits/bfp_%s.mat',condition));
 % foldername = 'ellipse_keshvari';
 % load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition));
-modelnames = {'VVO','VVM','VSO','VSM'};
-% modelnames = {  'VVO', 'VFO', 'VSO',...
-%                 'VVM', 'VFM', 'VSM',...
-%                        'FFO', 'FSO',...
-%                        'FFM', 'FSM'};
+% modelnames = {'VVO','VVM','VSO','VSM'};
+modelnames = {  'VVO', 'VFO', 'VSO',...
+                'VVM', 'VFM', 'VSM',...
+                       'FFO', 'FSO',...
+                       'FFM', 'FSM'};
 nModels = length(modelnames);
 nTrials = 2000;
 
@@ -383,8 +383,8 @@ defaultplot
 
 %% AICc BIC relatve to VVO
 
-AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
-BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
+AICcMat = bsxfun(@minus,AICcMat,AICcMat(2,:));
+BICMat = bsxfun(@minus,BICMat,BICMat(2,:));
 
 figure;
 bar(AICcMat)
@@ -425,106 +425,6 @@ set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
 
-%% ====================================================================
-%               PARAMETER/MODEL RECOVERY
-% =====================================================================
-
-
-%% simulate fake data (for parameter and model recovery)
-
-clear all
-% close all
-
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
-imodel = 1;
-model = modelMat(imodel,:);
-condition = 'Ellipse';
-
-% load any subject's data (just to get the deltas and reliabilities)
-load('data/fitting_data/POO_Ellipse_simple.mat')
-data.subjid = sprintf('F_%d%d%d_01',model(1),model(2),model(3));
-data.pres2stimuli = condition;
-
-% % get theta value (made up or from fits)
-% load(sprintf('analysis/fits/bfp_%s.mat',condition))
-% bfpMat = bfpMat{imodel};
-% M = mean(bfpMat);
-% sem = std(bfpMat)./size(bfpMat,1);
-
-theta =  [24 12 2 0.5];
-% theta = sem.*randn(1,size(bfpMat,2))+M
-
-% generate p_C_hat
-nSamples = 200;
-[~,p_C_hat] = calculate_LL(theta,data,model,[],nSamples);
-
-% generate fake data
-data.resp = rand(length(p_C_hat),1) < p_C_hat;
-
-% plot to make sure it makes sense
-clf
-plot_psychometric_fn(data,6,p_C_hat);
-
-% save
-% save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
-
-%% load actual and estimated parameter
-clear all
-
-subjid = 'FAKE01';
-condition = 'Ellipse';
-truemodel = [1 1 1];
-estmodel = truemodel;
-
-% load data
-load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
-
-% load fits
-load(sprintf('subj%s_%s_model%d%d%d.mat',subjid,condition,estmodel(1),estmodel(2),estmodel(3)))
-
-% print stuff
-theta
-bfp
-
-% find best fitting parameters
-idx_minLL = find(LLVec==min(LLVec),1,'first');
-BFP = bfp(idx_minLL,:)
-
-%% calculate KL divergence
-% (run cell above before this one)
-
-% get predictions of best fit param
-[~,q_C_hat] = calculate_LL(BFP,data,estmodel);
-
-p_logp = sum(data.resp.*p_C_hat.*log(p_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-p_C_hat))
-p_logq = sum(data.resp.*p_C_hat.*log(q_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-q_C_hat))
-- p_logp - p_logq
- 
-%% look at LL for different models
-
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
-nModels = size(modelMat,1);
-
-LL_vec = nan(1,nModels);
-for imodel = 1:nModels
-    estmodel = modelMat(imodel,:);
-    
-    load(sprintf('subj%s_%s_model%d%d%d.mat',subjid,condition,estmodel(1),estmodel(2),estmodel(3)))
-
-    idx_LL = find(LLVec == min(LLVec),1,'first');
-    LL_vec(imodel) = LLVec(idx_LL);
-    
-end
-
-LL_vec
 
  
 %% ====================================================================
@@ -537,7 +437,7 @@ LL_vec
 clear all
 condition = 'Ellipse';
 
- subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
+ subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
 %subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 nSubj = length(subjidVec);
 
@@ -614,7 +514,9 @@ plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
 
 clear all
 condition = 'Ellipse';
-modelidx = 1;
+additionalpaths = '';
+additionalpaths2 = '_keshvari';
+modelidx = 2;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -624,7 +526,7 @@ modelMat = ...
 model = modelMat(modelidx,:);
          
 % load bfp fits
-load(sprintf('analysis/fits/ellipse_keshvari/bfp_%s.mat',condition))
+load(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additionalpaths2))
 bfpMat = bfpMat{modelidx};
 nSubj = length(subjidVec);
 
@@ -804,3 +706,105 @@ plot_summaryfit(xrange_l(ii,:),partM_l(ii,:),partSEM_l(ii,:),modelM_l(ii,:),...
 end
 title('Ellipse')
 defaultplot
+
+
+%% ====================================================================
+%               PARAMETER/MODEL RECOVERY
+% =====================================================================
+
+
+%% simulate fake data (for parameter and model recovery)
+
+clear all
+% close all
+
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+imodel = 1;
+model = modelMat(imodel,:);
+condition = 'Ellipse';
+
+% load any subject's data (just to get the deltas and reliabilities)
+load('data/fitting_data/POO_Ellipse_simple.mat')
+data.subjid = sprintf('F_%d%d%d_01',model(1),model(2),model(3));
+data.pres2stimuli = condition;
+
+% % get theta value (made up or from fits)
+% load(sprintf('analysis/fits/bfp_%s.mat',condition))
+% bfpMat = bfpMat{imodel};
+% M = mean(bfpMat);
+% sem = std(bfpMat)./size(bfpMat,1);
+
+theta =  [24 12 2 0.5];
+% theta = sem.*randn(1,size(bfpMat,2))+M
+
+% generate p_C_hat
+nSamples = 200;
+[~,p_C_hat] = calculate_LL(theta,data,model,[],nSamples);
+
+% generate fake data
+data.resp = rand(length(p_C_hat),1) < p_C_hat;
+
+% plot to make sure it makes sense
+clf
+plot_psychometric_fn(data,6,p_C_hat);
+
+% save
+% save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
+
+%% load actual and estimated parameter
+clear all
+
+subjid = 'FAKE01';
+condition = 'Ellipse';
+truemodel = [1 1 1];
+estmodel = truemodel;
+
+% load data
+load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+
+% load fits
+load(sprintf('subj%s_%s_model%d%d%d.mat',subjid,condition,estmodel(1),estmodel(2),estmodel(3)))
+
+% print stuff
+theta
+bfp
+
+% find best fitting parameters
+idx_minLL = find(LLVec==min(LLVec),1,'first');
+BFP = bfp(idx_minLL,:)
+
+%% calculate KL divergence
+% (run cell above before this one)
+
+% get predictions of best fit param
+[~,q_C_hat] = calculate_LL(BFP,data,estmodel);
+
+p_logp = sum(data.resp.*p_C_hat.*log(p_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-p_C_hat))
+p_logq = sum(data.resp.*p_C_hat.*log(q_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-q_C_hat))
+- p_logp - p_logq
+ 
+%% look at LL for different models
+
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+nModels = size(modelMat,1);
+
+LL_vec = nan(1,nModels);
+for imodel = 1:nModels
+    estmodel = modelMat(imodel,:);
+    
+    load(sprintf('subj%s_%s_model%d%d%d.mat',subjid,condition,estmodel(1),estmodel(2),estmodel(3)))
+
+    idx_LL = find(LLVec == min(LLVec),1,'first');
+    LL_vec(imodel) = LLVec(idx_LL);
+    
+end
+
+LL_vec
