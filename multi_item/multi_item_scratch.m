@@ -301,6 +301,7 @@ clear all
 subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/'; % ellipse_keshvari
+additionalmodifier = '_keshvari';
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 modelMat = ...
@@ -341,7 +342,7 @@ for imodel = 1:nModels;
     
 end
 
-save(sprintf('analysis/fits/bfp_%s_keshvari.mat',condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('analysis/fits/bfp_%s%s.mat',condition,additionalmodifier),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 % save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
@@ -432,7 +433,7 @@ defaultplot
 % ====================================================================
 
 
-%% DATA: all subjects for Ellipse/Line
+%% DATA: all subjects, psychometric function
 
 clear all
 condition = 'Ellipse';
@@ -472,8 +473,48 @@ plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),[],...
     [],colorMat(ii,:),[])
 end
 
+%% DATA: all subjects, hits false alarms
 
-%% SINGLE SUBJECT MODEL FITS: Ellipse/Line
+clear all
+condition = 'Ellipse';
+
+ subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
+% subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+nSubj = length(subjidVec);
+
+
+[HRallVec,HRlowVec,HRhighVec,FARVec] = deal(nan(nSubj,5));
+for isubj = 1:nSubj
+    subjid = subjidVec{isubj};
+
+    % load data
+    load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
+
+    % get hits false alarms
+    [HRallVec(isubj,:),HRlowVec(isubj,:),HRhighVec(isubj,:),FARVec(isubj,:)] = ...
+        plot_HR_FAR(data,[],0);
+end
+
+% get participant and model means
+m_HRall = mean(HRallVec);
+m_HRlow = mean(HRlowVec);
+m_HRhigh = mean(HRhighVec);
+m_FAR = mean(FARVec);
+sem_HRall = std(HRallVec)./sqrt(nSubj);
+sem_HRlow = std(HRlowVec)./sqrt(nSubj);
+sem_HRhigh = std(HRhighVec)./sqrt(nSubj);
+sem_FAR = std(FARVec)./sqrt(nSubj);
+
+
+% plot
+figure; hold on
+errorbar(0:4,m_HRall,sem_HRall,'o-')
+errorbar(0:4,m_HRlow,sem_HRlow,'o-')
+errorbar(0:4,m_HRhigh,sem_HRhigh,'o-')
+errorbar(0:4,m_FAR,sem_FAR,'o-')
+
+
+%% SINGLE SUBJECT MODEL FITS: psychometric function
 
 clear all
 condition = 'Ellipse';
@@ -509,6 +550,11 @@ figure;
 quantilebinedges = 1;
 plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
 
+%% single subject mode fits: hits false alarms
+
+figure;
+plot_HR_FAR(data,p_C_hat)
+
 
 %% ALL SUBJ MODEL FITS: Ellipse/Line
 
@@ -535,7 +581,9 @@ nSamples = 200;
 nBins = 8;
 quantilebinning=1;
 
+figure;
 [x_mean, pc_data, pc_pred] = deal(nan(5,nBins,nSubj));
+[HRallVec,HRlowVec,HRhighVec,FARVec,mod_HRallVec,mod_HRlowVec,mod_HRhighVec,mod_FARVec] = deal(nan(nSubj,5));
 for isubj = 1:nSubj
     subjid = subjidVec{isubj};
     bfp = bfpMat(isubj,:);
@@ -547,17 +595,40 @@ for isubj = 1:nSubj
     [LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
     fprintf('subj %s: %5.2f \n',subjid,LL)
 
-    figure;
+    % get psychometric function binned data
     [x_mean(:,:,isubj), pc_data(:,:,isubj), pc_pred(:,:,isubj)] = plot_psychometric_fn(data,nBins,p_C_hat,quantilebinning);
-    pause;
+    
+    % get hits/false alarms binned data
+    [HRallVec(isubj,:),HRlowVec(isubj,:),HRhighVec(isubj,:),FARVec(isubj,:),...
+        mod_HRallVec(isubj,:),mod_HRlowVec(isubj,:),mod_HRhighVec(isubj,:),mod_FARVec(isubj,:)] = ...
+        plot_HR_FAR(data,p_C_hat,0);
+    
 end
 
-% get participant and model means
+% get participant and model means: psychometric fn
 xrange = nanmean(x_mean,3);
 partM = nanmean(pc_data,3);
 partSEM = nanstd(pc_data,[],3)./sqrt(nSubj-1);
 modelM = nanmean(pc_pred,3);
 modelSEM = nanstd(pc_pred,[],3)./sqrt(nSubj-1);
+
+% get participant and model means: hits/false alarms
+m_HRall = mean(HRallVec);
+m_HRlow = mean(HRlowVec);
+m_HRhigh = mean(HRhighVec);
+m_FAR = mean(FARVec);
+sem_HRall = std(HRallVec)./sqrt(nSubj);
+sem_HRlow = std(HRlowVec)./sqrt(nSubj);
+sem_HRhigh = std(HRhighVec)./sqrt(nSubj);
+sem_FAR = std(FARVec)./sqrt(nSubj);
+m_mod_HRall = mean(mod_HRallVec);
+m_mod_HRlow = mean(mod_HRlowVec);
+m_mod_HRhigh = mean(mod_HRhighVec);
+m_mod_FAR = mean(mod_FARVec);
+sem_mod_HRall = std(mod_HRallVec)./sqrt(nSubj);
+sem_mod_HRlow = std(mod_HRlowVec)./sqrt(nSubj);
+sem_mod_HRhigh = std(mod_HRhighVec)./sqrt(nSubj);
+sem_mod_FAR = std(mod_FARVec)./sqrt(nSubj);
 
 % get colormap info
 h = figure(99);
@@ -566,11 +637,23 @@ close(h)
 idxs = round(linspace(1,size(cmap,1),5));
 colorMat = cmap(idxs,:);
 
+% plot
+
 figure;
+
+subplot(1,2,1); hold on
 for ii = 1:5;
 plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
     modelSEM(ii,:),colorMat(ii,:),colorMat(ii,:))
 end
+
+subplot(1,2,2); hold on;
+plot_summaryfit(0:4,m_HRall,sem_HRall,m_mod_HRall,sem_mod_HRall,colorMat(1,:),colorMat(1,:));
+plot_summaryfit(0:4,m_HRlow,sem_HRlow,m_mod_HRlow,sem_mod_HRlow,colorMat(2,:),colorMat(2,:));
+plot_summaryfit(0:4,m_HRhigh,sem_HRhigh,m_mod_HRhigh,sem_mod_HRhigh,colorMat(3,:),colorMat(3,:));
+plot_summaryfit(0:4,m_FAR,sem_FAR,m_mod_FAR,sem_mod_FAR,colorMat(4,:),colorMat(4,:));
+
+
 
 
 %% ====================================================================
@@ -699,6 +782,7 @@ plot_summaryfit(xrange_e(ii,:),partM_e(ii,:),partSEM_e(ii,:),modelM_e(ii,:),...
 end
 title('Ellipse')
 defaultplot
+
 subplot(1,2,2)
 for ii = 1:5;
 plot_summaryfit(xrange_l(ii,:),partM_l(ii,:),partSEM_l(ii,:),modelM_l(ii,:),...
