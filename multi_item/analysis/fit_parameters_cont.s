@@ -19,7 +19,7 @@ addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
 runmax = 20;
-nSamples = 200;
+nSamples = 100;
 
 % fitting settings (determined by index)
 load('clusterfittingsettings.mat'); % load settings
