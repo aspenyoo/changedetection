@@ -202,6 +202,7 @@ runmax = 1;
 clear all
 
 filename = 'analysis/clusterfittingsettings.mat';
+% filename = 'analysis/clusterjobs_keshvari.mat';
 
 subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 conditionCell = {'Ellipse'};
@@ -403,7 +404,7 @@ set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
 %% mean sem of same thing
-nSubj = 6;%size(AICcMat,2);
+nSubj = 6; %size(AICcMat,2);
 
 M_AICc = nanmean(AICcMat,2);
 SEM_AICc = nanstd(AICcMat,[],2)/sqrt(nSubj);
@@ -556,7 +557,7 @@ figure;
 plot_HR_FAR(data,p_C_hat)
 
 
-%% ALL SUBJ MODEL FITS: Ellipse/Line
+%% ALL SUBJ MODEL FITS: psychometric function and hits/false alarms
 
 clear all
 condition = 'Ellipse';
