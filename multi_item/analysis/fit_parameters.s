@@ -22,7 +22,6 @@ runmax = 20;
 nSamples = [50 1000];
 
 % fitting settings (determined by index)
-% load('clusterfittingsettings.mat'); % load settings
 idx = num2str($SLURM_ARRAY_TASK_ID);
 isubj = str2double(idx(1));
 imodel = str2double(idx(2:3));
