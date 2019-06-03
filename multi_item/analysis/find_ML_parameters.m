@@ -36,9 +36,11 @@ for iter = 1:numel(runlist)
     rng(runlist(iter));
     
     x0 = x0_list(runlist(iter),:);
-    [xbest,~,~,~] = ...
+    [xbest,LL,~,~] = ...
         bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
-%     LL = -calculate_LL(xbest,data,model,logflag,nSamplesFinal);
+
+    % recalculate LL with more samples
+    LL = -calculate_LL(xbest,data,model,logflag,nSamples(2));
     
     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
     
@@ -50,8 +52,7 @@ for iter = 1:numel(runlist)
         [bfp, LLVec, completedruns] = deal([]);
     end
     
-    % recalculate LL with more samples
-    LL = -calculate_LL(x,data,model,logflag,nSamples(2));
+    
     
     % update and save variables
     bfp = [bfp; xbest];
