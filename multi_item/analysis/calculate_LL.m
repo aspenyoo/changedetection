@@ -75,14 +75,7 @@ if (infering==3) && (decision_rule==2)      % if model is ESM
     d_i_Mat = abs(delta_noise);
 else
     if (encoding ~= infering) % if there is a mismatch in generative and inference process
-        if (infering == 3);
-            [kappa_x_i, kappa_y_i] = deal(Jbar_assumed);
-            if (strcmp(condition,'Line'))
-                kappa_y_i = Jbar_line_assumed;
-            end
-        else
             [~, kappa_x_i, kappa_y_i] = generate_representations(infering);
-        end
     end
     
     % the term inside denominator bessel function for d_i
