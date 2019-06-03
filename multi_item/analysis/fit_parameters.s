@@ -2,8 +2,8 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=48:00:00
-#SBATCH --mem=8GB
+#SBATCH --time=6:00:00
+#SBATCH --mem=4GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
@@ -19,7 +19,7 @@ addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
 runmax = 20;
-nSamples = 100;
+nSamples = [50 1000];
 
 % fitting settings (determined by index)
 % load('clusterfittingsettings.mat'); % load settings
@@ -27,7 +27,7 @@ idx = num2str($SLURM_ARRAY_TASK_ID);
 isubj = str2double(idx(1));
 imodel = str2double(idx(2:3));
 condition = 'Ellipse';
-runlist = 20:-1:1;
+runlist = 1:20;
 
 % subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};

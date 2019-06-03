@@ -1,6 +1,6 @@
 function [LL,p_C_hat] = calculate_LL(x,data,model,logflag,nSamples)
 if nargin < 4; logflag = []; end
-if nargin < 5; nSamples = 200; end
+if nargin < 5; nSamples = 50; end
 
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP
@@ -92,11 +92,11 @@ else
 end
 
 if (decision_rule == 1); % if optimal
-    p_C_hat = log(sum(exp(d_i_Mat),2))-log(nItems)+log(p_change)-log(1-p_change);  % the value is actually of d, not p_C_hat
-    p_C_hat = p_C_hat > 1;      % respond 1 if d > 1
+    p_C_hat = log(sum(exp(d_i_Mat),2))-log(nItems)+log(p_change)-log(1-p_change);  % these values are actually log(d), not p_C_hat
+    p_C_hat = p_C_hat > 0; %1;      % respond 1 if log(d) > log(1)
 else
-    p_C_hat = max(d_i_Mat,[],2);
-    p_C_hat = p_C_hat > criterion;  % respond 1 if max d_i > criterion
+    p_C_hat = max(d_i_Mat,[],2);                % these values are actually log(d), not p_C_hat
+    p_C_hat = p_C_hat > log(criterion);  % respond 1 if max(d_i) > criterion
 end
 p_C_hat = mean(p_C_hat,3); % get average across samples
 p_C_hat(p_C_hat==0) = eps; % set zero p_C to something very low
