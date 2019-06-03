@@ -204,13 +204,19 @@ clear all
 filename = 'analysis/clusterfittingsettings.mat';
 % filename = 'analysis/clusterjobs_keshvari.mat';
 
-subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
+subjidCell = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+% subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 conditionCell = {'Ellipse'};
 modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+    [1 1 1;  1 2 1; ...  % V_O model variants
+     1 1 2;  1 2 2; ...  % V_M model variants
+             2 2 1; ...  % F_O model variants
+             2 2 2];     % F_M model variants
+% modelMat = ...
+%     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+%      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+%              2 2 1; 2 3 1; ...  % F_O model variants
+%              2 2 2; 2 3 2];     % F_M model variants
 nSubj = length(subjidCell);
 nConds = length(conditionCell);
 nModels = size(modelMat,1);
@@ -236,7 +242,7 @@ for isubj = 1:nSubj
             % assume that the number completed is the amount that can be
             % completed in the same amount of time. set number of jobs
             % based on that
-            nRunsperJob = length(completedruns)*2;
+            nRunsperJob = 2;%length(completedruns)*2;
             while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
                 clustersettings{counter}.subjid = subjid;
                 clustersettings{counter}.condition = condition;
@@ -306,10 +312,10 @@ additionalmodifier = '_keshvari';
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+    [1 1 1;  1 2 1; ...  % V_O model variants
+     1 1 2;  1 2 2; ...  % V_M model variants
+             2 2 1; ...  % F_O model variants
+             2 2 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
 
@@ -439,8 +445,8 @@ defaultplot
 clear all
 condition = 'Ellipse';
 
- subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
-%subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+%  subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
+subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 nSubj = length(subjidVec);
 
 nBins = 8;
@@ -561,15 +567,20 @@ plot_HR_FAR(data,p_C_hat)
 
 clear all
 condition = 'Ellipse';
-additionalpaths = '';
+additionalpaths = 'ellipse_keshvari/';
 additionalpaths2 = '_keshvari';
-modelidx = 2;
+modelidx = 1;
 
 modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+    [1 1 1;  1 2 1; ...  % V_O model variants
+     1 1 2;  1 2 2; ...  % V_M model variants
+             2 2 1; ...  % F_O model variants
+             2 2 2];     % F_M model variants
+% modelMat = ...
+%     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+%      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+%              2 2 1; 2 3 1; ...  % F_O model variants
+%              2 2 2; 2 3 2];     % F_M model variants
 model = modelMat(modelidx,:);
          
 % load bfp fits

@@ -85,8 +85,12 @@ else
         end
     end
     
+    % the term inside denominator bessel function for d_i
+    % sqrt(\kappa_{x,i}^2 + \kappa_{y,i}^2 + 2\kappa_{x,i}\kappa_{y,i}cos(y_i-x_i))
     Kc = bsxfun(@times,2.*kappa_x_i.*kappa_y_i,cos(bsxfun(@plus,data.Delta,delta_noise))); % note: it is okay to simply add the noise bc it goes through a cos!!
     Kc = sqrt(bsxfun(@plus,kappa_x_i.^2+kappa_y_i.^2,Kc)); % dims: mat_dims
+    
+    % d_i
     d_i_Mat = bsxfun(@minus,log(besseli(0,kappa_x_i,1).*besseli(0,kappa_y_i,1))+...
         (kappa_x_i+kappa_y_i),log(besseli(0,Kc,1))+Kc); % actually log d_i_Mat
 %     Kc(Kc>Lookup(end)) = Lookup(end); % clip large values
@@ -115,7 +119,8 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
         % PRECISION
         % 1 - VP: kappa_x and kappa_y will be of dimension [nTrials,nItems,nSamples]
         % 2 - FP: kappa_x and kappa_y will be of dimension [nTrials,nItems]
-        %
+        % 3 - SP: kappa_x and kappa_y will be of dimension [nTrials,nItems]
+        % 
         % CONDITION
         % 'Ellipse': kappa_x and kappa_y have the same structure
         % 'Line': all items in kappa_y are drawn from Jbar_line (in VP or FP).
@@ -136,19 +141,28 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
             idx_high(n_high+2) = find(sum(data.rel == rels(2),2)==n_high,1,'last');
         end
         
-        % fill in matrix J_mat according to trial precisions
-        Jbar_mat = nan(nTrials,nItems);
-        for ihigh = 1:length(n_high_vec);
-            n_low = nItems-n_high_vec(ihigh);         % number of high rel items
-            idx_start = idx_high(ihigh)+1;       % which row starts this n_high
-            idx_stop = idx_high(ihigh+1);        % end of this thing
-            
-            Jbar_mat(idx_start:idx_stop,1:n_low) = Jbar_low;
-            Jbar_mat(idx_start:idx_stop,(n_low+1):nItems) = Jbar_high;
+        if (precision == 3) % SP
+            J_x_mat = Jbar_assumed*ones(nTrials,nItems);
+            if strcmp(condition,'Line')
+                J_y_mat = Jbar_line_assumed*ones(nTrials,nItems);
+            else
+                J_y_mat = J_x_mat;
+            end
+        else % VP, FP
+            % fill in matrix J_mat according to trial precisions
+            Jbar_mat = nan(nTrials,nItems);
+            for ihigh = 1:length(n_high_vec);
+                n_low = nItems-n_high_vec(ihigh);         % number of high rel items
+                idx_start = idx_high(ihigh)+1;       % which row starts this n_high
+                idx_stop = idx_high(ihigh+1);        % end of this thing
+                
+                Jbar_mat(idx_start:idx_stop,1:n_low) = Jbar_low;
+                Jbar_mat(idx_start:idx_stop,(n_low+1):nItems) = Jbar_high;
+            end
         end
         
         switch precision % the precision at which kappas are generated
-            case 1      % if VP
+            case 1      % VP
                 Jbar_mat = repmat(Jbar_mat,[1 1 nSamples]);
                 J_x_mat = gamrnd(Jbar_mat./tau,tau);
                 if strcmp(condition,'Line') % if second stimulus set were lines
@@ -156,7 +170,7 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
                 else
                     J_y_mat = gamrnd(Jbar_mat./tau,tau);
                 end
-            case 2      % FP encoding
+            case 2      % FP
                 J_x_mat = Jbar_mat;
                 if strcmp(condition,'Line') % if second stimulus set were lines
                     J_y_mat = Jbar_line;
