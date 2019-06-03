@@ -50,4 +50,6 @@ load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
 
 find_ML_parameters(data,model,runlist,runmax,nSamples)
 
+blah
+
 EOF
