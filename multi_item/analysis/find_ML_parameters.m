@@ -4,7 +4,9 @@ function [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,run
 % %varaibles instead of saving them to a file
 
 if nargin < 5 || isempty(runmax); runmax = 50; end
-if nargin < 6 || isempty(nSamples); nSamples = 1e4; end
+if nargin < 6 || isempty(nSamples); nSamples = [50 1000]; end
+
+assert(length(nSamples) == 2, 'length of nSamples must be 2')
 
 % % # samples for high-precision estimate
 % if numel(nSamples) > 1
@@ -34,8 +36,8 @@ for iter = 1:numel(runlist)
     rng(runlist(iter));
     
     x0 = x0_list(runlist(iter),:);
-    [xbest,LL,~,~] = ...
-        bads(@(x) -calculate_LL(x,data,model,logflag,nSamples),x0,LB,UB,PLB,PUB,[],options)
+    [xbest,~,~,~] = ...
+        bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
 %     LL = -calculate_LL(xbest,data,model,logflag,nSamplesFinal);
     
     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
@@ -47,6 +49,9 @@ for iter = 1:numel(runlist)
     else
         [bfp, LLVec, completedruns] = deal([]);
     end
+    
+    % recalculate LL with more samples
+    LL = -calculate_LL(x,data,model,logflag,nSamples(2));
     
     % update and save variables
     bfp = [bfp; xbest];

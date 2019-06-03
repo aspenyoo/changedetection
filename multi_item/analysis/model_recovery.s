@@ -19,7 +19,7 @@ addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
 runmax = 20;
-nSamples = 200;
+nSamples = [50 1000];
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants

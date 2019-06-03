@@ -544,13 +544,15 @@ subjid = subjidVec{subjidx};
 % % load bfp fits
 load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition))
 bfp = bfpMat{modelidx}(subjidx,:);
+bfp = [8 1 5 0.501];
+% bfp = [22 7 21 0.5];
 % bfp = [49.3333    0.4506    9.4590];
 
 % load data
 load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
 
 % get predictions
-nSamples = 200;
+nSamples = 500;
 [LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
 LL
 
@@ -558,6 +560,49 @@ LL
 figure;
 quantilebinedges = 1;
 plot_psychometric_fn(data,nBins,p_C_hat,quantilebinedges);
+
+
+%%
+
+nSamplesVec = [10 50 100 200 500];
+nSamps = length(nSamplesVec);
+for isamps = 1:nSamps
+    tic;
+    LL(isamps) = calculate_LL(bfp,data,model,[],nSamplesVec(isamps));
+    timelength(isamps) = toc;
+end
+
+figure; 
+subplot(1,2,1)
+plot(nSamplesVec,LL)
+subplot(1,2,2)
+plot(nSamplesVec,timelength)
+
+
+%% 
+nSamplesVec = [25 50 100 200 500];
+nSamps = length(nSamplesVec);
+bfp = [8 1 5 0.501];
+
+nn = 6;
+% JbarlowVec = linspace(0.5,25,nn);
+pchangeVec = linspace(0.1,0.9,nn)
+
+for i = 1:nn
+    i
+%     bfp(1) = JbarlowVec(i);
+bfp(4) = pchangeVec(i);
+    
+    for isamps = 1:nSamps
+        tic;
+        LL(i,isamps) = calculate_LL(bfp,data,model,[],nSamplesVec(isamps));
+        timelength(i,isamps) = toc;
+    end
+    
+end
+
+figure; 
+plot(JbarlowVec,LL)
 
 %% single subject mode fits: hits false alarms
 

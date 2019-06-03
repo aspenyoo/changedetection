@@ -19,8 +19,7 @@ addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
 runmax = 20;
-nSamples = 200;
-
+nSamples = [50 1000];
 % fitting settings (determined by index)
 blah = num2str($SLURM_ARRAY_TASK_ID);
 subjidx = str2double(blah(1));
