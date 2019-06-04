@@ -141,6 +141,7 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
             else
                 J_y_mat = J_x_mat;
             end
+        else % VP, FP
             % fill in matrix J_mat according to trial precisions
             Jbar_mat = nan(nTrials,nItems);
             for ihigh = 1:length(n_high_vec);
