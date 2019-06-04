@@ -30,7 +30,7 @@ for iter = 1:numel(runlist)
     x0 = x0_list(runlist(iter),:);
     [xbest,LL,~,~] = ...
         bads(@(x) -calculate_joint_LL(x,data_E,data_L,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options);
-    LL = -calculate_joint_LL(xbest,data,model,logflag,nSamples(2));
+    LL = -calculate_joint_LL(xbest,data_E,data_L,model,logflag,nSamples(2));
     
     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
     
