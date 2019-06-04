@@ -278,7 +278,9 @@ end
 
 save(filename,'clustersettings')
 
-
+%% ======================================================================
+%                       GETTING MODEL FITS
+% ======================================================================
 %% load current fits of models
 
 clear all
@@ -306,18 +308,18 @@ end
 
 clear all
 
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
-% subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-condition = 'combined';
-additionalpaths = '';%'ellipse_keshvari/'; % ellipse_keshvari
-additionalmodifier = '';%'_keshvari';
+% subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
+subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+condition = 'Ellipse';
+additionalpaths = 'ellipse_keshvari/'; % ellipse_keshvari
+additionalmodifier = '_keshvari';
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 modelMat = ...
-    [1 1 1;  1 2 1; ...  % V_O model variants
-     1 1 2;  1 2 2; ...  % V_M model variants
-             2 2 1; ...  % F_O model variants
-             2 2 2];     % F_M model variants
+    [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
+             2 2 1;  2 3 1; ...  % F_O model variants
+             2 2 2;  2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
 
@@ -351,7 +353,7 @@ for imodel = 1:nModels;
     
 end
 
-save(sprintf('analysis/fits/bfp_%s%s.mat',condition,additionalmodifier),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additionalmodifier),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 % save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
@@ -616,18 +618,13 @@ clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/';
 additionalpaths2 = '_keshvari';
-modelidx = 1;
+modelidx = 3;
 
 modelMat = ...
-    [1 1 1;  1 2 1; ...  % V_O model variants
-     1 1 2;  1 2 2; ...  % V_M model variants
-             2 2 1; ...  % F_O model variants
-             2 2 2];     % F_M model variants
-% modelMat = ...
-%     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-%      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-%              2 2 1; 2 3 1; ...  % F_O model variants
-%              2 2 2; 2 3 2];     % F_M model variants
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
 model = modelMat(modelidx,:);
          
 % load bfp fits
