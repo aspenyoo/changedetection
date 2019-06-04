@@ -5,7 +5,7 @@ function [LL,p_C_hat] = calculate_LL_diffdisp(x,data,model,logflag,nSamples)
 %the first display. 
 
 if nargin < 4; logflag = []; end
-if nargin < 5; nSamples = 200; end
+if nargin < 5; nSamples = [50 1000]; end
 
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP
@@ -80,14 +80,7 @@ if (infering==3) && (decision_rule==2)      % if model is ESM
     d_i_Mat = abs(delta_noise);
 else
     if (encoding ~= infering) % if there is a mismatch in generative and inference process
-        if (infering == 3);
-            [kappa_x_i, kappa_y_i] = deal(Jbar_assumed);
-%             if (strcmp(condition,'Line'))
-%                 kappa_y_i = Jbar_line_assumed;
-%             end
-        else
             [~, kappa_x_i] = generate_representations(infering);
-        end
     end
     
     Kc = bsxfun(@times,2.*kappa_x_i.*kappa_y_i,cos(bsxfun(@plus,data.Delta,delta_noise)));
@@ -101,7 +94,7 @@ end
 
 if (decision_rule == 1); % if optimal
     p_C_hat = log(sum(exp(d_i_Mat),2))-log(nItems)+log(p_change)-log(1-p_change);  % the value is actually of d, not p_C_hat
-    p_C_hat = p_C_hat > 1;      % respond 1 if d > 1
+    p_C_hat = p_C_hat > 0;      % respond 1 if d > 1
 else
     p_C_hat = max(d_i_Mat,[],2);
     p_C_hat = p_C_hat > criterion;  % respond 1 if max d_i > criterion
@@ -141,15 +134,23 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
             idx_high(n_high+2) = find(sum(data.rel == 0.9,2)==n_high,1,'last');
         end
         
-        % fill in matrix J_mat according to trial precisions
-        Jbar_mat = nan(nTrials,nItems);
-        for ihigh = 1:length(n_high_vec);
-            n_low = nItems-n_high_vec(ihigh);         % number of high rel items
-            idx_start = idx_high(ihigh)+1;       % which row starts this n_high
-            idx_stop = idx_high(ihigh+1);        % end of this thing
-            
-            Jbar_mat(idx_start:idx_stop,1:n_low) = Jbar_low;
-            Jbar_mat(idx_start:idx_stop,(n_low+1):nItems) = Jbar_high;
+        if (precision == 3) % SP
+            J_x_mat = Jbar_assumed*ones(nTrials,nItems);
+            if strcmp(condition,'Line')
+                J_y_mat = Jbar_line_assumed*ones(nTrials,nItems);
+            else
+                J_y_mat = J_x_mat;
+            end
+            % fill in matrix J_mat according to trial precisions
+            Jbar_mat = nan(nTrials,nItems);
+            for ihigh = 1:length(n_high_vec);
+                n_low = nItems-n_high_vec(ihigh);         % number of high rel items
+                idx_start = idx_high(ihigh)+1;       % which row starts this n_high
+                idx_stop = idx_high(ihigh+1);        % end of this thing
+                
+                Jbar_mat(idx_start:idx_stop,1:n_low) = Jbar_low;
+                Jbar_mat(idx_start:idx_stop,(n_low+1):nItems) = Jbar_high;
+            end
         end
         
         switch precision % the precision at which kappas are generated

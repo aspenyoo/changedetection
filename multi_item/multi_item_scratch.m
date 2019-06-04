@@ -361,10 +361,9 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 
 clear all
 
-condition = 'combined';
-load(sprintf('analysis/fits/bfp_%s.mat',condition));
-% foldername = 'ellipse_keshvari';
-% load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition));
+condition = 'ellipse_keshvari';
+additionalpaths = 'ellipse_keshvari/';
+load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
                 'VVM', 'VFM', 'VSM',...
@@ -395,8 +394,8 @@ defaultplot
 
 %% AICc BIC relatve to VVO
 
-AICcMat = bsxfun(@minus,AICcMat,AICcMat(2,:));
-BICMat = bsxfun(@minus,BICMat,BICMat(2,:));
+AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
+BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
 
 figure;
 bar(AICcMat)
@@ -529,7 +528,7 @@ errorbar(0:4,m_FAR,sem_FAR,'o-')
 
 clear all
 condition = 'Ellipse';
-foldername = 'ellipse_keshvari';
+additionalpaths = 'ellipse_keshvari';
 subjidx = 2;
 modelidx = 1;
 nBins = 6;
@@ -544,7 +543,7 @@ model = modelMat(modelidx,:);
 subjid = subjidVec{subjidx};
 
 % % load bfp fits
-load(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition))
+load(sprintf('analysis/fits/%s/bfp_%s.mat',additionalpaths,condition))
 bfp = bfpMat{modelidx}(subjidx,:);
 bfp = [8 1 5 0.501];
 % bfp = [22 7 21 0.5];
@@ -618,7 +617,7 @@ clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/';
 additionalpaths2 = '_keshvari';
-modelidx = 3;
+modelidx = 1;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -633,7 +632,7 @@ bfpMat = bfpMat{modelidx};
 nSubj = length(subjidVec);
 
 % prediction stuff
-nSamples = 200;
+nSamples = 50;
 nBins = 8;
 quantilebinning=1;
 
