@@ -701,13 +701,17 @@ for ii = 1:5;
 plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
     modelSEM(ii,:),colorMat(ii,:),colorMat(ii,:))
 end
+xlabel('magnitude change')
+ylabel('proportion respond change')
 
 subplot(1,2,2); hold on;
 plot_summaryfit(0:4,m_HRall,sem_HRall,m_mod_HRall,sem_mod_HRall,colorMat(1,:),colorMat(1,:));
 plot_summaryfit(0:4,m_HRlow,sem_HRlow,m_mod_HRlow,sem_mod_HRlow,colorMat(2,:),colorMat(2,:));
 plot_summaryfit(0:4,m_HRhigh,sem_HRhigh,m_mod_HRhigh,sem_mod_HRhigh,colorMat(3,:),colorMat(3,:));
 plot_summaryfit(0:4,m_FAR,sem_FAR,m_mod_FAR,sem_mod_FAR,colorMat(4,:),colorMat(4,:));
-
+xlabel('number of high reliability ellipses')
+ylabel('proportion respond change')
+legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
 
 
 
