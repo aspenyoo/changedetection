@@ -129,7 +129,7 @@ defaultplot
 
 %% look at gamma
 
-Jbar = 24;
+Jbar = 6;
 Jbar2 = 24;
 tau = 1;
 tau2 = 3; 
@@ -310,9 +310,11 @@ clear all
 
 subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-condition = 'combined';
-additionalpaths = '';%'ellipse_keshvari/'; % ellipse_keshvari
-additionalmodifier = '';%'_keshvari';
+condition = 'Ellipse';
+additionalpaths = 'ellipse_keshvari/'; 
+% additionalpaths = '';
+% additionalmodifier = '_keshvari';
+additionalmodifier = '';
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 modelMat = ...
@@ -529,11 +531,12 @@ errorbar(0:4,m_FAR,sem_FAR,'o-')
 clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari';
-subjidx = 2;
-modelidx = 1;
-nBins = 6;
+subjidx = 1;
+modelidx = 2;
+nBins = 8;
 
-subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
+subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+% subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
@@ -545,7 +548,7 @@ subjid = subjidVec{subjidx};
 % % load bfp fits
 load(sprintf('analysis/fits/%s/bfp_%s.mat',additionalpaths,condition))
 bfp = bfpMat{modelidx}(subjidx,:);
-bfp = [8 1 5 0.501];
+bfp = [3.0309    1.3764    0.1887    0.3951];
 % bfp = [22 7 21 0.5];
 % bfp = [49.3333    0.4506    9.4590];
 

@@ -3,8 +3,8 @@ function [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,run
 % %different aspects of model. same as fit_maximum_likelihood but outputs
 % %varaibles instead of saving them to a file
 
-if nargin < 5 || isempty(runmax); runmax = 50; end
-if nargin < 6 || isempty(nSamples); nSamples = [50 1000]; end
+if nargin < 4 || isempty(runmax); runmax = 50; end
+if nargin < 5 || isempty(nSamples); nSamples = [50 1000]; end
 
 assert(length(nSamples) == 2, 'length of nSamples must be 2')
 
