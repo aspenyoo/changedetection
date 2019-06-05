@@ -207,12 +207,14 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
             idx_kappa_y = interp1(K_interp,1:length(K_interp),kappa_y_temp,'nearest');
             
             noise_x = randi(size(cdf,2),prod(mat_dims),1); % get random row indices
-            noise_x = size(cdf,2)*(idx_kappa_x(:)-1)+noise_x; % make them linear indices
+            noise_x = (noise_x-1)*size(cdf,1) + idx_kappa_x(:); %  make them linear indices
+%             noise_x = size(cdf,2)*(idx_kappa_x(:)-1)+noise_x; % make them linear indices
             noise_x = cdf(noise_x);
             noise_x = reshape(noise_x,mat_dims);
             
             noise_y = randi(size(cdf,2),prod(mat_dims),1); % get random row indices
-            noise_y = size(cdf,2)*(idx_kappa_y(:)-1)+noise_y; % make them linear indices
+            noise_y = (noise_y-1)*size(cdf,1) + idx_kappa_y(:); %  make them linear indices
+%             noise_y = size(cdf,2)*(idx_kappa_y(:)-1)+noise_y; % make them linear indices
             noise_y = cdf(noise_y);
             noise_y = reshape(noise_y,mat_dims);
             
