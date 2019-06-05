@@ -83,10 +83,10 @@ else
             [~, kappa_x_i] = generate_representations(infering);
     end
     
-    Kc = bsxfun(@times,2.*kappa_x_i.*kappa_y_i,cos(bsxfun(@plus,data.Delta,delta_noise)));
-    Kc = sqrt(bsxfun(@plus,kappa_x_i.^2+kappa_y_i.^2,Kc)); % dims: mat_dims
-    d_i_Mat = bsxfun(@minus,log(besseli(0,kappa_x_i,1).*besseli(0,kappa_y_i,1))+...
-        (kappa_x_i+kappa_y_i),log(besseli(0,Kc,1))+Kc); % actually log d_i_Mat
+    Kc = bsxfun(@times,2.*kappa_y_i.*cos(bsxfun(@plus,data.Delta,delta_noise)),kappa_x_i);
+    Kc = sqrt(bsxfun(@plus,kappa_x_i.^2,kappa_y_i.^2 + Kc)); % dims: mat_dims
+    d_i_Mat = bsxfun(@minus,log(bsxfun(@times,besseli(0,kappa_x_i,1),besseli(0,kappa_y_i,1)))+...
+        bsxfun(@plus,kappa_x_i,kappa_y_i),log(besseli(0,Kc,1))+Kc); % actually log d_i_Mat
 %     Kc(Kc>Lookup(end)) = Lookup(end); % clip large values
 %     d_i_Mat = bsxfun(@rdivide,myBessel(kappa_x_i,LookupSpacing,LookupY).*myBessel(kappa_y_i,LookupSpacing,LookupY),...
 %         myBessel(Kc,LookupSpacing,LookupY));
@@ -136,11 +136,11 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
         
         if (precision == 3) % SP
             J_x_mat = Jbar_assumed*ones(nTrials,nItems);
-            if strcmp(condition,'Line')
-                J_y_mat = Jbar_line_assumed*ones(nTrials,nItems);
-            else
-                J_y_mat = J_x_mat;
-            end
+%             if strcmp(condition,'Line')
+%                 J_y_mat = Jbar_line_assumed*ones(nTrials,nItems);
+%             else
+%                 J_y_mat = J_x_mat;
+%             end
         else % VP, FP
             % fill in matrix J_mat according to trial precisions
             Jbar_mat = nan(nTrials,nItems);
@@ -175,12 +175,13 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
         % set kappas too high to highest J (alternatively can resample, as
         % keshvari did)
         J_x_mat(J_x_mat > highest_J) = highest_J;
-        J_y_mat(J_y_mat > highest_J) = highest_J;
-        
+
         % convert J to kappa
         xi = 1/diff(J_lin(1:2))*J_x_mat+1;
         kappa_x = k_range(round(xi));
+        
         if (nargout == 3) % if you want kappa_y representations (i.e., if you are getting actual noise)
+            J_y_mat(J_y_mat > highest_J) = highest_J;
             xi = 1/diff(J_lin(1:2))*J_y_mat+1;
             kappa_y = k_range(round(xi));
         end

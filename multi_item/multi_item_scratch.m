@@ -308,11 +308,11 @@ end
 
 clear all
 
-% subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
-subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-condition = 'Ellipse';
-additionalpaths = 'ellipse_keshvari/'; % ellipse_keshvari
-additionalmodifier = '_keshvari';
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
+% subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+condition = 'combined';
+additionalpaths = '';%'ellipse_keshvari/'; % ellipse_keshvari
+additionalmodifier = '';%'_keshvari';
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 modelMat = ...
@@ -361,8 +361,8 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 
 clear all
 
-condition = 'ellipse_keshvari';
-additionalpaths = 'ellipse_keshvari/';
+condition = 'combined';%'ellipse_keshvari';
+additionalpaths = '';%'ellipse_keshvari/';
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
