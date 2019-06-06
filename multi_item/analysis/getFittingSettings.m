@@ -64,14 +64,14 @@ switch decision_rule
             PUB = [PUB jbar_pbounds(2)];
             logflag = [logflag 1];
             
-%             % if Line condition, need an additional Jbar value for assumed Jbar
-%             if strcmp(condition,'Line')
-%                 LB = [LB jbar_bounds(1)];
-%                 UB = [UB jbar_bounds(2)];
-%                 PLB = [PLB jbar_pbounds(1)];
-%                 PUB = [PUB jbar_pbounds(2)];
-%                 logflag = [logflag 1];
-%             end
+            % if Line condition, need an additional Jbar value for assumed Jbar
+            if strcmp(condition,'Line')
+                LB = [LB jbar_bounds(1)];
+                UB = [UB jbar_bounds(2)];
+                PLB = [PLB jbar_pbounds(1)];
+                PUB = [PUB jbar_pbounds(2)];
+                logflag = [logflag 1];
+            end
         end
         
         % p(change)

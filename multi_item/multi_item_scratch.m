@@ -364,7 +364,7 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 clear all
 
 condition = 'combined';%'ellipse_keshvari';
-additionalpaths = '';%'ellipse_keshvari/';
+additionalpaths = 'combined_diffdisp/';%'ellipse_keshvari/';
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
@@ -770,6 +770,7 @@ plot_psychometric_fn(data_L,nBins,p_C_hat.Line,quantilebinedges);
 
 clear all
 condition = 'combined';
+additionalpaths = '';%'combined_diffdisp/';
 % disptype = 'same';
 imodel = 1;
 nBins = 6;
@@ -784,7 +785,7 @@ nModels = size(modelMat,1);
 model = modelMat(imodel,:);         
 
 % load ML parameter estimates
-load(sprintf('analysis/fits/bfp_%s.mat',condition))
+load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition))
 % load(sprintf('analysis/fits/%sdisp/bfp_%s.mat',disptype,condition))
 
 % [p_C_hat_Line, p_C_hat_Ellipse] = deal(2000,nSubj);
@@ -796,7 +797,7 @@ load(sprintf('analysis/fits/bfp_%s.mat',condition))
 % p_C_hat_Ellipse(:,isubj) = pchat.Ellipse;
 % end
 
-
+figure;
 [x_mean_e, pc_data_e, pc_pred_e, x_mean_l, pc_data_l, pc_pred_l] = deal(nan(5,nBins,nSubj));
 for isubj = 1:nSubj
     subjid = subjidVec{isubj};
