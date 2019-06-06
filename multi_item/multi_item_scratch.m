@@ -310,9 +310,9 @@ clear all
 
 subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-condition = 'Ellipse';
-additionalpaths = 'ellipse_keshvari/'; 
-% additionalpaths = '';
+condition = 'combined';
+% additionalpaths = 'ellipse_keshvari/'; 
+additionalpaths = '';
 % additionalmodifier = '_keshvari';
 additionalmodifier = '';
 
@@ -424,6 +424,7 @@ M_BIC = nanmean(BICMat,2);
 SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubj);
 
 figure;
+bar(M_AICc); hold on
 errorbar(M_AICc,SEM_AICc,'k','LineStyle','none')
 title('AICc')
 xlim([0.5 nModels+0.5])
@@ -431,6 +432,7 @@ set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
 figure
+bar(M_BIC); hold on
 errorbar(M_BIC,SEM_BIC,'k','LineStyle','none')
 title('BIC')
 xlim([0.5 nModels+0.5])
@@ -764,7 +766,7 @@ plot_psychometric_fn(data_E,nBins,p_C_hat.Ellipse,quantilebinedges);
 subplot(1,2,2)
 plot_psychometric_fn(data_L,nBins,p_C_hat.Line,quantilebinedges);
 
-%% model fits of all subject
+%% model fits of all subjects
 
 clear all
 condition = 'combined';
