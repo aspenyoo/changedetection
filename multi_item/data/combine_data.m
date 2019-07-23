@@ -6,7 +6,7 @@ else
     dir_str = 'G:/';
 end
 dir_str = [dir_str 'My Drive/Research/VSTM/Aspen Luigi - Reliability in VWM/'...
-    'Exp 5 Keshvari replication and extension/experiment output/'];
+    'Exp 5 - Keshvari replication and extension/experiment output/'];
 temp_dir = dir([dir_str subjid '/']);
 
 trialMat = [];

@@ -40,7 +40,7 @@ end
 %% save data in format for fitting data
 clear all
 
-subjid = 'S14'; 
+subjid = 'S23'; 
 pres2stimuli = 'Line';
 
 trialMat = combine_data(subjid, pres2stimuli);
@@ -363,8 +363,8 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 
 clear all
 
-condition = 'combined';%'ellipse_keshvari';
-additionalpaths = 'combined_diffdisp/';%'ellipse_keshvari/';
+condition = 'combined';
+additionalpaths = '';%'combined_diffdisp/';%'ellipse_keshvari/';
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
@@ -621,7 +621,7 @@ plot_HR_FAR(data,p_C_hat)
 clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/';
-additionalpaths2 = '_keshvari';
+additionalpaths2 = '';%'_keshvari';
 modelidx = 1;
 
 modelMat = ...
@@ -638,7 +638,7 @@ nSubj = length(subjidVec);
 
 % prediction stuff
 nSamples = 50;
-nBins = 8;
+nBins = 6;
 quantilebinning=1;
 
 figure;
@@ -773,7 +773,7 @@ condition = 'combined';
 additionalpaths = '';%'combined_diffdisp/';
 % disptype = 'same';
 imodel = 1;
-nBins = 6;
+nBins = 8;
 nSamples = 200;
 
 % get correct settings
