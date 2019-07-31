@@ -26,8 +26,8 @@ subjidx = str2double(blah(1));
 modelidx = str2double(blah(2:3));
 runlist = 1:20;
 
-
-subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
+subjidVec = {'S15','S16','S17','S19','S20','S23'};
+% subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
 subjid = subjidVec{subjidx};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
