@@ -308,15 +308,15 @@ end
 
 clear all
 
-% subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
-%     'S15','S16','S17','S19','S20','S23'};
-subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+    'S15','S16','S17','S19','S20','S23'};
+% subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 % condition = 'combined';
 % additionalpaths = '';
 % additionalmodifier = '';
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/'; 
-additionalmodifier = '_keshvari';
+additionalmodifier = '';%'_keshvari';
 
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
@@ -366,8 +366,8 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 
 clear all
 
-condition = 'combined';
-additionalpaths = '';%'combined_diffdisp/';%'ellipse_keshvari/';
+condition = 'Ellipse';
+additionalpaths = 'ellipse_keshvari/';%'';%'combined_diffdisp/';%
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
@@ -538,7 +538,7 @@ condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari';
 additionalpaths2 = '_keshvari';
 subjidx = 1;
-modelidx = 8;
+modelidx = 10;
 nBins = 8;
 
 subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
@@ -552,9 +552,9 @@ model = modelMat(modelidx,:);
 subjid = subjidVec{subjidx};
 
 % % load bfp fits
-load(sprintf('analysis/fits/%s/bfp_%s.mat',additionalpaths,condition,additionalpaths2))
+load(sprintf('analysis/fits/%s/bfp_%s%s.mat',additionalpaths,condition,additionalpaths2))
 bfp = bfpMat{modelidx}(subjidx,:);
-bfp = [3.0309    1.3764    0.1887    0.3951];
+% bfp = [3.0309    1.3764    0.1887    0.3951];
 % bfp = [22 7 21 0.5];
 % bfp = [49.3333    0.4506    9.4590];
 
@@ -562,7 +562,7 @@ bfp = [3.0309    1.3764    0.1887    0.3951];
 load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
 
 % get predictions
-nSamples = 500;
+nSamples = 50;
 [LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
 LL
 
@@ -626,7 +626,7 @@ clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/';
 additionalpaths2 = '_keshvari';
-modelidx = 6;
+modelidx = 10;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants

@@ -72,7 +72,7 @@ get_deltas = 1;
 get_deltas = 0;
 
 if (infering==3) && (decision_rule==2)      % if model is ESM of VSM
-    d_i_Mat = abs(delta_noise);
+    d_i_Mat = abs(bsxfun(@plus,data.Delta,delta_noise));
 else
     if (encoding ~= infering) % if there is a mismatch in generative and inference process
             [~, kappa_x_i, kappa_y_i] = generate_representations(infering);
