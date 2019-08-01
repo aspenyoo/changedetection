@@ -71,7 +71,7 @@ get_deltas = 1;
 [delta_noise, kappa_x_i, kappa_y_i] = generate_representations(encoding);
 get_deltas = 0;
 
-if (infering==3) && (decision_rule==2)      % if model is ESM
+if (infering==3) && (decision_rule==2)      % if model is ESM of VSM
     d_i_Mat = abs(delta_noise);
 else
     if (encoding ~= infering) % if there is a mismatch in generative and inference process
@@ -96,7 +96,7 @@ if (decision_rule == 1); % if optimal
     p_C_hat = p_C_hat > 0; %1;      % respond 1 if log(d) > log(1)
 else
     p_C_hat = max(d_i_Mat,[],2);                % these values are actually log(d), not p_C_hat
-    p_C_hat = p_C_hat > log(criterion);  % respond 1 if max(d_i) > criterion
+    p_C_hat = p_C_hat > criterion;  % respond 1 if max(d_i) > criterion
 end
 p_C_hat = mean(p_C_hat,3); % get average across samples
 p_C_hat(p_C_hat==0) = eps; % set zero p_C to something very low

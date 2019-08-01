@@ -308,13 +308,16 @@ end
 
 clear all
 
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
-% subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-condition = 'combined';
-% additionalpaths = 'ellipse_keshvari/'; 
-additionalpaths = '';
-% additionalmodifier = '_keshvari';
-additionalmodifier = '';
+% subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+%     'S15','S16','S17','S19','S20','S23'};
+subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+% condition = 'combined';
+% additionalpaths = '';
+% additionalmodifier = '';
+condition = 'Ellipse';
+additionalpaths = 'ellipse_keshvari/'; 
+additionalmodifier = '_keshvari';
+
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 modelMat = ...
@@ -533,8 +536,9 @@ errorbar(0:4,m_FAR,sem_FAR,'o-')
 clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari';
+additionalpaths2 = '_keshvari';
 subjidx = 1;
-modelidx = 2;
+modelidx = 8;
 nBins = 8;
 
 subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
@@ -548,7 +552,7 @@ model = modelMat(modelidx,:);
 subjid = subjidVec{subjidx};
 
 % % load bfp fits
-load(sprintf('analysis/fits/%s/bfp_%s.mat',additionalpaths,condition))
+load(sprintf('analysis/fits/%s/bfp_%s.mat',additionalpaths,condition,additionalpaths2))
 bfp = bfpMat{modelidx}(subjidx,:);
 bfp = [3.0309    1.3764    0.1887    0.3951];
 % bfp = [22 7 21 0.5];
@@ -621,8 +625,8 @@ plot_HR_FAR(data,p_C_hat)
 clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/';
-additionalpaths2 = '';%'_keshvari';
-modelidx = 1;
+additionalpaths2 = '_keshvari';
+modelidx = 6;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
