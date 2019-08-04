@@ -536,13 +536,13 @@ errorbar(0:4,m_FAR,sem_FAR,'o-')
 clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari';
-additionalpaths2 = '_keshvari';
+additionalpaths2 = '';%'_keshvari';
 subjidx = 1;
 modelidx = 10;
 nBins = 8;
 
-subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-% subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
+%subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+ subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
@@ -625,8 +625,8 @@ plot_HR_FAR(data,p_C_hat)
 clear all
 condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari/';
-additionalpaths2 = '_keshvari';
-modelidx = 10;
+additionalpaths2 = '';%'_keshvari';
+modelidx = 6;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
