@@ -23,8 +23,8 @@ jbar_bounds = [0.0067 50];  % Hard bounds for JBAR1 and JBAR2
 jbar_pbounds = [1 25];  % Plausible bounds for JBAR1 and JBAR2
 tau_bounds = [1e-3 100];     % Hard bounds for TAU
 tau_pbounds = [0.5 30];     % Plausible bounds for TAU
-crit_bounds = [-10 20];
-crit_pbounds = [-2 2];  
+crit_bounds = [-1e3 1e3];
+crit_pbounds = [-10 10];  
 pchange_bounds = [1e-4 1];
 pchange_pbounds = [0.3 0.6];
 
