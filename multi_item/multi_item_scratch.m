@@ -145,19 +145,28 @@ hist(samps,100)
 %% calc likelihood of single condition
 
 clear all
-subjid = 'POO';
+subjid = 'S19';
 condition = 'Ellipse';
 
-model = [2 2 3]; % encoding, inference, decision rule
-theta = [2 1 2];
-nSamples = 200;
+model = [1 2 1]; % encoding, inference, decision rule
+imodel = 2;
+
+load('bfp_Ellipse.mat')
+theta = bfpMat{imodel}(1,:);
+
+% theta = [2 1 2];
+nSamples = 50;
 
 load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
 
-tic;
-[LL,pc] =calculate_LL(theta,data,model,[],nSamples);
-LL
-toc
+nCalc = 100;
+for icalc = 1:nCalc
+    icalc
+    LL(icalc) =calculate_LL(theta,data,model,[],nSamples);
+end
+
+figure
+histogram(LL)
 
 %% calc likelihood of joint condition
 
@@ -311,12 +320,12 @@ clear all
 subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
     'S15','S16','S17','S19','S20','S23'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-% condition = 'combined';
-% additionalpaths = '';
-% additionalmodifier = '';
-condition = 'Ellipse';
-additionalpaths = 'ellipse_keshvari/'; 
-additionalmodifier = '';%'_keshvari';
+condition = 'combined';
+additionalpaths = '';
+additionalmodifier = '';
+% condition = 'Ellipse';
+% additionalpaths = 'ellipse_keshvari/'; 
+% additionalmodifier = '';%'_keshvari';
 
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
@@ -538,8 +547,8 @@ condition = 'Ellipse';
 additionalpaths = 'ellipse_keshvari';
 additionalpaths2 = '';%'_keshvari';
 subjidx = 1;
-modelidx = 10;
-nBins = 8;
+modelidx = 1;
+nBins = 6;
 
 %subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
  subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
@@ -777,11 +786,12 @@ condition = 'combined';
 additionalpaths = '';%'combined_diffdisp/';
 % disptype = 'same';
 imodel = 1;
-nBins = 8;
+nBins = 6;
 nSamples = 200;
 
 % get correct settings
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+    'S15','S16','S17','S19','S20','S23'};
 modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 nSubj = length(subjidVec);
 nModels = size(modelMat,1);
