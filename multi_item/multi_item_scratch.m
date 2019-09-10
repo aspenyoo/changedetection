@@ -320,8 +320,8 @@ clear all
 subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
     'S15','S16','S17','S19','S20','S23'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-condition = 'combined';
-additionalpaths = '';
+condition = 'Line';
+additionalpaths = 'Line/';
 additionalmodifier = '';
 % condition = 'Ellipse';
 % additionalpaths = 'ellipse_keshvari/'; 
@@ -329,11 +329,12 @@ additionalmodifier = '';
 
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
-modelMat = ...
-    [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
-             2 2 1;  2 3 1; ...  % F_O model variants
-             2 2 2;  2 3 2];     % F_M model variants
+modelMat = [1 1 1; 1 3 1];
+% modelMat = ...
+%     [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
+%      1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
+%              2 2 1;  2 3 1; ...  % F_O model variants
+%              2 2 2;  2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
 
@@ -375,8 +376,8 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 
 clear all
 
-condition = 'Ellipse';
-additionalpaths = 'ellipse_keshvari/';%'';%'combined_diffdisp/';%
+condition = 'Line';
+additionalpaths = 'Line/'%'ellipse_keshvari/';%'';%'combined_diffdisp/';%
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
