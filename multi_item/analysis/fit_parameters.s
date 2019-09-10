@@ -31,16 +31,16 @@ runlist = 1:20;
 % subjidVec = {'S15','S16','S17','S19','S20','S23'};
 % subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-% modelMat = ...
-%    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-%     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-%             2 2 1; 2 3 1; ...  % F_O model variants
-%             2 2 2; 2 3 2];     % F_M model variants
+modelMat = ...
+   [1 2 1; ...  % V_O model variants
+    1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+            2 2 1; 2 3 1; ...  % F_O model variants
+            2 2 2; 2 3 2];     % F_M model variants
 
 imodel = str2double(idx(1));
 isubj = str2double(idx(2:3));
 subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S15','S16','S17','S19','S20','S23'};
-modelMat = [1 1 1; 1 3 1];
+% modelMat = [1 1 1; 1 3 1];
 subjid = subjidVec{isubj};
 model = modelMat(imodel,:);
 
