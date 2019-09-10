@@ -317,7 +317,7 @@ end
 
 clear all
 
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14',...
     'S15','S16','S17','S19','S20','S23'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 condition = 'Line';
@@ -376,8 +376,8 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 
 clear all
 
-condition = 'Line';
-additionalpaths = 'Line/'%'ellipse_keshvari/';%'';%'combined_diffdisp/';%
+condition = 'combined';
+additionalpaths = '';%'Line/';%'ellipse_keshvari/';%'';%'combined_diffdisp/';%
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
@@ -466,7 +466,9 @@ clear all
 condition = 'Ellipse';
 
 %  subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
-subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+% subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14',...
+    'S15','S16','S17','S19','S20','S23'};
 nSubj = length(subjidVec);
 
 nBins = 8;
@@ -633,10 +635,10 @@ plot_HR_FAR(data,p_C_hat)
 %% ALL SUBJ MODEL FITS: psychometric function and hits/false alarms
 
 clear all
-condition = 'Ellipse';
-additionalpaths = 'ellipse_keshvari/';
+condition = 'Line';
+additionalpaths = 'Line/';
 additionalpaths2 = '';%'_keshvari';
-modelidx = 6;
+modelidx = 2;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -722,6 +724,8 @@ plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
 end
 xlabel('magnitude change')
 ylabel('proportion respond change')
+set(gca,'XTick',0:(pi/8):(pi/2))
+ylim([0 1])
 
 subplot(1,2,2); hold on;
 plot_summaryfit(0:4,m_HRall,sem_HRall,m_mod_HRall,sem_mod_HRall,colorMat(1,:),colorMat(1,:));
@@ -730,9 +734,10 @@ plot_summaryfit(0:4,m_HRhigh,sem_HRhigh,m_mod_HRhigh,sem_mod_HRhigh,colorMat(3,:
 plot_summaryfit(0:4,m_FAR,sem_FAR,m_mod_FAR,sem_mod_FAR,colorMat(4,:),colorMat(4,:));
 xlabel('number of high reliability ellipses')
 ylabel('proportion respond change')
-legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
-
-
+% legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
+set(gca,'XTick',0:4)
+xlim([-0.5 4.5])
+ylim([0 1])
 
 %% ====================================================================
 %                      PLOTS: BOTH CONDITION
