@@ -317,7 +317,8 @@ end
 
 clear all
 
-subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14',...
+% note: s07 also has fits
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
     'S15','S16','S17','S19','S20','S23'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 condition = 'Line';
@@ -329,12 +330,12 @@ additionalmodifier = '';
 
 
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
-modelMat = [1 1 1; 1 3 1];
-% modelMat = ...
-%     [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
-%      1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
-%              2 2 1;  2 3 1; ...  % F_O model variants
-%              2 2 2;  2 3 2];     % F_M model variants
+% modelMat = [1 1 1; 1 3 1];
+modelMat = ...
+    [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
+             2 2 1;  2 3 1; ...  % F_O model variants
+             2 2 2;  2 3 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
 
@@ -376,8 +377,8 @@ save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additional
 
 clear all
 
-condition = 'combined';
-additionalpaths = '';%'Line/';%'ellipse_keshvari/';%'';%'combined_diffdisp/';%
+condition = 'Line';
+additionalpaths = 'Line/';%'ellipse_keshvari/';%'';%'combined_diffdisp/';%
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
 % modelnames = {'VVO','VVM','VSO','VSM'};
 modelnames = {  'VVO', 'VFO', 'VSO',...
@@ -452,6 +453,16 @@ xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:10,'XTickLabel',modelnames);
 defaultplot
 
+%%
+xx=0.45;
+
+hold on
+for imodel = 1:nModels
+    m = M_BIC(imodel);
+    sigma = SEM_BIC(imodel);
+    fill(imodel+[-xx xx xx -xx -xx],m+[-sigma -sigma sigma sigma -sigma],0.7*ones(1,3))
+end
+
 
 
  
@@ -467,7 +478,7 @@ condition = 'Ellipse';
 
 %  subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14',...
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
     'S15','S16','S17','S19','S20','S23'};
 nSubj = length(subjidVec);
 
@@ -502,12 +513,62 @@ plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),[],...
     [],colorMat(ii,:),[])
 end
 
+%% DATA: all subjects, split psychometric function
+
+clear all
+condition = 'Line';
+
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+     'S15','S16','S17','S19','S20','S23'};
+nSubj = length(subjidVec);
+
+nBins = 8;
+quantilebinedges = 11;
+% figure; 
+[x_mean, pc_data] = deal(nan(5,nBins,2,nSubj));
+for isubj = 1:nSubj
+    subjid = subjidVec{isubj};
+
+    % load data
+    load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
+
+    [x_mean(:,:,:,isubj), pc_data(:,:,:,isubj)] = plot_psychometric_fn_split(data,nBins,[],quantilebinedges);
+end
+
+
+for irel = 1:2;
+    % get participant and model means
+    xrange = mean(x_mean(:,:,irel,:),4);
+    partM = mean(pc_data(:,:,irel,:),4);
+    partSEM = std(pc_data(:,:,irel,:),[],4)./sqrt(nSubj);
+    
+    % get colormap info
+    h = figure(99);
+    cmap = colormap('parula'); % get a rough colormap
+    close(h)
+    idxs = round(linspace(1,size(cmap,1),5));
+    colorMat = cmap(idxs,:);
+    
+    subplot(1,2,irel)
+    hold on;
+    for ii = 1:5;
+        errorbar(xrange(ii,:),partM(ii,:),partSEM(ii,:),'Color',colorMat(ii,:))
+%         plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),[],...
+%             [],colorMat(ii,:),[])
+    end
+    axis([-0.2 pi/2+0.2 0 1])
+    set(gca,'XTick',0:(pi/8):(pi/2),'XTickLabel',0:(pi/8):(pi/2))
+    defaultplot
+end
+
 %% DATA: all subjects, hits false alarms
 
 clear all
 condition = 'Ellipse';
 
- subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+    'S15','S16','S17','S19','S20','S23'};
+%  subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 nSubj = length(subjidVec);
 
@@ -631,6 +692,154 @@ plot(JbarlowVec,LL)
 figure;
 plot_HR_FAR(data,p_C_hat)
 
+%% ALL SUBJ MODEL FITS: split psychometric function and hits/false alarms
+
+clear all
+condition = 'Line';%'Ellipse';
+additionalpaths = 'Line/';%'ellipse_keshvari/';
+additionalpaths2 = '';%'_keshvari';
+modelidx = 6;
+
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+model = modelMat(modelidx,:);
+         
+% load bfp fits
+load(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additionalpaths2))
+bfpMat = bfpMat{modelidx};
+nSubj = length(subjidVec);
+
+% prediction stuff
+nSamples = 50;
+nBins = 6;
+quantilebinning=1;
+
+figure;
+[x_mean, pc_data, pc_pred] = deal(nan(5,nBins,2,nSubj));
+[HRallVec,HRlowVec,HRhighVec,FARVec,mod_HRallVec,mod_HRlowVec,mod_HRhighVec,mod_FARVec] = deal(nan(nSubj,5));
+for isubj = 1:nSubj
+    subjid = subjidVec{isubj};
+    bfp = bfpMat(isubj,:);
+    
+    % load data
+    load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition),'data')
+
+    % get predictions
+    [LL,p_C_hat] = calculate_LL(bfp,data,model,[],nSamples);
+    fprintf('subj %s: %5.2f \n',subjid,LL)
+
+    % get psychometric function binned data
+    [x_mean(:,:,:,isubj), pc_data(:,:,:,isubj), pc_pred(:,:,:,isubj)] = plot_psychometric_fn_split(data,nBins,p_C_hat,quantilebinning);
+    
+    % get hits/false alarms binned data
+    [HRallVec(isubj,:),HRlowVec(isubj,:),HRhighVec(isubj,:),FARVec(isubj,:),...
+        mod_HRallVec(isubj,:),mod_HRlowVec(isubj,:),mod_HRhighVec(isubj,:),mod_FARVec(isubj,:)] = ...
+        plot_HR_FAR(data,p_C_hat,0);
+    
+end
+
+% get participant and model means: hits/false alarms
+m_HRall = mean(HRallVec);
+m_HRlow = mean(HRlowVec);
+m_HRhigh = mean(HRhighVec);
+m_FAR = mean(FARVec);
+sem_HRall = std(HRallVec)./sqrt(nSubj);
+sem_HRlow = std(HRlowVec)./sqrt(nSubj);
+sem_HRhigh = std(HRhighVec)./sqrt(nSubj);
+sem_FAR = std(FARVec)./sqrt(nSubj);
+m_mod_HRall = mean(mod_HRallVec);
+m_mod_HRlow = mean(mod_HRlowVec);
+m_mod_HRhigh = mean(mod_HRhighVec);
+m_mod_FAR = mean(mod_FARVec);
+sem_mod_HRall = std(mod_HRallVec)./sqrt(nSubj);
+sem_mod_HRlow = std(mod_HRlowVec)./sqrt(nSubj);
+sem_mod_HRhigh = std(mod_HRhighVec)./sqrt(nSubj);
+sem_mod_FAR = std(mod_FARVec)./sqrt(nSubj);
+
+% get colormap info
+h = figure(99);
+cmap = colormap('parula'); % get a rough colormap
+close(h)
+idxs = round(linspace(1,size(cmap,1),5));
+colorMat = cmap(idxs,:);
+
+% plot
+
+figure;
+
+% % get participant and model means: psychometric fn
+% xrange = nanmean(x_mean,3);
+% partM = nanmean(pc_data,3);
+% partSEM = nanstd(pc_data,[],3)./sqrt(nSubj-1);
+% modelM = nanmean(pc_pred,3);
+% modelSEM = nanstd(pc_pred,[],3)./sqrt(nSubj-1);
+
+for irel = 1:2;
+    % get participant and model means
+    xrange = mean(x_mean(:,:,irel,:),4);
+    partM = mean(pc_data(:,:,irel,:),4);
+    partSEM = std(pc_data(:,:,irel,:),[],4)./sqrt(nSubj);
+    modelM = nanmean(pc_pred(:,:,irel,:),4);
+    modelSEM = nanstd(pc_pred(:,:,irel,:),[],4)./sqrt(nSubj-1);
+    
+    % get colormap info
+    h = figure(99);
+    cmap = colormap('parula'); % get a rough colormap
+    close(h)
+    idxs = round(linspace(1,size(cmap,1),5));
+    colorMat = cmap(idxs,:);
+    
+    subplot(1,3,irel)
+    hold on;
+    for ii = 1:5;
+        plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
+            modelSEM(ii,:),colorMat(ii,:),colorMat(ii,:))
+    end
+    axis([-0.2 pi/2+0.2 0 1])
+end
+
+% subplot(1,2,1); hold on
+% for ii = 1:5;
+% plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
+%     modelSEM(ii,:),colorMat(ii,:),colorMat(ii,:))
+% end
+% xlabel('magnitude change')
+% ylabel('proportion respond change')
+% set(gca,'XTick',0:(pi/8):(pi/2))
+% ylim([0 1])
+% xlim([-0.2 pi/2+.2])
+
+subplot(1,3,3); hold on;
+plot_summaryfit(0:4,m_HRall,sem_HRall,m_mod_HRall,sem_mod_HRall,colorMat(1,:),colorMat(1,:));
+plot_summaryfit(0:4,m_HRlow,sem_HRlow,m_mod_HRlow,sem_mod_HRlow,colorMat(2,:),colorMat(2,:));
+plot_summaryfit(0:4,m_HRhigh,sem_HRhigh,m_mod_HRhigh,sem_mod_HRhigh,colorMat(3,:),colorMat(3,:));
+plot_summaryfit(0:4,m_FAR,sem_FAR,m_mod_FAR,sem_mod_FAR,colorMat(4,:),colorMat(4,:));
+xlabel('number of high reliability ellipses')
+ylabel('proportion respond change')
+% legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
+set(gca,'XTick',0:4)
+xlim([-0.5 4.5])
+ylim([0 1])
+
+figure; 
+for irel = 1:2
+    % get participant and model means
+    xrange = mean(x_mean(:,:,irel,:),4);
+    partM = mean(pc_data(:,:,irel,:),4);
+    partSEM = std(pc_data(:,:,irel,:),[],4)./sqrt(nSubj);
+    modelM = nanmean(pc_pred(:,:,irel,:),4);
+    modelSEM = nanstd(pc_pred(:,:,irel,:),[],4)./sqrt(nSubj-1);
+for ii = 1:5;
+    subplot(1,5,ii);hold on;
+    plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
+        modelSEM(ii,:),colorMat(irel,:),colorMat(irel,:))
+    axis([-0.2 pi/2+0.2 0 1])
+
+end
+end
 
 %% ALL SUBJ MODEL FITS: psychometric function and hits/false alarms
 
@@ -638,7 +847,7 @@ clear all
 condition = 'Line';
 additionalpaths = 'Line/';
 additionalpaths2 = '';%'_keshvari';
-modelidx = 2;
+modelidx = 10;
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -726,6 +935,7 @@ xlabel('magnitude change')
 ylabel('proportion respond change')
 set(gca,'XTick',0:(pi/8):(pi/2))
 ylim([0 1])
+xlim([-0.2 pi/2+.2])
 
 subplot(1,2,2); hold on;
 plot_summaryfit(0:4,m_HRall,sem_HRall,m_mod_HRall,sem_mod_HRall,colorMat(1,:),colorMat(1,:));
@@ -892,35 +1102,41 @@ modelMat = ...
              2 2 2; 2 3 2];     % F_M model variants
 imodel = 1;
 model = modelMat(imodel,:);
-condition = 'Ellipse';
+condition = 'Line';
 
 % load any subject's data (just to get the deltas and reliabilities)
 load('data/fitting_data/POO_Ellipse_simple.mat')
-data.subjid = sprintf('F_%d%d%d_01',model(1),model(2),model(3));
 data.pres2stimuli = condition;
 
 % % get theta value (made up or from fits)
-% load(sprintf('analysis/fits/bfp_%s.mat',condition))
-% bfpMat = bfpMat{imodel};
-% M = mean(bfpMat);
-% sem = std(bfpMat)./size(bfpMat,1);
+load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition))
+bfpMat = bfpMat{imodel};
+m = mean(bfpMat);
+% sigma = std(bfpMat)./size(bfpMat,1);
+sigma = cov(bfpMat);
 
-theta =  [24 12 2 0.5];
-% theta = sem.*randn(1,size(bfpMat,2))+M
+for isubj = 1:5;%6:10;
+    data.subjid = sprintf('F_%d%d%d_%02d',model(1),model(2),model(3),isubj);
+    
+    theta = mvnrnd(m,sigma);
+%     theta = sigma.*randn(1,size(bfpMat,2))+m;
+    
+    % generate p_C_hat
+    nSamples = 200;
+    [~,p_C_hat] = calculate_LL(theta,data,model,[],nSamples);
+    
+    % generate fake data
+    data.resp = rand(length(p_C_hat),1) < p_C_hat;
+    
+    % plot to make sure it makes sense
+    clf
+    plot_psychometric_fn(data,6,p_C_hat);
+    
+    % save
+    save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
 
-% generate p_C_hat
-nSamples = 200;
-[~,p_C_hat] = calculate_LL(theta,data,model,[],nSamples);
-
-% generate fake data
-data.resp = rand(length(p_C_hat),1) < p_C_hat;
-
-% plot to make sure it makes sense
-clf
-plot_psychometric_fn(data,6,p_C_hat);
-
-% save
-% save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
+    pause;
+end
 
 %% load actual and estimated parameter
 clear all

@@ -23,7 +23,7 @@ function [x_mean, pc_data, pc_pred] = plot_psychometric_fn(data,nBins,prediction
 
 if nargin < 2; nBins = 6; end
 if nargin < 3; prediction = []; end
-% if nargin < 4; quantilebinedges = 1; end
+if nargin < 4; quantilebinedges = 7; end
 
 nItems = 4;
 n_high_vec = 0:nItems;
