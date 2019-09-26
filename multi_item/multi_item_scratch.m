@@ -1138,6 +1138,158 @@ for isubj = 1:5;%6:10;
     pause;
 end
 
+%% get best fit param
+% requires same number of simulated subjects, and all models to be
+% simulated and fitted on all simulated subjects
+
+clear all
+
+subjnumVec = 1:10;
+modelMat = [1 1 1; 1 3 1];
+condition = 'Line';
+
+
+nSubj = length(subjnumVec);    
+nModels = size(modelMat,1);
+
+[actualthetaMat, LLMat] = deal(cell(1,nModels)); % organizec by actual model
+bfpMat = cell(1,nModels); % organized by fitted model
+nParamsVec = nan(1,nModels);
+for irealmodel = 1:nModels;
+    realmodel = modelMat(irealmodel,:);
+    
+    bfpMat{irealmodel} = cell(1,nModels);
+    LLMat{irealmodel} = nan(nModels,nSubj);
+    for isubj = 1:nSubj
+        subjnum = subjnumVec(isubj);
+        subjid = sprintf('F_%d%d%d_%02d',realmodel(1),realmodel(2),...
+            realmodel(3),subjnum);
+        
+        load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition));
+        
+        if (isubj==1);
+            nparams = length(theta);
+            nParamsVec(irealmodel) = nparams;
+            actualthetaMat{irealmodel} = nan(nSubj,nparams);
+        end
+        
+        actualthetaMat{irealmodel}(isubj,:) = theta;
+
+        for itestmodel = 1:nModels;
+            testmodel = modelMat(itestmodel,:);
+            
+            try
+                load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',condition,subjid,condition,testmodel(1),testmodel(2),testmodel(3)))
+            
+                if (isubj==1);
+                    bfpMat{irealmodel}{itestmodel} = nan(nSubj, size(bfp,2));
+                end
+                
+                idx_posLL = LLVec >0;
+                idx_minLL = find(LLVec==min(LLVec(idx_posLL)),1,'first');
+                LLMat{irealmodel}(itestmodel,isubj) = LLVec(idx_minLL);
+                bfpMat{irealmodel}{itestmodel}(isubj,:) = bfp(idx_minLL,:);
+                
+            catch
+                fprintf('test model %d%d%d does not exist for subject %s \n',...
+                testmodel(1),testmodel(2),testmodel(3),subjid)
+            end
+        end
+         
+    end
+    
+end
+
+% save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additionalmodifier),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+
+
+%% plot parameter recovery
+
+imodel = 1;
+model = modelMat(imodel,:);
+
+% get parameter names
+counter = 3;
+paramnames{1} = 'Jbar high';
+paramnames{2} = 'Jbar low';
+if strcmp(condition,'Line');
+    paramnames{counter} = 'Jbar line';
+    counter = counter+1;
+end
+if (model(1) == 1); % if VP
+    paramnames{counter} = 'tau';
+    counter = counter+1;
+end
+if (model(3) == 1) % if optimal decision rule
+    if (model(2) == 3) % if assumed same precision
+        paramnames{counter} = 'Jbar ellipse, assumed';
+        counter = counter+1;
+        
+        if strcmp(condition,'Line')
+            paramnames{counter} = 'Jbar line, assumed';
+        end
+    end
+    
+    paramnames{length(paramnames)+1} = 'p change';
+else % max rule
+    paramnames{length(paramnames)+1} = 'criterion';
+end
+
+trueparams = actualthetaMat{imodel};
+estparams = bfpMat{imodel}{imodel};
+
+nparams = size(trueparams,2);
+
+ysubplotsize = floor(sqrt(nparams));
+xsubplotsize = ceil(nparams/ysubplotsize);
+figure
+for iparam = 1:nparams
+    subplot(ysubplotsize,xsubplotsize,iparam)
+    
+    minn = min([trueparams(:,iparam); estparams(:,iparam)]);
+    maxx = max([trueparams(:,iparam); estparams(:,iparam)]);
+    
+    hold on
+    plot(trueparams(:,iparam),estparams(:,iparam),'o'); 
+    plot([minn maxx],[minn maxx],'Color',0.7*ones(1,3))
+    title(paramnames{iparam})
+    if mod(iparam,xsubplotsize) == 1
+        ylabel('estimated value')
+    end
+    if ((xsubplotsize*ysubplotsize)-iparam < xsubplotsize); xlabel('true value'),end
+    
+%     axis equal
+    defaultplot
+    
+end
+
+%% look at LLs of real and estimated parameters
+
+imodel = 1;
+model = modelMat(imodel,:);
+estLL = LLMat{imodel}(imodel,:);
+
+realLL = nan(size(estLL));
+for isubj = 1:nSubj
+    
+    % load data
+    load(sprintf('data/fitting_data/F_%d%d%d_%02d_%s_simple.mat',...
+        model(1),model(2),model(3),isubj,condition));
+        
+    
+    % calculate LL
+    x = trueparams(isubj,:);
+    logflag = getFittingSettings(model, condition);
+    realLL(isubj) = -calculate_LL(x,data,model,logflag,1000);
+    
+end
+
+figure;
+bar(realLL-estLL)
+ylabel('positive means actual is better LL')
+defaultplot
+
+
 %% load actual and estimated parameter
 clear all
 
