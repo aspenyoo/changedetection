@@ -25,7 +25,7 @@ nSamples = [500 1000];
 idx = num2str($SLURM_ARRAY_TASK_ID);
 % isubj = str2double(idx(1));
 % imodel = str2double(idx(2:3));
-condition = 'Line';
+condition = 'Ellipse';
 runlist = 1:20;
 
 % subjidVec = {'S15','S16','S17','S19','S20','S23'}; % round 2 data collection
