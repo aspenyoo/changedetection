@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=16:00:00
 #SBATCH --mem=4GB
-#SBATCH --job-name=fit_parameters
+#SBATCH --job-name=model_recovery
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
 #SBATCH --output=o_%a.out
@@ -22,7 +22,7 @@ runmax = 20;
 nSamples = [500 1000];
 
 % fitting settings (determined by index)
-idx = num2str($SLURM_ARRAY_TASK_ID);
+idx = $SLURM_ARRAY_TASK_ID;
 % isubj = str2double(idx(1));
 % imodel = str2double(idx(2:3));
 condition = 'Line';
