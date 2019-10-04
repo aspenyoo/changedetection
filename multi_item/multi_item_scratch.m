@@ -1100,7 +1100,7 @@ modelMat = ...
      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
              2 2 1; 2 3 1; ...  % F_O model variants
              2 2 2; 2 3 2];     % F_M model variants
-imodel = 1;
+imodel = 10;
 model = modelMat(imodel,:);
 condition = 'Line';
 
@@ -1108,18 +1108,18 @@ condition = 'Line';
 load('data/fitting_data/POO_Ellipse_simple.mat')
 data.pres2stimuli = condition;
 
-% % get theta value (made up or from fits)
+% get theta value (made up or from fits)
 load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition))
 bfpMat = bfpMat{imodel};
 m = mean(bfpMat);
-% sigma = std(bfpMat)./size(bfpMat,1);
-sigma = cov(bfpMat);
+sigma = std(bfpMat)./size(bfpMat,1);
+% sigma = cov(bfpMat);
 
-for isubj = 1:5;%6:10;
+for isubj = 6:10;
     data.subjid = sprintf('F_%d%d%d_%02d',model(1),model(2),model(3),isubj);
     
-    theta = mvnrnd(m,sigma);
-%     theta = sigma.*randn(1,size(bfpMat,2))+m;
+%     theta = mvnrnd(m,sigma);
+    theta = sigma.*randn(1,size(bfpMat,2))+m;
     
     % generate p_C_hat
     nSamples = 200;
@@ -1146,17 +1146,15 @@ clear all
 
 subjnumVec = 1:10;
 modelMat = [1 1 1; 1 3 1];
-condition = 'Line';
-
+condition = 'Ellipse';
 
 nSubj = length(subjnumVec);    
 nModels = size(modelMat,1);
 
-[actualthetaMat, LLMat] = deal(cell(1,nModels)); % organizec by actual model
-bfpMat = cell(1,nModels); % organized by fitted model
+[actualthetaMat, bfpMat, LLMat] = deal(cell(1,nModels)); % organizec by actual model
 nParamsVec = nan(1,nModels);
 for irealmodel = 1:nModels;
-    realmodel = modelMat(irealmodel,:);
+    realmodel = modelMat(irealmodel,:)
     
     bfpMat{irealmodel} = cell(1,nModels);
     LLMat{irealmodel} = nan(nModels,nSubj);
@@ -1187,7 +1185,8 @@ for irealmodel = 1:nModels;
                 
                 idx_posLL = LLVec >0;
                 idx_minLL = find(LLVec==min(LLVec(idx_posLL)),1,'first');
-                LLMat{irealmodel}(itestmodel,isubj) = LLVec(idx_minLL);
+                % LLMat{irealmodel}(itestmodel,isubj) = LLVec(idx_minLL);
+                LLMat{irealmodel}(itestmodel,isubj) = calculate_LL(bfp(idx_minLL,:),data,testmodel,[],1e3);
                 bfpMat{irealmodel}{itestmodel}(isubj,:) = bfp(idx_minLL,:);
                 
             catch
@@ -1200,8 +1199,32 @@ for irealmodel = 1:nModels;
     
 end
 
-% save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additionalmodifier),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('analysis/fits/%s/modelrecov_%s.mat',condition,condition),'actualthetaMat','LLMat','bfpMat','nParamsVec','condition','modelMat','subjnumVec')
 
+%% model recovery
+
+clear all
+
+condition = 'Line';
+load(sprintf('analysis/fits/%s/modelrecov_%s.mat',condition,condition))
+
+nSubj = length(subjnumVec);    
+nModels = size(modelMat,1);
+nTrials = 2000;
+
+AICMat = cellfun(@(x) 2*bsxfun(@plus,x,nParamsVec'),LLMat,'UniformOutput',false);
+AICcMat = cellfun(@(x) bsxfun(@plus,x,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))'),AICMat,'UniformOutput',false);
+BICMat = cellfun(@(x) 2*bsxfun(@plus,x,nParamsVec' + log(nTrials)),LLMat,'UniformOutput',false);
+
+confusionMat = nan(nModels);
+for irealmodel = 1:nModels;
+    
+    [m,i]= max(BICMat{irealmodel});
+    for iestmodel = 1:nModels;
+        confusionMat(irealmodel,iestmodel) = sum(i==iestmodel);
+    end
+end
+confusionMat
 
 %% plot parameter recovery
 
@@ -1268,8 +1291,9 @@ end
 imodel = 1;
 model = modelMat(imodel,:);
 estLL = LLMat{imodel}(imodel,:);
+nSamples = 1000;
 
-realLL = nan(size(estLL));
+[realLL,estLL] = deal(nan(size(estLL)));
 for isubj = 1:nSubj
     
     % load data
@@ -1279,8 +1303,9 @@ for isubj = 1:nSubj
     
     % calculate LL
     x = trueparams(isubj,:);
-    logflag = getFittingSettings(model, condition);
-    realLL(isubj) = -calculate_LL(x,data,model,logflag,1000);
+%     logflag = getFittingSettings(model, condition);
+    realLL(isubj) = calculate_LL(x,data,model,[],nSamples);
+    estLL(isubj) = calculate_LL(estparams(isubj,:),data,model,[],nSamples);
     
 end
 
@@ -1288,29 +1313,6 @@ figure;
 bar(realLL-estLL)
 ylabel('positive means actual is better LL')
 defaultplot
-
-
-%% load actual and estimated parameter
-clear all
-
-subjid = 'FAKE01';
-condition = 'Ellipse';
-truemodel = [1 1 1];
-estmodel = truemodel;
-
-% load data
-load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
-
-% load fits
-load(sprintf('subj%s_%s_model%d%d%d.mat',subjid,condition,estmodel(1),estmodel(2),estmodel(3)))
-
-% print stuff
-theta
-bfp
-
-% find best fitting parameters
-idx_minLL = find(LLVec==min(LLVec),1,'first');
-BFP = bfp(idx_minLL,:)
 
 %% calculate KL divergence
 % (run cell above before this one)
@@ -1321,25 +1323,4 @@ BFP = bfp(idx_minLL,:)
 p_logp = sum(data.resp.*p_C_hat.*log(p_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-p_C_hat))
 p_logq = sum(data.resp.*p_C_hat.*log(q_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-q_C_hat))
 - p_logp - p_logq
- 
-%% look at LL for different models
 
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
-nModels = size(modelMat,1);
-
-LL_vec = nan(1,nModels);
-for imodel = 1:nModels
-    estmodel = modelMat(imodel,:);
-    
-    load(sprintf('subj%s_%s_model%d%d%d.mat',subjid,condition,estmodel(1),estmodel(2),estmodel(3)))
-
-    idx_LL = find(LLVec == min(LLVec),1,'first');
-    LL_vec(imodel) = LLVec(idx_LL);
-    
-end
-
-LL_vec
