@@ -1102,7 +1102,7 @@ modelMat = ...
              2 2 2; 2 3 2];     % F_M model variants
 imodel = 10;
 model = modelMat(imodel,:);
-condition = 'Line';
+condition = 'Ellipse';
 
 % load any subject's data (just to get the deltas and reliabilities)
 load('data/fitting_data/POO_Ellipse_simple.mat')
@@ -1112,14 +1112,14 @@ data.pres2stimuli = condition;
 load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition))
 bfpMat = bfpMat{imodel};
 m = mean(bfpMat);
-sigma = std(bfpMat)./size(bfpMat,1);
-% sigma = cov(bfpMat);
+% sigma = std(bfpMat)./size(bfpMat,1);
+sigma = cov(bfpMat);
 
-for isubj = 6:10;
+for isubj = 1:5;
     data.subjid = sprintf('F_%d%d%d_%02d',model(1),model(2),model(3),isubj);
     
-%     theta = mvnrnd(m,sigma);
-    theta = sigma.*randn(1,size(bfpMat,2))+m;
+    theta = mvnrnd(m,sigma);
+%     theta = sigma.*randn(1,size(bfpMat,2))+m;
     
     % generate p_C_hat
     nSamples = 200;
