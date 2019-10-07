@@ -1138,30 +1138,71 @@ for isubj = 1:5;
     pause;
 end
 
+%% check which jobs need to be redone
+
+clear all
+
+condition = 'Line';
+subjnumVec = 1:10;
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
+         
+nSubj = length(subjnumVec);
+nModels = size(modelMat,1);
+
+completed = cell(1,nModels);
+for itruemodel = 1:nModels;
+    truemodel = modelMat(itruemodel,:);
+    
+    for itestmodel = 1:nModels
+        testmodel = modelMat(itestmodel,:);
+        
+        for isubj = 1:nSubj
+            subjnum = subjnumVec(isubj);
+            subjid = sprintf('F_%d%d%d_%02d',truemodel(1),truemodel(2),...
+            truemodel(3),subjnum);
+        
+            load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',condition,...
+                subjid,condition,testmodel(1),testmodel(2),testmodel(3)));
+        
+            completed{itestmodel}(itruemodel,isubj) = length(completedruns);
+        end
+        
+    end
+    
+end
+
 %% get best fit param
 % requires same number of simulated subjects, and all models to be
 % simulated and fitted on all simulated subjects
 
 clear all
 
+condition = 'Line';
 subjnumVec = 1:10;
-modelMat = [1 1 1; 1 3 1];
-condition = 'Ellipse';
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+             2 2 1; 2 3 1; ...  % F_O model variants
+             2 2 2; 2 3 2];     % F_M model variants
 
 nSubj = length(subjnumVec);    
 nModels = size(modelMat,1);
 
 [actualthetaMat, bfpMat, LLMat] = deal(cell(1,nModels)); % organizec by actual model
 nParamsVec = nan(1,nModels);
-for irealmodel = 1:nModels;
-    realmodel = modelMat(irealmodel,:)
+for irealmodel = 3:nModels;
+    truemodel = modelMat(irealmodel,:)
     
     bfpMat{irealmodel} = cell(1,nModels);
     LLMat{irealmodel} = nan(nModels,nSubj);
     for isubj = 1:nSubj
-        subjnum = subjnumVec(isubj);
-        subjid = sprintf('F_%d%d%d_%02d',realmodel(1),realmodel(2),...
-            realmodel(3),subjnum);
+        subjnum = subjnumVec(isubj)
+        subjid = sprintf('F_%d%d%d_%02d',truemodel(1),truemodel(2),...
+            truemodel(3),subjnum);
         
         load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition));
         
@@ -1207,6 +1248,7 @@ clear all
 
 condition = 'Line';
 load(sprintf('analysis/fits/%s/modelrecov_%s.mat',condition,condition))
+modelnames = {'VVO','VFO','VSO','VVM','VFM','VSM','FFO','FSO','FFM','FSM'};
 
 nSubj = length(subjnumVec);    
 nModels = size(modelMat,1);
@@ -1225,11 +1267,22 @@ for irealmodel = 1:nModels;
     end
 end
 confusionMat
+imagesc(confusionMat)
+colormap('bone')
+ylabel('real model')
+xlabel('estimated model')
+set(gca,'XTick',1:10,'XTickLabel',modelnames,'YTick',1:10,'YTickLabel',modelnames);
 
 %% plot parameter recovery
 
-imodel = 1;
+clear all
+
+condition = 'Line';
+load(sprintf('analysis/fits/%s/modelrecov_%s.mat',condition,condition))
+
+imodel = 10;
 model = modelMat(imodel,:);
+logflag = getFittingSettings(model,condition);
 
 % get parameter names
 counter = 3;
@@ -1261,6 +1314,10 @@ end
 trueparams = actualthetaMat{imodel};
 estparams = bfpMat{imodel}{imodel};
 
+% logging relevant values
+trueparams(:,logflag) = log(trueparams(:,logflag));
+estparams(:,logflag) = log(estparams(:,logflag));
+
 nparams = size(trueparams,2);
 
 ysubplotsize = floor(sqrt(nparams));
@@ -1275,7 +1332,11 @@ for iparam = 1:nparams
     hold on
     plot(trueparams(:,iparam),estparams(:,iparam),'o'); 
     plot([minn maxx],[minn maxx],'Color',0.7*ones(1,3))
+    if logflag(iparam) == 1
+        title(sprintf('log %s',paramnames{iparam}))
+    else
     title(paramnames{iparam})
+    end
     if mod(iparam,xsubplotsize) == 1
         ylabel('estimated value')
     end
