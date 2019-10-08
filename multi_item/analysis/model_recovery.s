@@ -25,7 +25,7 @@ nSamples = [500 1000];
 idx = $SLURM_ARRAY_TASK_ID;
 % isubj = str2double(idx(1));
 % imodel = str2double(idx(2:3));
-condition = 'Line';
+condition = 'Ellipse';
 runlist = 1:20;
 
 subjnumVec = 1:10;
