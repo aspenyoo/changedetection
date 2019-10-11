@@ -57,15 +57,15 @@ end
 switch decision_rule
     case 1 % if optimal, need prior over p(change)
         
-        if (variability == 3) % if participant believes they have one noise for ellipse (and one for line)
+        if (variability >= 3) % if participant believes they have one noise for ellipse (4) (and potentiall one for line; 3)
             LB = [LB jbar_bounds(1)];
             UB = [UB jbar_bounds(2)];
             PLB = [PLB jbar_pbounds(1)];
             PUB = [PUB jbar_pbounds(2)];
             logflag = [logflag 1];
             
-            % if Line condition, need an additional Jbar value for assumed Jbar
-            if strcmp(condition,'Line')
+            % if Line condition and Same variability, need an additional Jbar value for assumed Jbar
+            if strcmp(condition,'Line') && (variability == 3)
                 LB = [LB jbar_bounds(1)];
                 UB = [UB jbar_bounds(2)];
                 PLB = [PLB jbar_pbounds(1)];

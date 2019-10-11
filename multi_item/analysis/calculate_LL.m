@@ -29,7 +29,7 @@ if (encoding == 1); % if VP
 end
 
 if (decision_rule == 1) % if optimal decision rule
-    if (infering == 3) % if assumed same precision
+    if (infering >= 3) % if assumed same precision
         Jbar_assumed = x(counter);
         counter = counter+1;
         
@@ -134,9 +134,9 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
             idx_high(n_high+2) = find(sum(data.rel == rels(2),2)==n_high,1,'last');
         end
         
-        if (precision == 3) % SP
+        if any(precision == [3 4]) % SP, IP (ignore precision)
             J_x_mat = Jbar_assumed*ones(nTrials,nItems);
-            if strcmp(condition,'Line')
+            if strcmp(condition,'Line') && (precision == 3)
                 J_y_mat = Jbar_line_assumed*ones(nTrials,nItems);
             else
                 J_y_mat = J_x_mat;

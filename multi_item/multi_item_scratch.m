@@ -1142,7 +1142,7 @@ end
 
 clear all
 
-condition = 'Line';
+condition = 'Ellipse';
 subjnumVec = 1:10;
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -1181,7 +1181,7 @@ end
 
 clear all
 
-condition = 'Line';
+condition = 'Ellipse';
 subjnumVec = 1:10;
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
@@ -1194,7 +1194,7 @@ nModels = size(modelMat,1);
 
 [actualthetaMat, bfpMat, LLMat] = deal(cell(1,nModels)); % organizec by actual model
 nParamsVec = nan(1,nModels);
-for irealmodel = 3:nModels;
+for irealmodel = 1:nModels;
     truemodel = modelMat(irealmodel,:)
     
     bfpMat{irealmodel} = cell(1,nModels);
@@ -1249,10 +1249,16 @@ clear all
 condition = 'Line';
 load(sprintf('analysis/fits/%s/modelrecov_%s.mat',condition,condition))
 modelnames = {'VVO','VFO','VSO','VVM','VFM','VSM','FFO','FSO','FFM','FSM'};
+imodelVec = 1:10;%[1 3];
 
 nSubj = length(subjnumVec);    
-nModels = size(modelMat,1);
+nModels = length(imodelVec);
 nTrials = 2000;
+
+modelnames = modelnames(imodelVec);
+nParamsVec = nParamsVec(imodelVec);
+LLMat = LLMat(imodelVec);
+LLMat = cellfun(@(x) x(imodelVec,:),LLMat,'UniformOutput',false);
 
 AICMat = cellfun(@(x) 2*bsxfun(@plus,x,nParamsVec'),LLMat,'UniformOutput',false);
 AICcMat = cellfun(@(x) bsxfun(@plus,x,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))'),AICMat,'UniformOutput',false);
@@ -1266,7 +1272,8 @@ for irealmodel = 1:nModels;
         confusionMat(irealmodel,iestmodel) = sum(i==iestmodel);
     end
 end
-confusionMat
+
+figure;
 imagesc(confusionMat)
 colormap('bone')
 ylabel('real model')
@@ -1277,7 +1284,7 @@ set(gca,'XTick',1:10,'XTickLabel',modelnames,'YTick',1:10,'YTickLabel',modelname
 
 clear all
 
-condition = 'Line';
+condition = 'Ellipse';
 load(sprintf('analysis/fits/%s/modelrecov_%s.mat',condition,condition))
 
 imodel = 10;
