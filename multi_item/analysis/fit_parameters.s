@@ -23,8 +23,6 @@ nSamples = [500 1000];
 
 % fitting settings (determined by index)
 idx = num2str($SLURM_ARRAY_TASK_ID);
-isubj = str2double(idx(1));
-imodel = str2double(idx(2:3));
 condition = 'Ellipse';
 runlist = 1:20;
 
@@ -32,13 +30,15 @@ runlist = 1:20;
 % subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'}; % round 1 data collection
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'}; % keshvari data
 subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S15','S16','S17','S19','S20','S23'}; % all real full subjects
-
 modelMat = ...
    [1 1 1;  1 2 1; 1 3 1; 1 4 1; ...  % V_O model variants
     1 1 2;  1 2 2; 1 3 2; 1 4 2; ...  % V_M model variants
             2 2 1; 2 3 1; 2 4 1; ...  % F_O model variants
             2 2 2; 2 3 2; 2 4 2];     % F_M model variants
+nSubjs = length(subjidVec);
+nModels = size(modelMat,1);
 
+[isubj,imodel] = ind2sub([nSubjs nModels],idx);
 subjid = subjidVec{isubj};
 model = modelMat(imodel,:);
 
