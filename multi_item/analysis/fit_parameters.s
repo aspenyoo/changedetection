@@ -23,7 +23,6 @@ nSamples = [500 1000];
 
 % fitting settings (determined by index)
 idx = num2str($SLURM_ARRAY_TASK_ID);
-condition = 'Ellipse';
 runlist = 1:20;
 
 % subjidVec = {'S15','S16','S17','S19','S20','S23'}; % round 2 data collection
@@ -35,12 +34,16 @@ modelMat = ...
     1 1 2;  1 2 2; 1 3 2; 1 4 2; ...  % V_M model variants
             2 2 1; 2 3 1; 2 4 1; ...  % F_O model variants
             2 2 2; 2 3 2; 2 4 2];     % F_M model variants
+conditionVec = {'Ellipse','Line'};
 nSubjs = length(subjidVec);
 nModels = size(modelMat,1);
+nConds = length(conditionVec);
 
-[isubj,imodel] = ind2sub([nSubjs nModels],idx);
+
+[isubj,imodel,icond] = ind2sub([nSubjs nModels nConds],idx);
 subjid = subjidVec{isubj};
 model = modelMat(imodel,:);
+condition = conditionVec{icond};
 
 % settings = clustersettings{idx};
 % subjid = settings.subjid
