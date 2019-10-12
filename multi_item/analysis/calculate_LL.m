@@ -28,15 +28,16 @@ if (encoding == 1); % if VP
     counter = counter+1;
 end
 
-if (decision_rule == 1) % if optimal decision rule
-    if (infering >= 3) % if assumed same precision
-        Jbar_assumed = x(counter);
-        counter = counter+1;
-        
-        if strcmp(condition,'Line')
-            Jbar_line_assumed = x(counter);
-        end
+if (infering >= 3) % if assumed same precision
+    Jbar_assumed = x(counter);
+    counter = counter+1;
+    
+    if strcmp(condition,'Line') && (infering == 3)
+        Jbar_line_assumed = x(counter);
     end
+end
+    
+if (decision_rule == 1) % if optimal decision rule
     p_change = x(end);
 else % max rule
     criterion = x(end);
@@ -71,7 +72,7 @@ get_deltas = 1;
 [delta_noise, kappa_x_i, kappa_y_i] = generate_representations(encoding);
 get_deltas = 0;
 
-if (infering==3) && (decision_rule==2)      % if model is ESM of VSM
+if (infering==4) && (decision_rule==2)      % if model is EIM of VIM
     d_i_Mat = abs(bsxfun(@plus,data.Delta,delta_noise));
 else
     if (encoding ~= infering) % if there is a mismatch in generative and inference process

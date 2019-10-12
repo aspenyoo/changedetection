@@ -41,15 +41,9 @@ nConds = length(conditionVec);
 
 
 [isubj,imodel,icond] = ind2sub([nSubjs nModels nConds],idx);
-subjid = subjidVec{isubj};
-model = modelMat(imodel,:);
-condition = conditionVec{icond};
-
-% settings = clustersettings{idx};
-% subjid = settings.subjid
-% model = settings.model
-% condition = settings.condition
-% runlist = settings.runlist
+subjid = subjidVec{isubj}
+model = modelMat(imodel,:)
+condition = conditionVec{icond}
 
 % load data
 load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
