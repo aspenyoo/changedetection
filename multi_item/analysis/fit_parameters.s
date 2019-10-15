@@ -22,7 +22,7 @@ runmax = 20;
 nSamples = [500 1000];
 
 % fitting settings (determined by index)
-idx = num2str($SLURM_ARRAY_TASK_ID);
+idx = $SLURM_ARRAY_TASK_ID;
 runlist = 1:20;
 
 % subjidVec = {'S15','S16','S17','S19','S20','S23'}; % round 2 data collection
@@ -41,9 +41,9 @@ nConds = length(conditionVec);
 
 
 [isubj,imodel,icond] = ind2sub([nSubjs nModels nConds],idx);
-subjid = subjidVec{isubj}
-model = modelMat(imodel,:)
-condition = conditionVec{icond}
+subjid = subjidVec{isubj};
+model = modelMat(imodel,:);
+condition = conditionVec{icond};
 
 % load data
 load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
