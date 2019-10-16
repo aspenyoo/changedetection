@@ -318,11 +318,10 @@ end
 clear all
 
 % note: s07 also has fits
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14',...
     'S15','S16','S17','S19','S20','S23'};
 % subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
 condition = 'Line';
-additionalpaths = 'Line/';
 additionalmodifier = '';
 % condition = 'Ellipse';
 % additionalpaths = 'ellipse_keshvari/'; 
@@ -332,10 +331,10 @@ additionalmodifier = '';
 % modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 % modelMat = [1 1 1; 1 3 1];
 modelMat = ...
-    [1 1 1;  1 2 1;  1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2;  1 3 2; ...  % V_M model variants
-             2 2 1;  2 3 1; ...  % F_O model variants
-             2 2 2;  2 3 2];     % F_M model variants
+    [1 1 1;  1 2 1;  1 3 1; 1 4 1; ...  % V_O model variants
+     1 1 2;  1 2 2;  1 3 2; 1 4 2; ...  % V_M model variants
+             2 2 1;  2 3 1; 2 4 1; ...  % F_O model variants
+             2 2 2;  2 3 2; 2 4 2];     % F_M model variants
 nSubj = length(subjidVec);    
 nModels = size(modelMat,1);
 
@@ -350,7 +349,7 @@ for imodel = 1:nModels;
         subjid = subjidVec{isubj};
         
         try
-            load(sprintf('analysis/fits/%ssubj%s_%s_model%d%d%d.mat',additionalpaths,subjid,condition,model(1),model(2),model(3)))
+            load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',condition,subjid,condition,model(1),model(2),model(3)))
             
             if (isubj==1);
                 nParamsVec(imodel) = size(bfp,2);
@@ -369,7 +368,7 @@ for imodel = 1:nModels;
     
 end
 
-save(sprintf('analysis/fits/%sbfp_%s%s.mat',additionalpaths,condition,additionalmodifier),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition,additionalmodifier),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 % save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
@@ -1181,7 +1180,7 @@ end
 
 clear all
 
-condition = 'Ellipse';
+condition = 'Line';
 subjnumVec = 1:10;
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants

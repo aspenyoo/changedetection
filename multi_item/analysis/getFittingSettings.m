@@ -15,7 +15,7 @@ function [logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition)
 
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP
-variability = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
+variability = model(2);     % assumed noise. 1: VP, 2: FP, 3: diss assumed for ellipse and line, 4: ignore completely
 decision_rule = model(3);   % decision rule. 1: optimal, 2: max
 
 % Set parameter bounds
@@ -54,25 +54,25 @@ if (encoding == 1);
     logflag = [logflag 1];
 end
 
+if (variability == 3) % if participant believes they have one noise for ellipse (4) (and potentiall one for line; 3)
+    LB = [LB jbar_bounds(1)];
+    UB = [UB jbar_bounds(2)];
+    PLB = [PLB jbar_pbounds(1)];
+    PUB = [PUB jbar_pbounds(2)];
+    logflag = [logflag 1];
+    
+    % if Line condition and Same variability, need an additional Jbar value for assumed Jbar
+    if strcmp(condition,'Line') && (variability == 3)
+        LB = [LB jbar_bounds(1)];
+        UB = [UB jbar_bounds(2)];
+        PLB = [PLB jbar_pbounds(1)];
+        PUB = [PUB jbar_pbounds(2)];
+        logflag = [logflag 1];
+    end
+end
+
 switch decision_rule
     case 1 % if optimal, need prior over p(change)
-        
-        if (variability >= 3) % if participant believes they have one noise for ellipse (4) (and potentiall one for line; 3)
-            LB = [LB jbar_bounds(1)];
-            UB = [UB jbar_bounds(2)];
-            PLB = [PLB jbar_pbounds(1)];
-            PUB = [PUB jbar_pbounds(2)];
-            logflag = [logflag 1];
-            
-            % if Line condition and Same variability, need an additional Jbar value for assumed Jbar
-            if strcmp(condition,'Line') && (variability == 3)
-                LB = [LB jbar_bounds(1)];
-                UB = [UB jbar_bounds(2)];
-                PLB = [PLB jbar_pbounds(1)];
-                PUB = [PUB jbar_pbounds(2)];
-                logflag = [logflag 1];
-            end
-        end
         
         % p(change)
         LB = [LB pchange_bounds(1)];

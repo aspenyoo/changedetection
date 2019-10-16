@@ -39,7 +39,6 @@ nSubjs = length(subjidVec);
 nModels = size(modelMat,1);
 nConds = length(conditionVec);
 
-
 [isubj,imodel,icond] = ind2sub([nSubjs nModels nConds],idx);
 subjid = subjidVec{isubj};
 model = modelMat(imodel,:);
