@@ -4,8 +4,9 @@ if nargin < 5; nSamples = 50; end
 
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP
-infering = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
+infering = model(2);        % assumed noise. 1: VP, 2: FP, 3: stimulus, 4: single value
 decision_rule = model(3);   % decision rule. 1: optimal, 2: max
+decision_noise = model(4);  % decision noise: 0: none, 1: local, 2: global
 
 % data stuff
 nTrials = size(data.rel,1);
@@ -15,11 +16,11 @@ condition = data.pres2stimuli;
 % ===== GET PARAMETER VALUES ======
 counter = 3;
 x(logflag) = exp(x(logflag));
-Jbar_high = x(1);
+Jbar_high = x(1)+x(2);     % this parameter is the diff between Jbarhigh and low, not Jbarhigh
 Jbar_low = x(2);
 
 if strcmp(condition,'Line');
-    Jbar_line = x(counter);
+    Jbar_line = sum(x(1:counter));  % this parameter is the diff between Jbarhigh and line, not Jbarline
     counter = counter+1;
 end
 
@@ -34,7 +35,12 @@ if (infering >= 3) % if assumed same precision
     
     if strcmp(condition,'Line') && (infering == 3)
         Jbar_line_assumed = x(counter);
+        counter = counter+1;
     end
+end
+
+if (decision_noise) % if there is some type of decision rule
+    sigma_d = x(counter);
 end
     
 if (decision_rule == 1) % if optimal decision rule
@@ -92,11 +98,17 @@ else
 %         myBessel(Kc,LookupSpacing,LookupY));
 end
 
+if (decision_noise == 1);   % if local decision noise
+    d_i_Mat = d_i_Mat + randn(size(d_i_Mat)).*sigma_d;
+end
+
 if (decision_rule == 1); % if optimal
     p_C_hat = log(sum(exp(d_i_Mat),2))-log(nItems)+log(p_change)-log(1-p_change);  % these values are actually log(d), not p_C_hat
+    if (decision_noise == 2); p_C_hat = p_C_hat + randn(size(d_i_Mat)).*sigma_d; end    % if global dec noise
     p_C_hat = p_C_hat > 0; %1;      % respond 1 if log(d) > log(1)
 else
     p_C_hat = max(d_i_Mat,[],2);                % these values are actually log(d), not p_C_hat
+    if (decision_noise == 2); p_C_hat = p_C_hat + randn(size(d_i_Mat)).*sigma_d; end    % if global dec noise
     p_C_hat = p_C_hat > log(criterion);  % respond 1 if max(d_i) > criterion
 end
 p_C_hat = mean(p_C_hat,3); % get average across samples
