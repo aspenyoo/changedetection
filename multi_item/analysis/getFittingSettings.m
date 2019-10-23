@@ -21,7 +21,7 @@ decision_noise = model(4);  % decision noise: 0: none, 1: local, 2: global
 
 % Set parameter bounds
 jbar_bounds = [1e-4 50];        % Hard bounds for JBAR1 and JBAR2
-jbar_pbounds = [1e-4 10];       % Plausible bounds for JBAR1 and JBAR2
+jbar_pbounds = [1e-4 20];       % Plausible bounds for JBAR1 and JBAR2
 tau_bounds = [1e-3 100];        % Hard bounds for TAU
 tau_pbounds = [0.5 30];         % Plausible bounds for TAU
 crit_bounds = [-1e3 1e3];

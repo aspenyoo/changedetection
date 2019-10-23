@@ -16,11 +16,11 @@ condition = data.pres2stimuli;
 % ===== GET PARAMETER VALUES ======
 counter = 3;
 x(logflag) = exp(x(logflag));
-Jbar_high = x(1)+x(2);     % this parameter is the diff between Jbarhigh and low, not Jbarhigh
+Jbar_high = x(1); 
 Jbar_low = x(2);
 
 if strcmp(condition,'Line');
-    Jbar_line = sum(x(1:counter));  % this parameter is the diff between Jbarhigh and line, not Jbarline
+    Jbar_line = x(counter); 
     counter = counter+1;
 end
 
