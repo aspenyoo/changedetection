@@ -28,7 +28,7 @@ if (encoding == 1); % if VP
     counter = counter+1;
 end
 
-if (infering == 3) % if assumed same precision
+if (infering >= 3) % if assumed same precision
     Jbar_assumed = x(counter);
     counter = counter+1;
     
