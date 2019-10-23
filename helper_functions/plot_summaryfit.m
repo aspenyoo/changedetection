@@ -1,4 +1,4 @@
-function plot_summaryfit(xrange,partM,partSD,modelM,modelSD,partcolor,modelcolor)
+function plot_summaryfit(xrange,partM,partSD,modelM,modelSD,partcolor,modelcolor,mult)
 %function summaryplot(XRANGE,PARTM,PARTSD,MODELM,MODELSD,PLOTCOLOR) will
 %plot error bars using PARTM and PARTSD against a filled area respresenting
 %MODELM and MODELSD
@@ -6,6 +6,7 @@ function plot_summaryfit(xrange,partM,partSD,modelM,modelSD,partcolor,modelcolor
 % Aspen Yoo
 % 2/16/15 -- v1
 
+if nargin < 8; mult = []; end
 if nargin < 7; modelcolor = 'k'; end
 if nargin < 6; partcolor = 'k'; end
 
@@ -45,6 +46,8 @@ else
         'Marker'        ,'none'        ,...
         'LineStyle'     ,'none'     ,...
         'LineWidth'     , 1         );
+    
+    if ~isempty(mult); try, errbar(herr,mult); end, end
     
     % just used so that you can have a nice legend
     filler = plot(xrange(1)*ones(1,2),partM(1)+[-partSD(1) partSD(1)]);

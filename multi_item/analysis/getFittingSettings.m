@@ -15,18 +15,21 @@ function [logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition)
 
 % model indices
 encoding = model(1);        % actual noise. 1: VP, 2: FP
-variability = model(2);     % assumed noise. 1: VP, 2: FP, 3: diss assumed for ellipse and line, 4: ignore completely
+infering = model(2);        % assumed noise. 1: VP, 2: FP, 3: diss assumed for ellipse and line, 4: ignore completely
 decision_rule = model(3);   % decision rule. 1: optimal, 2: max
+decision_noise = model(4);  % decision noise: 0: none, 1: local, 2: global
 
 % Set parameter bounds
-jbar_bounds = [0.0067 50];  % Hard bounds for JBAR1 and JBAR2
-jbar_pbounds = [1 25];  % Plausible bounds for JBAR1 and JBAR2
-tau_bounds = [1e-3 100];     % Hard bounds for TAU
-tau_pbounds = [0.5 30];     % Plausible bounds for TAU
+jbar_bounds = [1e-4 50];        % Hard bounds for JBAR1 and JBAR2
+jbar_pbounds = [1e-4 10];       % Plausible bounds for JBAR1 and JBAR2
+tau_bounds = [1e-3 100];        % Hard bounds for TAU
+tau_pbounds = [0.5 30];         % Plausible bounds for TAU
 crit_bounds = [-1e3 1e3];
 crit_pbounds = [-10 10];  
 pchange_bounds = [1e-4 1];
 pchange_pbounds = [0.3 0.6];
+sigma_d_bounds = [1e-4 50];
+sigma_d_pbounds = [0.5 20];
 
 % set Jbar_high and Jbar_low bounds
 LB = [jbar_bounds(1) jbar_bounds(1)]; 
@@ -54,7 +57,7 @@ if (encoding == 1);
     logflag = [logflag 1];
 end
 
-if (variability == 3) % if participant believes they have one noise for ellipse (4) (and potentiall one for line; 3)
+if (infering >= 3) && ((infering==4) && (decision_rule==2))% if participant believes they have one noise for ellipse (4) (and potentiall one for line; 3)
     LB = [LB jbar_bounds(1)];
     UB = [UB jbar_bounds(2)];
     PLB = [PLB jbar_pbounds(1)];
@@ -62,7 +65,7 @@ if (variability == 3) % if participant believes they have one noise for ellipse 
     logflag = [logflag 1];
     
     % if Line condition and Same variability, need an additional Jbar value for assumed Jbar
-    if strcmp(condition,'Line') && (variability == 3)
+    if strcmp(condition,'Line') && (infering == 3)
         LB = [LB jbar_bounds(1)];
         UB = [UB jbar_bounds(2)];
         PLB = [PLB jbar_pbounds(1)];
@@ -71,9 +74,18 @@ if (variability == 3) % if participant believes they have one noise for ellipse 
     end
 end
 
+if (decision_noise)
+    % sigma_d
+    LB = [LB sigma_d_bounds(1)];
+    UB = [UB sigma_d_bounds(2)];
+    PLB = [PLB sigma_d_pbounds(1)];
+    PUB = [PUB sigma_d_pbounds(2)];
+    logflag = [logflag 1];
+end
+
 switch decision_rule
+    
     case 1 % if optimal, need prior over p(change)
-        
         % p(change)
         LB = [LB pchange_bounds(1)];
         UB = [UB pchange_bounds(2)];
