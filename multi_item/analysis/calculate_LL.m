@@ -104,11 +104,13 @@ end
 
 if (decision_rule == 1); % if optimal
     p_C_hat = log(sum(exp(d_i_Mat),2))-log(nItems)+log(p_change)-log(1-p_change);  % these values are actually log(d), not p_C_hat
-    if (decision_noise == 2); p_C_hat = p_C_hat + randn(size(d_i_Mat)).*sigma_d; end    % if global dec noise
+    if (decision_noise == 2); p_C_hat = p_C_hat + randn(size(p_C_hat)).*sigma_d; end    % if global dec noise
     p_C_hat = p_C_hat > 0; %1;      % respond 1 if log(d) > log(1)
 else
     p_C_hat = max(d_i_Mat,[],2);                % these values are actually log(d), not p_C_hat
-    if (decision_noise == 2); p_C_hat = p_C_hat + randn(size(d_i_Mat)).*sigma_d; end    % if global dec noise
+    if (decision_noise == 2); 
+        p_C_hat = p_C_hat + randn(size(p_C_hat)).*sigma_d; 
+    end    % if global dec noise
     p_C_hat = p_C_hat > log(criterion);  % respond 1 if max(d_i) > criterion
 end
 p_C_hat = mean(p_C_hat,3); % get average across samples

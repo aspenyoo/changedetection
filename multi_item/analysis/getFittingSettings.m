@@ -57,7 +57,7 @@ if (encoding == 1);
     logflag = [logflag 1];
 end
 
-if (infering >= 3) && ((infering==4) && (decision_rule==2))% if participant believes they have one noise for ellipse (4) (and potentiall one for line; 3)
+if (infering >= 3) && ~((infering==4) && (decision_rule==2))% if participant believes they have one noise for ellipse (4) (and potentiall one for line; 3)
     LB = [LB jbar_bounds(1)];
     UB = [UB jbar_bounds(2)];
     PLB = [PLB jbar_pbounds(1)];

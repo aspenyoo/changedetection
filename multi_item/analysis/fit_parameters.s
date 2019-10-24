@@ -43,6 +43,7 @@ modelMat = ...
               2 2 1 2; 2 3 1 2; 2 4 1 2; ...  % F_O model variants   |      noise
               2 2 2 2; 2 3 2 2; 2 4 2 2];     % F_M model variants __|
 conditionVec = {'Ellipse','Line'};
+
 nSubjs = length(subjidVec);
 nModels = size(modelMat,1);
 nConds = length(conditionVec);
