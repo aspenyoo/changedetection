@@ -1,7 +1,7 @@
 %% ============================================================
 %                   DATA RELATED
 % =============================================================
-% 
+%
 
 %% stats about difference in performance as a function of condition
 
@@ -40,7 +40,7 @@ end
 %% save data in format for fitting data
 clear all
 
-subjid = 'S23'; 
+subjid = 'S23';
 pres2stimuli = 'Line';
 
 trialMat = combine_data(subjid, pres2stimuli);
@@ -87,16 +87,16 @@ save(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,pres2stimuli),'data')
 clear all
 
 subjidVec = {'POO','METEST'};
-nSubj = length(subjidVec);
+nSubjs = length(subjidVec);
 
 conditionVec = {'Ellipse','Line'};
 nConditions = length(conditionVec);
 
-PC = nan(nSubj,5,nConditions);
+PC = nan(nSubjs,5,nConditions);
 for icondition = 1:nConditions
     condition = conditionVec{icondition};
     
-    for isubj = 1:nSubj;
+    for isubj = 1:nSubjs;
         subjid = subjidVec{isubj};
         
         % load data
@@ -132,7 +132,7 @@ defaultplot
 Jbar = 6;
 Jbar2 = 24;
 tau = 1;
-tau2 = 3; 
+tau2 = 3;
 
 samps = nan(1e3,2);
 samps(:,1) = gamrnd(Jbar/tau, tau, 1e3, 1);
@@ -189,6 +189,7 @@ data_L = data;
 tic;
 LL = calculate_joint_LL(theta,data_E,data_L,model,logflag,nSamples)
 toc
+
 %% fit model one time
 % actually going to be done on cluster. see fit_parameters.s
 
@@ -220,21 +221,21 @@ subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
 conditionCell = {'combined'};
 modelMat = ...
     [1 1 1;  1 2 1; ...  % V_O model variants
-     1 1 2;  1 2 2; ...  % V_M model variants
-             2 2 1; ...  % F_O model variants
-             2 2 2];     % F_M model variants
+    1 1 2;  1 2 2; ...  % V_M model variants
+    2 2 1; ...  % F_O model variants
+    2 2 2];     % F_M model variants
 % modelMat = ...
 %     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
 %      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
 %              2 2 1; 2 3 1; ...  % F_O model variants
 %              2 2 2; 2 3 2];     % F_M model variants
-nSubj = length(subjidCell);
+nSubjs = length(subjidCell);
 nConds = length(conditionCell);
 nModels = size(modelMat,1);
 runlistpermodel = ones(1,nModels);
 
 counter = 1;
-for isubj = 1:nSubj
+for isubj = 1:nSubjs
     subjid = subjidCell{isubj};
     
     for icond = 1:nConds
@@ -243,49 +244,113 @@ for isubj = 1:nSubj
         for imodel = 1:nModels
             model = modelMat(imodel,:);
             try
-            load(sprintf('analysis/fits/%ssubj%s_%s_model%d%d%d.mat',additionalpaths,subjid,condition,model(1),model(2),model(3)));
-            
-            % get the indices of runlists left
-            incompleteRuns = 1:20;
-            incompleteRuns(completedruns) = [];
-            nRunsleft = length(incompleteRuns);
-            
-            % assume that the number completed is the amount that can be
-            % completed in the same amount of time. set number of jobs
-            % based on that
-            nRunsperJob = 2;%length(completedruns)*2;
-            while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
-                clustersettings{counter}.subjid = subjid;
-                clustersettings{counter}.condition = condition;
-                clustersettings{counter}.model = model;
+                load(sprintf('analysis/fits/%ssubj%s_%s_model%d%d%d.mat',additionalpaths,subjid,condition,model(1),model(2),model(3)));
                 
-                try
-                    clustersettings{counter}.runlist = incompleteRuns(1:nRunsperJob);
-                    incompleteRuns(1:nRunsperJob) = [];
-                catch
-                    clustersettings{counter}.runlist = incompleteRuns;
-                    incompleteRuns = [];
+                % get the indices of runlists left
+                incompleteRuns = 1:20;
+                incompleteRuns(completedruns) = [];
+                nRunsleft = length(incompleteRuns);
+                
+                % assume that the number completed is the amount that can be
+                % completed in the same amount of time. set number of jobs
+                % based on that
+                nRunsperJob = 2;%length(completedruns)*2;
+                while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
+                    clustersettings{counter}.subjid = subjid;
+                    clustersettings{counter}.condition = condition;
+                    clustersettings{counter}.model = model;
+                    
+                    try
+                        clustersettings{counter}.runlist = incompleteRuns(1:nRunsperJob);
+                        incompleteRuns(1:nRunsperJob) = [];
+                    catch
+                        clustersettings{counter}.runlist = incompleteRuns;
+                        incompleteRuns = [];
+                    end
+                    
+                    counter = counter+1;
                 end
-                
-                counter = counter+1;
             end
-            end
-%             for irun = 1:nRunsleft
-%                 runlist = incompleteRuns(irun);
-%                 
-%                 clustersettings{counter}.subjid = subjid;
-%                 clustersettings{counter}.condition = condition;
-%                 clustersettings{counter}.model = model;
-%                 clustersettings{counter}.runlist = runlist;
-%             
-%             counter = counter+1;
-%             end
+            %             for irun = 1:nRunsleft
+            %                 runlist = incompleteRuns(irun);
+            %
+            %                 clustersettings{counter}.subjid = subjid;
+            %                 clustersettings{counter}.condition = condition;
+            %                 clustersettings{counter}.model = model;
+            %                 clustersettings{counter}.runlist = runlist;
+            %
+            %             counter = counter+1;
+            %             end
         end
     end
     
 end
 
 save(filename,'clustersettings')
+
+%% fit decision noise parameter based on the no decision noise minimum
+
+clear all
+
+icond = 2;
+imodel = 4; % the og one without decision noise 
+decision_noise = 1;     % that decision noise number
+xxx = 21;
+
+load('modelfittingsettings.mat')
+options.UncertaintyHandling = 'on';
+condition = conditionVec{icond};
+model_og = modelMat(imodel,:);
+model = model_og;
+model(end) = decision_noise;
+nSamples = [500 1000];
+
+% get original bfp, in correct log space
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition))
+logflag = getFittingSettings(model_og, condition);
+x0_list = bfpMat{imodel};
+x0_list(:,logflag) = log(x0_list(:,logflag));
+
+% update logflag and other fitting parameters
+[logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition);
+
+for isubj = 1:nSubjs
+    subjid = subjidVec{isubj};
+    
+    % load data
+    load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
+    
+    filename = sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,data.subjid,condition,model(1),model(2),model(3),model(4));
+    filename
+    
+    % Fix random seed based on iteration (for reproducibility)
+    rng(xxx);
+    x0 = [x0_list(isubj,1:end-1) PLB(end-1)+rand*(PUB(end-1)-PLB(end-1)) x0_list(isubj,end)]
+    x0(4) = x0(4) + 1e-3;
+    [xbest,~,~,~] = ...
+        bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
+    
+    % recalculate LL with more samples
+    LL = -calculate_LL(xbest,data,model,logflag,nSamples(2));
+    
+    xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
+    
+    % it is necessary to reload the file at every iteration in case multiple processors are
+    % saving the file at the same time
+    if exist(filename,'file')
+        load(filename,'bfp','LLVec','completedruns')
+    else
+        [bfp, LLVec, completedruns] = deal([]);
+    end
+    
+    % update and save variables
+    bfp = [bfp; xbest];
+    LLVec = [LLVec; LL];
+    completedruns = [completedruns; xxx];
+    save(filename,'bfp','LLVec','completedruns')
+    
+end
+
 
 %% ======================================================================
 %                       GETTING MODEL FITS
@@ -298,9 +363,9 @@ subjid = 'POO';
 condition = 'Ellipse';
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+    1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+    2 2 1; 2 3 1; ...  % F_O model variants
+    2 2 2; 2 3 2];     % F_M model variants
 nModels = size(modelMat,1);
 
 nCompleteVec = nan(1,nModels);
@@ -317,36 +382,26 @@ end
 
 clear all
 
-% note: s07 also has fits
-subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14',...
-    'S15','S16','S17','S19','S20','S23'};
-% subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-condition = 'Line';
+icond = 2;
 
-modelMat = ...
-    [1 1 1;  1 2 1;  1 3 1; 1 4 1; ...  % V_O model variants
-     1 1 2;  1 2 2;  1 3 2; 1 4 2; ...  % V_M model variants
-             2 2 1;  2 3 1; 2 4 1; ...  % F_O model variants
-             2 2 2;  2 3 2; 2 4 2];     % F_M model variants
-nSubj = length(subjidVec);    
-nModels = size(modelMat,1);
+load('modelfittingsettings.mat')
+condition = conditionVec{icond};
 
-
-LLMat = nan(nModels,nSubj);
+LLMat = nan(nModels,nSubjs);
 bfpMat = cell(1,nModels);
 nParamsVec = nan(1,nModels);
 for imodel = 1:nModels;
     model = modelMat(imodel,:);
     
-    for isubj = 1:nSubj
+    for isubj = 1:nSubjs
         subjid = subjidVec{isubj};
         
         try
-            load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',condition,subjid,condition,model(1),model(2),model(3)))
+            load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),model(2),model(3),model(4)))
             
             if (isubj==1);
                 nParamsVec(imodel) = size(bfp,2);
-                bfpMat{imodel} = nan(nSubj, nParamsVec(imodel));
+                bfpMat{imodel} = nan(nSubjs, nParamsVec(imodel));
             end
             
             idx_posLL = LLVec >0;
@@ -354,8 +409,8 @@ for imodel = 1:nModels;
             LLMat(imodel,isubj) = LLVec(idx_minLL);
             bfpMat{imodel}(isubj,:) = bfp(idx_minLL,:);
         catch
-            fprintf('model %d%d%d does not exist for subject %s \n',...
-                model(1),model(2),model(3),subjid)
+            fprintf('model %d%d%d%d does not exist for subject %s \n',...
+                model(1),model(2),model(3),model(4),subjid)
         end
     end
     
@@ -369,14 +424,12 @@ save(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMa
 
 clear all
 
-condition = 'Line';
+icond = 2;
+
+load('modelfittingsettings.mat')
+
+condition = conditionVec{icond};
 load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
-% modelnames = {'VVO','VVM','VSO','VSM'};
-modelnames = {  'VVO', 'VFO', 'VSO', 'VIO', ...
-                'VVM', 'VFM', 'VSM', 'VIM', ...
-                       'FFO', 'FSO', 'FIO', ...
-                       'FFM', 'FSM', 'FIM'};
-nModels = length(modelnames);
 nTrials = 2000;
 
 % calculated AIC, AICc, and BIC
@@ -388,7 +441,7 @@ figure;
 bar(AICcMat)
 title('AICc')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:10,'XTickLabel',modelnames);
+set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 
@@ -396,7 +449,7 @@ figure;
 bar(BICMat)
 title('BIC')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:10,'XTickLabel',modelnames);
+set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 %% AICc BIC relatve to VVO
@@ -408,7 +461,7 @@ figure;
 bar(AICcMat)
 title('AICc')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnames);
+set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 
@@ -416,24 +469,37 @@ figure;
 bar(BICMat)
 title('BIC')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnames);
+set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
+%% 3 separate plots, based on decision noise
+
+x = 14;
+figure;
+for isub = 1:3
+    subplot(3,1,isub)
+    xx = [1:x]+(isub-1)*x;
+    bar(BICMat(xx,:))
+    xlim([0.5 x+0.5])
+    set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
+defaultplot
+end
+
 %% mean sem of same thing
-nSubj = size(AICcMat,2);
+nSubjs = size(AICcMat,2);
 
 M_AICc = nanmean(AICcMat,2);
-SEM_AICc = nanstd(AICcMat,[],2)/sqrt(nSubj);
+SEM_AICc = nanstd(AICcMat,[],2)/sqrt(nSubjs);
 
 M_BIC = nanmean(BICMat,2);
-SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubj);
+SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubjs);
 
 figure;
 bar(M_AICc); hold on
 errorbar(M_AICc,SEM_AICc,'k','LineStyle','none')
 title('AICc')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnames);
+set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 figure
@@ -441,7 +507,7 @@ bar(M_BIC); hold on
 errorbar(M_BIC,SEM_BIC,'k','LineStyle','none')
 title('BIC')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnames);
+set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 %%
@@ -456,7 +522,7 @@ end
 
 
 
- 
+
 %% ====================================================================
 %                      PLOTS: ONE CONDITION
 % ====================================================================
@@ -472,13 +538,13 @@ modelidx = 1;
 nBins = 6;
 
 %subjidVec = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
- subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
+subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','POO','METEST'};
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
-model = modelMat(modelidx,:);         
+    1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+    2 2 1; 2 3 1; ...  % F_O model variants
+    2 2 2; 2 3 2];     % F_M model variants
+model = modelMat(modelidx,:);
 subjid = subjidVec{subjidx};
 
 % % load bfp fits
@@ -512,14 +578,14 @@ for isamps = 1:nSamps
     timelength(isamps) = toc;
 end
 
-figure; 
+figure;
 subplot(1,2,1)
 plot(nSamplesVec,LL)
 subplot(1,2,2)
 plot(nSamplesVec,timelength)
 
 
-%% 
+%%
 nSamplesVec = [25 50 100 200 500];
 nSamps = length(nSamplesVec);
 bfp = [8 1 5 0.501];
@@ -530,8 +596,8 @@ pchangeVec = linspace(0.1,0.9,nn)
 
 for i = 1:nn
     i
-%     bfp(1) = JbarlowVec(i);
-bfp(4) = pchangeVec(i);
+    %     bfp(1) = JbarlowVec(i);
+    bfp(4) = pchangeVec(i);
     
     for isamps = 1:nSamps
         tic;
@@ -541,7 +607,7 @@ bfp(4) = pchangeVec(i);
     
 end
 
-figure; 
+figure;
 plot(JbarlowVec,LL)
 
 %% single subject mode fits: hits false alarms
@@ -567,7 +633,7 @@ nSamples = 200;
 subjidVec = {'S02','S03','S06','S08','S10','S11','S14'};
 modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
 
-model = modelMat(modelidx,:);         
+model = modelMat(modelidx,:);
 subjid = subjidVec{subjidx};
 infering = model(2);     % assumed noise. 1: VP, 2: FP, 3: single value
 decision_rule = model(3);   % decision rule. 1: optimal, 2: max
@@ -609,10 +675,10 @@ nSamples = 200;
 subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
     'S15','S16','S17','S19','S20','S23'};
 modelMat = [1 1 1; 1 1 2; 1 3 1; 1 3 2];
-nSubj = length(subjidVec);
+nSubjs = length(subjidVec);
 nModels = size(modelMat,1);
 
-model = modelMat(imodel,:);         
+model = modelMat(imodel,:);
 
 % load ML parameter estimates
 load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition))
@@ -628,8 +694,8 @@ load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition))
 % end
 
 figure;
-[x_mean_e, pc_data_e, pc_pred_e, x_mean_l, pc_data_l, pc_pred_l] = deal(nan(5,nBins,nSubj));
-for isubj = 1:nSubj
+[x_mean_e, pc_data_e, pc_pred_e, x_mean_l, pc_data_l, pc_pred_l] = deal(nan(5,nBins,nSubjs));
+for isubj = 1:nSubjs
     subjid = subjidVec{isubj};
     bfp = bfpMat{imodel}(isubj,:);
     
@@ -642,7 +708,7 @@ for isubj = 1:nSubj
     % get predictions
     [LL,p_C_hat] = calculate_joint_LL(bfp,data_E,data_L,model,[],nSamples);
     fprintf('subj %s: %5.2f \n',subjid,LL)
-
+    
     [x_mean_e(:,:,isubj), pc_data_e(:,:,isubj), pc_pred_e(:,:,isubj)] = plot_psychometric_fn(data_E,nBins,p_C_hat.Ellipse,0);
     [x_mean_l(:,:,isubj), pc_data_l(:,:,isubj), pc_pred_l(:,:,isubj)] = plot_psychometric_fn(data_L,nBins,p_C_hat.Line,0);
 end
@@ -650,15 +716,15 @@ end
 % get participant and model means
 xrange_e = nanmean(x_mean_e,3);
 partM_e = nanmean(pc_data_e,3);
-partSEM_e = nanstd(pc_data_e,[],3)./sqrt(nSubj-1);
+partSEM_e = nanstd(pc_data_e,[],3)./sqrt(nSubjs-1);
 modelM_e = nanmean(pc_pred_e,3);
-modelSEM_e = nanstd(pc_pred_e,[],3)./sqrt(nSubj-1);
+modelSEM_e = nanstd(pc_pred_e,[],3)./sqrt(nSubjs-1);
 
 xrange_l = nanmean(x_mean_l,3);
 partM_l = nanmean(pc_data_l,3);
-partSEM_l = nanstd(pc_data_l,[],3)./sqrt(nSubj-1);
+partSEM_l = nanstd(pc_data_l,[],3)./sqrt(nSubjs-1);
 modelM_l = nanmean(pc_pred_l,3);
-modelSEM_l = nanstd(pc_pred_l,[],3)./sqrt(nSubj-1);
+modelSEM_l = nanstd(pc_pred_l,[],3)./sqrt(nSubjs-1);
 
 % get colormap info
 h = figure(99);
@@ -670,16 +736,16 @@ colorMat = cmap(idxs,:);
 figure;
 subplot(1,2,1)
 for ii = 1:5;
-plot_summaryfit(xrange_e(ii,:),partM_e(ii,:),partSEM_e(ii,:),modelM_e(ii,:),...
-    modelSEM_e(ii,:),colorMat(ii,:),colorMat(ii,:))
+    plot_summaryfit(xrange_e(ii,:),partM_e(ii,:),partSEM_e(ii,:),modelM_e(ii,:),...
+        modelSEM_e(ii,:),colorMat(ii,:),colorMat(ii,:))
 end
 title('Ellipse')
 defaultplot
 
 subplot(1,2,2)
 for ii = 1:5;
-plot_summaryfit(xrange_l(ii,:),partM_l(ii,:),partSEM_l(ii,:),modelM_l(ii,:),...
-    modelSEM_l(ii,:),colorMat(ii,:),colorMat(ii,:))
+    plot_summaryfit(xrange_l(ii,:),partM_l(ii,:),partSEM_l(ii,:),modelM_l(ii,:),...
+        modelSEM_l(ii,:),colorMat(ii,:),colorMat(ii,:))
 end
 title('Line')
 defaultplot
@@ -697,9 +763,9 @@ clear all
 
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+    1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+    2 2 1; 2 3 1; ...  % F_O model variants
+    2 2 2; 2 3 2];     % F_M model variants
 imodel = 10;
 model = modelMat(imodel,:);
 condition = 'Ellipse';
@@ -719,7 +785,7 @@ for isubj = 1:5;
     data.subjid = sprintf('F_%d%d%d_%02d',model(1),model(2),model(3),isubj);
     
     theta = mvnrnd(m,sigma);
-%     theta = sigma.*randn(1,size(bfpMat,2))+m;
+    %     theta = sigma.*randn(1,size(bfpMat,2))+m;
     
     % generate p_C_hat
     nSamples = 200;
@@ -734,7 +800,7 @@ for isubj = 1:5;
     
     % save
     save(sprintf('data/fitting_data/%s_%s_simple.mat',data.subjid,condition),'theta','p_C_hat','data')
-
+    
     pause;
 end
 
@@ -746,11 +812,11 @@ condition = 'Ellipse';
 subjnumVec = 1:10;
 modelMat = ...
     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
-         
-nSubj = length(subjnumVec);
+    1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+    2 2 1; 2 3 1; ...  % F_O model variants
+    2 2 2; 2 3 2];     % F_M model variants
+
+nSubjs = length(subjnumVec);
 nModels = size(modelMat,1);
 
 completed = cell(1,nModels);
@@ -760,14 +826,14 @@ for itruemodel = 1:nModels;
     for itestmodel = 1:nModels
         testmodel = modelMat(itestmodel,:);
         
-        for isubj = 1:nSubj
+        for isubj = 1:nSubjs
             subjnum = subjnumVec(isubj);
             subjid = sprintf('F_%d%d%d_%02d',truemodel(1),truemodel(2),...
-            truemodel(3),subjnum);
-        
+                truemodel(3),subjnum);
+            
             load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',condition,...
                 subjid,condition,testmodel(1),testmodel(2),testmodel(3)));
-        
+            
             completed{itestmodel}(itruemodel,isubj) = length(completedruns);
         end
         
@@ -781,16 +847,22 @@ end
 
 clear all
 
-condition = 'Line';
-subjnumVec = 1:10;
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-     1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-             2 2 1; 2 3 1; ...  % F_O model variants
-             2 2 2; 2 3 2];     % F_M model variants
+% condition = 'Line';
+% subjnumVec = 1:10;
+% modelMat = ...
+%     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+%      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+%              2 2 1; 2 3 1; ...  % F_O model variants
+%              2 2 2; 2 3 2];     % F_M model variants
+%
+% nSubj = length(subjnumVec);
+% nModels = size(modelMat,1);
 
-nSubj = length(subjnumVec);    
-nModels = size(modelMat,1);
+load('modelfittingsettings.mat')
+icond = 1;
+
+condition = conditionVec{icond};
+
 
 [actualthetaMat, bfpMat, LLMat] = deal(cell(1,nModels)); % organizec by actual model
 nParamsVec = nan(1,nModels);
@@ -798,8 +870,8 @@ for irealmodel = 1:nModels;
     truemodel = modelMat(irealmodel,:)
     
     bfpMat{irealmodel} = cell(1,nModels);
-    LLMat{irealmodel} = nan(nModels,nSubj);
-    for isubj = 1:nSubj
+    LLMat{irealmodel} = nan(nModels,nSubjs);
+    for isubj = 1:nSubjs
         subjnum = subjnumVec(isubj)
         subjid = sprintf('F_%d%d%d_%02d',truemodel(1),truemodel(2),...
             truemodel(3),subjnum);
@@ -809,19 +881,19 @@ for irealmodel = 1:nModels;
         if (isubj==1);
             nparams = length(theta);
             nParamsVec(irealmodel) = nparams;
-            actualthetaMat{irealmodel} = nan(nSubj,nparams);
+            actualthetaMat{irealmodel} = nan(nSubjs,nparams);
         end
         
         actualthetaMat{irealmodel}(isubj,:) = theta;
-
+        
         for itestmodel = 1:nModels;
             testmodel = modelMat(itestmodel,:);
             
             try
                 load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d.mat',condition,subjid,condition,testmodel(1),testmodel(2),testmodel(3)))
-            
+                
                 if (isubj==1);
-                    bfpMat{irealmodel}{itestmodel} = nan(nSubj, size(bfp,2));
+                    bfpMat{irealmodel}{itestmodel} = nan(nSubjs, size(bfp,2));
                 end
                 
                 idx_posLL = LLVec >0;
@@ -832,10 +904,10 @@ for irealmodel = 1:nModels;
                 
             catch
                 fprintf('test model %d%d%d does not exist for subject %s \n',...
-                testmodel(1),testmodel(2),testmodel(3),subjid)
+                    testmodel(1),testmodel(2),testmodel(3),subjid)
             end
         end
-         
+        
     end
     
 end
@@ -848,14 +920,14 @@ clear all
 
 condition = 'Line';
 load(sprintf('analysis/fits/%s/modelrecov_%s.mat',condition,condition))
-modelnames = {'VVO','VFO','VSO','VVM','VFM','VSM','FFO','FSO','FFM','FSM'};
+modelnamesVec = {'VVO','VFO','VSO','VVM','VFM','VSM','FFO','FSO','FFM','FSM'};
 imodelVec = 1:10;%[1 3];
 
-nSubj = length(subjnumVec);    
+nSubjs = length(subjnumVec);
 nModels = length(imodelVec);
 nTrials = 2000;
 
-modelnames = modelnames(imodelVec);
+modelnamesVec = modelnamesVec(imodelVec);
 nParamsVec = nParamsVec(imodelVec);
 LLMat = LLMat(imodelVec);
 LLMat = cellfun(@(x) x(imodelVec,:),LLMat,'UniformOutput',false);
@@ -878,7 +950,7 @@ imagesc(confusionMat)
 colormap('bone')
 ylabel('real model')
 xlabel('estimated model')
-set(gca,'XTick',1:10,'XTickLabel',modelnames,'YTick',1:10,'YTickLabel',modelnames);
+set(gca,'XTick',1:10,'XTickLabel',modelnamesVec,'YTick',1:10,'YTickLabel',modelnamesVec);
 
 %% plot parameter recovery
 
@@ -937,19 +1009,19 @@ for iparam = 1:nparams
     maxx = max([trueparams(:,iparam); estparams(:,iparam)]);
     
     hold on
-    plot(trueparams(:,iparam),estparams(:,iparam),'o'); 
+    plot(trueparams(:,iparam),estparams(:,iparam),'o');
     plot([minn maxx],[minn maxx],'Color',0.7*ones(1,3))
     if logflag(iparam) == 1
         title(sprintf('log %s',paramnames{iparam}))
     else
-    title(paramnames{iparam})
+        title(paramnames{iparam})
     end
     if mod(iparam,xsubplotsize) == 1
         ylabel('estimated value')
     end
     if ((xsubplotsize*ysubplotsize)-iparam < xsubplotsize); xlabel('true value'),end
     
-%     axis equal
+    %     axis equal
     defaultplot
     
 end
@@ -962,16 +1034,16 @@ estLL = LLMat{imodel}(imodel,:);
 nSamples = 1000;
 
 [realLL,estLL] = deal(nan(size(estLL)));
-for isubj = 1:nSubj
+for isubj = 1:nSubjs
     
     % load data
     load(sprintf('data/fitting_data/F_%d%d%d_%02d_%s_simple.mat',...
         model(1),model(2),model(3),isubj,condition));
-        
+    
     
     % calculate LL
     x = trueparams(isubj,:);
-%     logflag = getFittingSettings(model, condition);
+    %     logflag = getFittingSettings(model, condition);
     realLL(isubj) = calculate_LL(x,data,model,[],nSamples);
     estLL(isubj) = calculate_LL(estparams(isubj,:),data,model,[],nSamples);
     
