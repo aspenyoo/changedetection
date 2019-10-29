@@ -293,7 +293,7 @@ save(filename,'clustersettings')
 clear all
 
 icond = 2;
-imodel = 4; % the og one without decision noise 
+imodel = 8; % the og one without decision noise 
 decision_noise = 1;     % that decision noise number
 xxx = 21;
 

@@ -111,7 +111,8 @@ else
     if (decision_noise == 2); 
         p_C_hat = p_C_hat + randn(size(p_C_hat)).*sigma_d; 
     end    % if global dec noise
-    p_C_hat = p_C_hat > log(criterion);  % respond 1 if max(d_i) > criterion
+    p_C_hat = p_C_hat > criterion;  % respond 1 if max(log(d_i)) > criterion
+%     p_C_hat = p_C_hat > log(criterion);  % respond 1 if max(d_i) > criterion
 end
 p_C_hat = mean(p_C_hat,3); % get average across samples
 p_C_hat(p_C_hat==0) = eps; % set zero p_C to something very low
