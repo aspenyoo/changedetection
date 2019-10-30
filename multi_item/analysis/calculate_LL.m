@@ -16,37 +16,37 @@ condition = data.pres2stimuli;
 % ===== GET PARAMETER VALUES ======
 counter = 3;
 x(logflag) = exp(x(logflag));
-Jbar_high = x(1)
-Jbar_low = x(2)
+Jbar_high = x(1);
+Jbar_low = x(2);
 
 if strcmp(condition,'Line');
-    Jbar_line = x(counter)
+    Jbar_line = x(counter);
     counter = counter+1;
 end
 
 if (encoding == 1); % if VP
-    tau = x(counter)
+    tau = x(counter);
     counter = counter+1;
 end
 
 if (infering >= 3) && ~(strcmp(condition,'Line') && (infering == 4))% if assumed same precision
-    Jbar_assumed = x(counter)
+    Jbar_assumed = x(counter);
     counter = counter+1;
     
     if strcmp(condition,'Line') && (infering == 3)
-        Jbar_line_assumed = x(counter)
+        Jbar_line_assumed = x(counter);
         counter = counter+1;
     end
 end
 
 if (decision_noise) % if there is some type of decision rule
-    sigma_d = x(counter)
+    sigma_d = x(counter);
 end
     
 if (decision_rule == 1) % if optimal decision rule
-    p_change = x(end)
+    p_change = x(end);
 else % max rule
-    criterion = x(end)
+    criterion = x(end);
 end
 
 % ====== CALCULATE P(\HAT{C}==1|\Theta) FOR nSamples SAMPLES =====
