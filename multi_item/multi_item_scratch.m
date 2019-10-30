@@ -351,6 +351,39 @@ for isubj = 1:nSubjs
     
 end
 
+%% check that decision noise model has higher LL than without dec noise
+
+clear all
+
+isubj = 1;
+icond = 2;
+imodel = 42; % the og one without decision noise 
+decision_noise = 1;     % that decision noise number
+nSamples = 1000;
+xx = 1;
+
+load('modelfittingsettings.mat')
+subjid = subjidVec{isubj};
+condition = conditionVec{icond};
+model_og = modelMat(imodel,:)
+
+% load bfp mat and data
+load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition))
+
+% calc og LL
+x0 = bfpMat{imodel}(isubj,:);
+rng(xx);
+LL = -calculate_LL(x0,data,model_og,[],nSamples)
+
+%%
+% calculate w decision noise
+model = model_og;
+model(end) = decision_noise;
+x0 = [x0(1:end-1) 0 x0(end)];
+rng(xx);
+LL = -calculate_LL(x0,data,model,[],nSamples)
+
 
 %% ======================================================================
 %                       GETTING MODEL FITS
