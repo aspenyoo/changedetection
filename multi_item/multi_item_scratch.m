@@ -453,6 +453,82 @@ save(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMa
 
 % save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
+%% redo LL calculations
+
+clear all
+
+icond = 2;
+
+load('modelfittingsettings.mat')
+condition = conditionVec{icond};
+
+nSamps = 10;    % samples of LL calc
+nSamples = 1000; % samples in one LL calc
+logflag = [];
+
+load(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+
+LL = cell(1,nModels);
+for isubj = 1:nSubjs
+    subjid = subjidVec{isubj}
+    
+    % load subj data
+    load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
+
+    for imodel = 1:nModels
+        model = modelMat(imodel,:)
+        x = bfpMat{imodel}(isubj,:);
+        if (isubj==1); LL{imodel} = nan(nSubjs,nSamps); end 
+        
+        for isamp = 1:nSamps
+            LL{imodel}(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
+        end
+    end
+    
+end
+
+save('fits/redo_LL2.mat','LL')
+
+%% histogram of variances across noise and no noise models
+
+clear all
+load('fits/redo_LL.mat')
+
+nModels = 42
+varr = nan(1,nModels);
+for imodel = 1:nModels
+    blah = var(LL{imodel},0,2);
+    varr(imodel) = median(blah);
+end
+
+figure; hold on
+histogram(varr(1:14),10)
+histogram(varr(15:28),10)
+histogram(varr(29:42),10)
+
+%% average across subjects for
+clear all
+
+load('redo_LL2.mat')
+
+blah = cellfun(@(x) mean(x,2),LL,'UniformOutput',false);
+blah = cell2mat(blah);
+
+xx = 29:42;%15:28;%
+bleh = blah(:,1:14)-blah(:,xx);
+
+figure
+histogram(bleh(:),70)
+
+%% make hsitograms of the diff models with diff decision rule
+imodel = 1;
+isubj = 1;
+
+histogram(LL{imodel}(isubj,:))
+hold on; pause
+histogram(LL{imodel+14}(isubj,:))
+
+
 %% model comparison (AICc and BIC)
 
 clear all

@@ -28,8 +28,8 @@ crit_bounds = [-1e3 1e3];
 crit_pbounds = [-10 10];  
 pchange_bounds = [1e-4 1];
 pchange_pbounds = [0.3 0.6];
-sigma_d_bounds = [1e-4 50];
-sigma_d_pbounds = [0.5 20];
+sigma_d_bounds = [1e-4 5];
+sigma_d_pbounds = [0.1 1];
 
 % set Jbar_high and Jbar_low bounds
 LB = [jbar_bounds(1) jbar_bounds(1)]; 

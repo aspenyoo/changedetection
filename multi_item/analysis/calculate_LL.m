@@ -29,7 +29,7 @@ if (encoding == 1); % if VP
     counter = counter+1;
 end
 
-if (infering >= 3) && ~(strcmp(condition,'Line') && (infering == 4))% if assumed same precision
+if (infering >= 3) && ~(strcmp(condition,'Line') && (infering == 4) && (decision_rule == 2))% if assumed same precision
     Jbar_assumed = x(counter);
     counter = counter+1;
     
@@ -213,7 +213,6 @@ LL = data.resp'*log(p_C_hat) + (1-data.resp)'*log(1-p_C_hat);
                 kappa_y_temp = kappa_y;
             end
             
-            % SOME OTHER WAY (1.5 SECOND FOR 200 SAMPLES)
             % get closest kappa idx
             idx_kappa_x = interp1(K_interp,1:length(K_interp),kappa_x_temp,'nearest');
             idx_kappa_y = interp1(K_interp,1:length(K_interp),kappa_y_temp,'nearest');
