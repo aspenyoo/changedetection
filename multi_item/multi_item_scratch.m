@@ -449,9 +449,13 @@ for imodel = 1:nModels;
     
 end
 
-save(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 % save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+
+%% =========
+% multiple LL calculations
+% ==============
 
 %% redo LL calculations
 
@@ -475,7 +479,7 @@ for isubj = 1:nSubjs
     % load subj data
     load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
 
-    for imodel = 1:nModels
+    for imodel = 15:nModels
         model = modelMat(imodel,:)
         x = bfpMat{imodel}(isubj,:);
         if (isubj==1); LL{imodel} = nan(nSubjs,nSamps); end 
@@ -487,7 +491,7 @@ for isubj = 1:nSubjs
     
 end
 
-save('fits/redo_LL2.mat','LL')
+save(sprintf('fits/%s/redo_LL.mat',condition),'LL','nSamps','nSamples','subjidVec','modelMat')
 
 %% histogram of variances across noise and no noise models
 
@@ -509,7 +513,8 @@ histogram(varr(29:42),10)
 %% average across subjects for
 clear all
 
-load('redo_LL2.mat')
+condition = 'Line';
+load(sprintf('fits/%s/redo_LL.mat',condition))
 
 blah = cellfun(@(x) mean(x,2),LL,'UniformOutput',false);
 blah = cell2mat(blah);
@@ -528,6 +533,39 @@ histogram(LL{imodel}(isubj,:))
 hold on; pause
 histogram(LL{imodel+14}(isubj,:))
 
+
+%% =======
+%  model comparison
+% ========
+
+%% checking that noise models have higher LL than no noise models
+
+clear all
+
+icond = 2;
+
+load('modelfittingsettings.mat')
+
+condition = conditionVec{icond};
+load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
+
+x = nModels/3;
+blah = nan(x,nSubjs,3);
+blah(:,:,1) = LLMat(1:14,:);
+blah(:,:,2) = LLMat(15:28,:);
+blah(:,:,3) = LLMat(29:42,:);
+LL2 = bsxfun(@minus,blah,blah(:,:,1)); % larger number = worse fit
+
+
+figure;
+for isub = 1:3
+    subplot(3,1,isub)
+    xx = [1:x]+(isub-1)*x;
+    bar(LL2(:,:,isub))
+    xlim([0.5 x+0.5])
+    set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
+defaultplot
+end
 
 %% model comparison (AICc and BIC)
 
@@ -552,7 +590,6 @@ title('AICc')
 xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
-
 
 figure;
 bar(BICMat)
@@ -581,18 +618,6 @@ xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
-%% 3 separate plots, based on decision noise
-
-x = 14;
-figure;
-for isub = 1:3
-    subplot(3,1,isub)
-    xx = [1:x]+(isub-1)*x;
-    bar(BICMat(xx,:))
-    xlim([0.5 x+0.5])
-    set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
-defaultplot
-end
 
 %% mean sem of same thing
 nSubjs = size(AICcMat,2);
@@ -618,6 +643,19 @@ title('BIC')
 xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
+
+%% 3 separate plots, based on decision noise
+
+x = 14;
+figure;
+for isub = 1:3
+    subplot(3,1,isub)
+    xx = [1:x]+(isub-1)*x;
+    bar(BICMat(xx,:))
+    xlim([0.5 x+0.5])
+    set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
+defaultplot
+end
 
 %%
 xx=0.45;
