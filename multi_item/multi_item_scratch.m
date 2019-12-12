@@ -520,10 +520,12 @@ blah = cellfun(@(x) mean(x,2),LL,'UniformOutput',false);
 blah = cell2mat(blah);
 
 xx = 29:42;%15:28;%
-bleh = blah(:,1:14)-blah(:,xx);
+bleh = blah(:,xx)-blah(:,1:14);
 
 figure
 histogram(bleh(:),70)
+defaultplot
+xlabel('complex model better')
 
 %% make hsitograms of the diff models with diff decision rule
 imodel = 1;

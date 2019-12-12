@@ -30,6 +30,8 @@ pchange_bounds = [1e-4 1];
 pchange_pbounds = [0.3 0.6];
 sigma_d_bounds = [1e-4 5];
 sigma_d_pbounds = [0.1 1];
+lapse_bounds = [0 1];
+lapse_pbounds = [0.005 0.15];
 
 % set Jbar_high and Jbar_low bounds
 LB = [jbar_bounds(1) jbar_bounds(1)]; 
@@ -100,6 +102,13 @@ switch decision_rule
         PUB = [PUB crit_pbounds(2)];
         logflag = [logflag 0];
 end
+
+% lapse bounds
+LB = [LB lapse_bounds(1)];
+UB = [UB lapse_bounds(2)];
+PLB = [PLB lapse_pbounds(1)];
+PUB = [PUB lapse_pbounds(2)];
+logflag = [logflag 1];
 
 % logging the relevant ones
 logflag = logical(logflag);
