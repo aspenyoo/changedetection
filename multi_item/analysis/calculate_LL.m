@@ -117,9 +117,8 @@ else
 end
 p_C_hat = mean(p_C_hat,3); % get average across samples
 
-% lapses
-islapse = rand(nTrials,1)<lapse;
-p_C_hat(islapse) = rand(sum(islapse),1)>0.5;
+% add lapse rate
+p_C_hat = (1-lapse).*p_C_hat + lapse*0.5;
 
 % fix 0s and 1s
 p_C_hat(p_C_hat==0) = eps; % set zero p_C to something very low
