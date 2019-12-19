@@ -1,9 +1,10 @@
-function [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
+function [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples,useprevfits)
 % % FIT_PARAMETERS was made by aspen oct 31 2018 to try to investigate
 % % different aspects of model. same as fit_maximum_likelihood but outputs
 % % varaibles instead of saving them to a file
 
 if nargin < 4 || isempty(runmax); runmax = 50; end
+if nargin < 6; useprevfits = 0; end
 
 % get model fitting settings
 condition = data.pres2stimuli;
@@ -13,9 +14,11 @@ condition = data.pres2stimuli;
 options.UncertaintyHandling = 'on';
 
 % Generate set of starting point with a Latin hypercube design
-rng(0); % Same set for all
-nvars = numel(PLB);
-x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
+if ~(useprevfits)
+    rng(0); % Same set for all
+    nvars = numel(PLB);
+    x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
+end
 
 filename = sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,data.subjid,condition,model(1),model(2),model(3),model(4));
 filename
@@ -29,7 +32,6 @@ filename
 % end
 % dMat = [dMat blah];
 
-
 for iter = 1:numel(runlist)
     fprintf('iteration number: %d \n',runlist(iter))
     
@@ -39,8 +41,12 @@ for iter = 1:numel(runlist)
 %     % ibs bad settings
 %     options_ibs = ibslike('defaults');
 %     options_ibs.Vectorized = 'on';
-    
-    x0 = x0_list(runlist(iter),:);
+
+    if (useprevfits)
+        x0 = useprevfits;
+    else
+        x0 = x0_list(runlist(iter),:);
+    end
 
     [xbest,LL,~,~] = ...
             bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)

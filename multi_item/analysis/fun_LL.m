@@ -11,7 +11,7 @@ decision_noise = model(4);  % decision noise: 0: none, 1: local, 2: global
 
 % start off with lapse
 lapserate = .01;
-nTrials = size(dMat,1)
+nTrials = size(dMat,1);
 islapse = rand(1,nTrials) < lapserate;
 lapserespVec = rand(1,sum(islapse)) > 0.5;      % for lapse trials, flip a coin
 

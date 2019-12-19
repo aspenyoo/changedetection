@@ -411,11 +411,11 @@ for imodel = 1:nModels
     nCompleteVec(imodel) = length(completedruns);
 end
 
-%% get best fit param for subjects, for a particular condition
+%% get best fit param for all subjects, for a particular condition
 
 clear all
 
-icond = 2;
+icond = 1;
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
@@ -458,10 +458,11 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 % ==============
 
 %% redo LL calculations
+% using either fixed sampling or ibs
 
 clear all
 
-icond = 2;
+icond = 1;
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
@@ -472,6 +473,10 @@ logflag = [];
 
 load(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
+% ibs settings
+options_ibs = ibslike('defaults');
+options_ibs.Vectorized = 'on';
+
 LL = cell(1,nModels);
 for isubj = 1:nSubjs
     subjid = subjidVec{isubj}
@@ -479,19 +484,35 @@ for isubj = 1:nSubjs
     % load subj data
     load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
 
-    for imodel = 15:nModels
+    % ibs settings
+    dMat = data.Delta;
+    rels = unique(data.rel);
+    blah = data.rel;
+    for irel = 1:length(rels)
+        blah(blah == rels(irel)) = irel;
+    end
+    dMat = [dMat blah];
+    
+    for imodel = 1
         model = modelMat(imodel,:)
         x = bfpMat{imodel}(isubj,:);
         if (isubj==1); LL{imodel} = nan(nSubjs,nSamps); end 
         
         for isamp = 1:nSamps
-            LL{imodel}(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
+            
+%             % calculating LL using fixed sampling
+%             LL{imodel}(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
+            
+            % calculating LL using ibs
+            fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
+            LL{imodel}(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
+    
         end
     end
     
 end
 
-save(sprintf('fits/%s/redo_LL.mat',condition),'LL','nSamps','nSamples','subjidVec','modelMat')
+save(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','nSamples','subjidVec','modelMat')
 
 %% histogram of variances across noise and no noise models
 
@@ -544,7 +565,7 @@ histogram(LL{imodel+14}(isubj,:))
 
 clear all
 
-icond = 2;
+icond = 1;
 
 load('modelfittingsettings.mat')
 
@@ -556,7 +577,8 @@ blah = nan(x,nSubjs,3);
 blah(:,:,1) = LLMat(1:14,:);
 blah(:,:,2) = LLMat(15:28,:);
 blah(:,:,3) = LLMat(29:42,:);
-LL2 = bsxfun(@minus,blah,blah(:,:,1)); % larger number = worse fit
+LL2 = bsxfun(@minus,blah(:,:,1),blah); 
+% larger number indicates better fit for decieion noise model
 
 
 figure;
@@ -573,7 +595,7 @@ end
 
 clear all
 
-icond = 2;
+icond = 1;
 
 load('modelfittingsettings.mat')
 
