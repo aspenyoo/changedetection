@@ -44,6 +44,7 @@ for iter = 1:numel(runlist)
 
     if (useprevfits)
         x0 = useprevfits;
+        x0(logflag) = log(x0(logflag));
     else
         x0 = x0_list(runlist(iter),:);
     end
