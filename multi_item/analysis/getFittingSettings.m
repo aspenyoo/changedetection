@@ -108,7 +108,7 @@ LB = [LB lapse_bounds(1)];
 UB = [UB lapse_bounds(2)];
 PLB = [PLB lapse_pbounds(1)];
 PUB = [PUB lapse_pbounds(2)];
-logflag = [logflag 1];
+logflag = [logflag 0];
 
 % logging the relevant ones
 logflag = logical(logflag);

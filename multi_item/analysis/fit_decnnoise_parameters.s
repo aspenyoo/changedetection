@@ -56,7 +56,8 @@ load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
 load(sprintf('fits/%s/bfp_%s.mat',condition,condition))
 idx = mod(imodel,14);
 if (idx == 0); idx = 14; end
-x0 = [bfpMat{idx}(isubj,:) 0];
+x0 = bfpMat{idx}(isubj,:);
+x0 = [x0(1:end-1) 0 x0(end)];
 
 find_ML_parameters(data,model,runlist,runmax,nSamples,x0)
 

@@ -14,7 +14,7 @@ condition = data.pres2stimuli;
 options.UncertaintyHandling = 'on';
 
 % Generate set of starting point with a Latin hypercube design
-if ~(useprevfits)
+if ~sum(useprevfits)
     rng(0); % Same set for all
     nvars = numel(PLB);
     x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
@@ -42,9 +42,13 @@ for iter = 1:numel(runlist)
 %     options_ibs = ibslike('defaults');
 %     options_ibs.Vectorized = 'on';
 
-    if (useprevfits)
+    if sum(useprevfits)
         x0 = useprevfits;
-        x0(logflag) = log(x0(logflag));
+        x0(logflag) = log(x0(logflag))
+        LB
+        UB
+        LB < x0
+        UB > x0
     else
         x0 = x0_list(runlist(iter),:);
     end

@@ -463,21 +463,31 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 clear all
 
 icond = 1;
+imodel = 29;
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
+model = modelMat(imodel,:);
 
 nSamps = 10;    % samples of LL calc
-nSamples = 1000; % samples in one LL calc
 logflag = [];
 
 load(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+
+% fixed sampling settings
+nSamples = 2000; % samples in one LL calc
 
 % ibs settings
 options_ibs = ibslike('defaults');
 options_ibs.Vectorized = 'on';
 
-LL = cell(1,nModels);
+
+try
+    load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+%     load(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
+end
+
+LL = nan(nSubjs,nSamps);
 for isubj = 1:nSubjs
     subjid = subjidVec{isubj}
     
@@ -493,26 +503,30 @@ for isubj = 1:nSubjs
     end
     dMat = [dMat blah];
     
-    for imodel = 1
-        model = modelMat(imodel,:)
-        x = bfpMat{imodel}(isubj,:);
-        if (isubj==1); LL{imodel} = nan(nSubjs,nSamps); end 
-        
-        for isamp = 1:nSamps
-            
-%             % calculating LL using fixed sampling
-%             LL{imodel}(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
-            
-            % calculating LL using ibs
-            fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
-            LL{imodel}(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
+    x = bfpMat{imodel}(isubj,:);
     
-        end
+    for isamp = 1:nSamps
+        
+        % calculating LL using fixed sampling
+        LL(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
+        
+%         % calculating LL using ibs
+%         fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
+%         LL{imodel}(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
+        
     end
     
+    save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+    % save(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
+
 end
 
-save(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','nSamples','subjidVec','modelMat')
+%% histogram
+
+
+isubj = 1
+histogram(LL(isubj,:),10)
+
 
 %% histogram of variances across noise and no noise models
 
