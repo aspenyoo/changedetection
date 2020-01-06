@@ -463,7 +463,8 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 clear all
 
 icond = 1;
-imodel = 29;
+imodel = 30;
+samplingtype = 'ibs';
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
@@ -474,21 +475,26 @@ logflag = [];
 
 load(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
-% fixed sampling settings
-nSamples = 5000; % samples in one LL calc
-
-% ibs settings
-options_ibs = ibslike('defaults');
-options_ibs.Vectorized = 'on';
-
+switch samplingtype
+    case 'fixed'
+        % fixed sampling settings
+        nSamples = 5000; % samples in one LL calc
+    case 'ibs'
+        % ibs settings
+        options_ibs = ibslike('defaults');
+        options_ibs.Vectorized = 'on';
+end
 
 try
-%     load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
-    load(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
-    
+    switch samplingtype
+        case 'fixed'
+            load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+        case 'ibs'
+            load(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
+    end
     subjstart = find(sum(isnan(LL),2)==nSamps,1,'first');
     
-catch 
+catch
     LL = nan(nSubjs,nSamps);
     subjstart = 1;
 end
@@ -499,33 +505,40 @@ for isubj = subjstart:nSubjs
     
     % load subj data
     load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
-
-    % ibs settings
-    dMat = data.Delta;
-    rels = unique(data.rel);
-    blah = data.rel;
-    for irel = 1:length(rels)
-        blah(blah == rels(irel)) = irel;
+    
+    if strcmp(samplingtype,'ibs')
+        % ibs settings
+        dMat = data.Delta;
+        rels = unique(data.rel);
+        blah = data.rel;
+        for irel = 1:length(rels)
+            blah(blah == rels(irel)) = irel;
+        end
+        dMat = [dMat blah];
     end
-    dMat = [dMat blah];
     
     x = bfpMat{imodel}(isubj,:);
     
     for isamp = 1:nSamps
         
-%         % calculating LL using fixed sampling
-%         LL(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
-        
-        % calculating LL using ibs
-        fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
-        LL(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
-        
+        switch samplingtype
+            case 'fixed'
+                % calculating LL using fixed sampling
+                LL(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
+            case 'ibs'
+                % calculating LL using ibs
+                fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
+                LL(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
+        end
     end
     
     range(LL,2)
-%     save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
-    save(sprintf('fits/%s/redo_LL_ibs_model%d%d%d%d.mat',condition,model(1),model(2),model(3),model(4)),'LL','nSamps','subjidVec','modelMat')
-
+    switch samplingtype
+        case 'fixed'
+            save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+        case 'ibs'
+            save(sprintf('fits/%s/redo_LL_ibs_model%d%d%d%d.mat',condition,model(1),model(2),model(3),model(4)),'LL','nSamps','subjidVec','modelMat')
+    end
 end
 
 %% histogram
