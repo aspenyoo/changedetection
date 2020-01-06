@@ -475,7 +475,7 @@ logflag = [];
 load(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 % fixed sampling settings
-nSamples = 2000; % samples in one LL calc
+nSamples = 5000; % samples in one LL calc
 
 % ibs settings
 options_ibs = ibslike('defaults');
@@ -483,12 +483,18 @@ options_ibs.Vectorized = 'on';
 
 
 try
-    load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
-%     load(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
+%     load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+    load(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
+    
+    subjstart = find(sum(isnan(LL),2)==nSamps,1,'first');
+    
+catch 
+    LL = nan(nSubjs,nSamps);
+    subjstart = 1;
 end
 
-LL = nan(nSubjs,nSamps);
-for isubj = 1:nSubjs
+
+for isubj = subjstart:nSubjs
     subjid = subjidVec{isubj}
     
     % load subj data
@@ -507,17 +513,18 @@ for isubj = 1:nSubjs
     
     for isamp = 1:nSamps
         
-        % calculating LL using fixed sampling
-        LL(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
+%         % calculating LL using fixed sampling
+%         LL(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
         
-%         % calculating LL using ibs
-%         fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
-%         LL{imodel}(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
+        % calculating LL using ibs
+        fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
+        LL(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
         
     end
     
-    save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
-    % save(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
+    range(LL,2)
+%     save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+    save(sprintf('fits/%s/redo_LL_ibs_model%d%d%d%d.mat',condition,model(1),model(2),model(3),model(4)),'LL','nSamps','subjidVec','modelMat')
 
 end
 

@@ -14,7 +14,10 @@ lapserate = .01;
 nTrials = size(dMat,1);
 islapse = rand(1,nTrials) < lapserate;
 lapserespVec = rand(1,sum(islapse)) > 0.5;      % for lapse trials, flip a coin
+resp = nan(length(islapse),1);
+resp(islapse) = lapserespVec;
 
+if sum(~islapse) % if there are any trials that did not lapse
 % reduce dMat to only include nonlapse trials
 dMat = dMat(~islapse,:);
 
@@ -112,10 +115,8 @@ else
     p_C_hat = p_C_hat > criterion;  % respond 1 if max(log(d_i)) > criterion
 end
 
-resp = nan(length(islapse),1);
-resp(islapse) = lapserespVec;
 resp(~islapse) = p_C_hat;
-
+end
 
     % ================================================================
     %                      HELPER FUNCTIONS
