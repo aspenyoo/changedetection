@@ -463,7 +463,7 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 clear all
 
 icond = 1;
-imodel = 37;
+imodel = 35;
 samplingtype = 'fixed';
 
 load('modelfittingsettings.mat')
