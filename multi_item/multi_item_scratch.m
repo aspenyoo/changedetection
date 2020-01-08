@@ -463,8 +463,8 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 clear all
 
 icond = 1;
-imodel = 30;
-samplingtype = 'ibs';
+imodel = 37;
+samplingtype = 'fixed';
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
@@ -473,7 +473,7 @@ model = modelMat(imodel,:);
 nSamps = 10;    % samples of LL calc
 logflag = [];
 
-load(sprintf('analysis/fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+load(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 switch samplingtype
     case 'fixed'
@@ -483,19 +483,20 @@ switch samplingtype
         % ibs settings
         options_ibs = ibslike('defaults');
         options_ibs.Vectorized = 'on';
+        options_ibs.Nreps = 30;
 end
 
 try
     switch samplingtype
         case 'fixed'
-            load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+            load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)))
         case 'ibs'
-            load(sprintf('fits/%s/redo_LL_ibs.mat',condition),'LL','nSamps','subjidVec','modelMat')
+            load(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)))
     end
     subjstart = find(sum(isnan(LL),2)==nSamps,1,'first');
     
 catch
-    LL = nan(nSubjs,nSamps);
+    [evaltime,LL] = deal(nan(nSubjs,nSamps));
     subjstart = 1;
 end
 
@@ -521,6 +522,7 @@ for isubj = subjstart:nSubjs
     
     for isamp = 1:nSamps
         
+        tic;
         switch samplingtype
             case 'fixed'
                 % calculating LL using fixed sampling
@@ -530,14 +532,15 @@ for isubj = subjstart:nSubjs
                 fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
                 LL(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
         end
+        evaltime(isubj,isamp) = toc;
     end
     
     range(LL,2)
     switch samplingtype
         case 'fixed'
-            save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','nSamps','nSamples','subjidVec','model')
+            save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','nSamples','subjidVec','model')
         case 'ibs'
-            save(sprintf('fits/%s/redo_LL_ibs_model%d%d%d%d.mat',condition,model(1),model(2),model(3),model(4)),'LL','nSamps','subjidVec','modelMat')
+            save(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','subjidVec','options_ibs','model')
     end
 end
 
