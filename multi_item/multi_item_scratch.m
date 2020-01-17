@@ -463,8 +463,8 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 clear all
 
 icond = 1;
-imodel = 35;
-samplingtype = 'fixed';
+imodel = 31;
+samplingtype = 'ibs';
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
@@ -478,12 +478,12 @@ load(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 switch samplingtype
     case 'fixed'
         % fixed sampling settings
-        nSamples = 5000; % samples in one LL calc
+        nSamples = 1000; % samples in one LL calc
     case 'ibs'
         % ibs settings
         options_ibs = ibslike('defaults');
         options_ibs.Vectorized = 'on';
-        options_ibs.Nreps = 30;
+        options_ibs.Nreps = 10;
 end
 
 try

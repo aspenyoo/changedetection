@@ -23,14 +23,14 @@ end
 filename = sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,data.subjid,condition,model(1),model(2),model(3),model(4));
 filename
 
-% % ibs bads settings
-% dMat = data.Delta;
-% rels = unique(data.rel);
-% blah = data.rel;
-% for irel = 1:length(rels)
-%     blah(blah == rels(irel)) = irel;
-% end
-% dMat = [dMat blah];
+% ibs bads settings
+dMat = data.Delta;
+rels = unique(data.rel);
+blah = data.rel;
+for irel = 1:length(rels)
+    blah(blah == rels(irel)) = irel;
+end
+dMat = [dMat blah];
 
 for iter = 1:numel(runlist)
     fprintf('iteration number: %d \n',runlist(iter))
@@ -38,9 +38,11 @@ for iter = 1:numel(runlist)
     % Fix random seed based on iteration (for reproducibility)
     rng(runlist(iter));
     
-%     % ibs bad settings
-%     options_ibs = ibslike('defaults');
-%     options_ibs.Vectorized = 'on';
+    % ibs bad settings
+    options_ibs = ibslike('defaults');
+    options_ibs.Vectorized = 'on';
+    options_ibs.MaxIter = 10000;
+%     options_ibs.NegLogLikeThreshold = 20000;%Inf;%log(2)*2000; % log(2)nTrials
 
     if sum(useprevfits)
         x0 = useprevfits;
@@ -53,12 +55,12 @@ for iter = 1:numel(runlist)
         x0 = x0_list(runlist(iter),:);
     end
 
-    [xbest,LL,~,~] = ...
-            bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
+%     [xbest,LL,~,~] = ...
+%             bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
 
     % this is for ibs bads
-    %     fun = @(x,y) fun_LL(x,y,model,condition,logflag,data.resp);
-%     [xbest,~,~,~] = bads(@(x) ibslike(fun,x,data.resp,dMat,options_ibs),x0,LB,UB,PLB,PUB,[],options)
+        fun = @(x,y) fun_LL(x,y,model,condition,logflag,data.resp);
+    [xbest,LL,~,~] = bads(@(x) ibslike(fun,x,data.resp,dMat,options_ibs),x0,LB,UB,PLB,PUB,[],options)
     
     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
     

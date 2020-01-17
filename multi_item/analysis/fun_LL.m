@@ -10,7 +10,7 @@ decision_rule = model(3);   % decision rule. 1: optimal, 2: max
 decision_noise = model(4);  % decision noise: 0: none, 1: local, 2: global
 
 % start off with lapse
-lapserate = .01;
+lapserate = x(end);
 nTrials = size(dMat,1);
 islapse = rand(1,nTrials) < lapserate;
 lapserespVec = rand(1,sum(islapse)) > 0.5;      % for lapse trials, flip a coin
@@ -30,6 +30,7 @@ Rels = dMat(:,(nItems+1):end);      % reliabilities for each item (1: low, 2: hi
 % ===== GET PARAMETER VALUES ======
 counter = 3;
 x(logflag) = exp(x(logflag));
+
 Jbar_high = x(1);
 Jbar_low = x(2);
 
@@ -58,9 +59,9 @@ if (decision_noise) % if there is some type of decision rule
 end
     
 if (decision_rule == 1) % if optimal decision rule
-    p_change = x(end);
+    p_change = x(end-1);
 else % max rule
-    criterion = x(end);
+    criterion = x(end-1);
 end
 
 % ====== CALCULATE P(\HAT{C}==1|\Theta) FOR nSamples SAMPLES =====
