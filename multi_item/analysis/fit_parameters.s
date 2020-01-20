@@ -2,8 +2,8 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=8:00:00
-#SBATCH --mem=4GB
+#SBATCH --time=24:00:00
+#SBATCH --mem=8GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
@@ -24,6 +24,9 @@ nSamples = [500 1000];
 % fitting settings (determined by index)
 idx = $SLURM_ARRAY_TASK_ID;
 runlist = 1:20;
+if idx==365;
+runlist=2:20;
+end
 
 % subjidVec = {'S15','S16','S17','S19','S20','S23'}; % round 2 data collection
 % subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'}; % round 1 data collection
