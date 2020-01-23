@@ -28,7 +28,7 @@ load('jobsettings.mat')
 subjid = subjidCell{idx};
 model = modelCell{idx};
 condition = conditionCell{idx};
-runlistCell = {runlist};
+runlist = runlistCell{idx};
 
 % load data
 load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
