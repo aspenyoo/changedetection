@@ -677,7 +677,7 @@ nConds = length(conditionVec);
 % see what remains
 condition = 'Ellipse';
 [subjidCell, modelCell, conditionCell, runlistCell] = deal([]);
-for isubj= 1:(nSubjs-1)
+for isubj= 1:nSubjs
     subjid = subjidVec{isubj};
     
     for imodel = 1:nModels;
