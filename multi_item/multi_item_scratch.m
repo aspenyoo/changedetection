@@ -419,6 +419,8 @@ icond = 1;
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
+modelMat = modelMat(29:42,:);
+modelnamesVec = modelnamesVec(29:42);
 
 LLMat = nan(nModels,nSubjs);
 bfpMat = cell(1,nModels);
@@ -430,7 +432,7 @@ for imodel = 1:nModels;
         subjid = subjidVec{isubj};
         
         try
-            load(sprintf('analysis/fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),model(2),model(3),model(4)))
+            load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),model(2),model(3),model(4)))
             
             if (isubj==1);
                 nParamsVec(imodel) = size(bfp,2);
