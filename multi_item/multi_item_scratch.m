@@ -685,11 +685,12 @@ for isubj= 1:nSubjs
     for imodel = 1:nModels;
         model = modelMat(imodel,:);
         
-        load(sprintf('subj%s_%s_model%d%d%d%d.mat',subjid,condition,model(1),...
-            model(2),model(3),model(4)));
-        
         remainingrunlist = runlist_og;
+        try
+        load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
+            model(2),model(3),model(4)));
         remainingrunlist(completedruns) = [];
+        end
         
         for idx = remainingrunlist
             subjidCell = [subjidCell {subjid}];
