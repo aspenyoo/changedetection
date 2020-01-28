@@ -421,6 +421,7 @@ load('modelfittingsettings.mat')
 condition = conditionVec{icond};
 modelMat = modelMat(29:42,:);
 modelnamesVec = modelnamesVec(29:42);
+nModels = 14;
 
 LLMat = nan(nModels,nSubjs);
 bfpMat = cell(1,nModels);
