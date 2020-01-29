@@ -206,87 +206,87 @@ runmax = 1;
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
 %% make mat file of settings for different cluster indices
-% this is to continue going through the runlist, based on what runlists
-% were complete already
-
-clear all
-
-% filename = 'analysis/clusterfittingsettings.mat';
-filename = 'analysis/clusterfitting_joint.mat';
-% filename = 'analysis/clusterjobs_keshvari.mat';
-additionalpaths = ''; %'ellipse_keshvari/'
-
-% subjidCell = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
-conditionCell = {'combined'};
-modelMat = ...
-    [1 1 1;  1 2 1; ...  % V_O model variants
-    1 1 2;  1 2 2; ...  % V_M model variants
-    2 2 1; ...  % F_O model variants
-    2 2 2];     % F_M model variants
+% % this is to continue going through the runlist, based on what runlists
+% % were complete already
+% 
+% clear all
+% 
+% % filename = 'analysis/clusterfittingsettings.mat';
+% filename = 'analysis/clusterfitting_joint.mat';
+% % filename = 'analysis/clusterjobs_keshvari.mat';
+% additionalpaths = ''; %'ellipse_keshvari/'
+% 
+% % subjidCell = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
+% subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
+% conditionCell = {'combined'};
 % modelMat = ...
-%     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-%      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-%              2 2 1; 2 3 1; ...  % F_O model variants
-%              2 2 2; 2 3 2];     % F_M model variants
-nSubjs = length(subjidCell);
-nConds = length(conditionCell);
-nModels = size(modelMat,1);
-runlistpermodel = ones(1,nModels);
-
-counter = 1;
-for isubj = 1:nSubjs
-    subjid = subjidCell{isubj};
-    
-    for icond = 1:nConds
-        condition = conditionCell{icond};
-        
-        for imodel = 1:nModels
-            model = modelMat(imodel,:);
-            try
-                load(sprintf('analysis/fits/%ssubj%s_%s_model%d%d%d.mat',additionalpaths,subjid,condition,model(1),model(2),model(3)));
-                
-                % get the indices of runlists left
-                incompleteRuns = 1:20;
-                incompleteRuns(completedruns) = [];
-                nRunsleft = length(incompleteRuns);
-                
-                % assume that the number completed is the amount that can be
-                % completed in the same amount of time. set number of jobs
-                % based on that
-                nRunsperJob = 2;%length(completedruns)*2;
-                while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
-                    clustersettings{counter}.subjid = subjid;
-                    clustersettings{counter}.condition = condition;
-                    clustersettings{counter}.model = model;
-                    
-                    try
-                        clustersettings{counter}.runlist = incompleteRuns(1:nRunsperJob);
-                        incompleteRuns(1:nRunsperJob) = [];
-                    catch
-                        clustersettings{counter}.runlist = incompleteRuns;
-                        incompleteRuns = [];
-                    end
-                    
-                    counter = counter+1;
-                end
-            end
-            %             for irun = 1:nRunsleft
-            %                 runlist = incompleteRuns(irun);
-            %
-            %                 clustersettings{counter}.subjid = subjid;
-            %                 clustersettings{counter}.condition = condition;
-            %                 clustersettings{counter}.model = model;
-            %                 clustersettings{counter}.runlist = runlist;
-            %
-            %             counter = counter+1;
-            %             end
-        end
-    end
-    
-end
-
-save(filename,'clustersettings')
+%     [1 1 1;  1 2 1; ...  % V_O model variants
+%     1 1 2;  1 2 2; ...  % V_M model variants
+%     2 2 1; ...  % F_O model variants
+%     2 2 2];     % F_M model variants
+% % modelMat = ...
+% %     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+% %      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+% %              2 2 1; 2 3 1; ...  % F_O model variants
+% %              2 2 2; 2 3 2];     % F_M model variants
+% nSubjs = length(subjidCell);
+% nConds = length(conditionCell);
+% nModels = size(modelMat,1);
+% runlistpermodel = ones(1,nModels);
+% 
+% counter = 1;
+% for isubj = 1:nSubjs
+%     subjid = subjidCell{isubj};
+%     
+%     for icond = 1:nConds
+%         condition = conditionCell{icond};
+%         
+%         for imodel = 1:nModels
+%             model = modelMat(imodel,:);
+%             try
+%                 load(sprintf('analysis/fits/%ssubj%s_%s_model%d%d%d.mat',additionalpaths,subjid,condition,model(1),model(2),model(3)));
+%                 
+%                 % get the indices of runlists left
+%                 incompleteRuns = 1:20;
+%                 incompleteRuns(completedruns) = [];
+%                 nRunsleft = length(incompleteRuns);
+%                 
+%                 % assume that the number completed is the amount that can be
+%                 % completed in the same amount of time. set number of jobs
+%                 % based on that
+%                 nRunsperJob = 2;%length(completedruns)*2;
+%                 while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
+%                     clustersettings{counter}.subjid = subjid;
+%                     clustersettings{counter}.condition = condition;
+%                     clustersettings{counter}.model = model;
+%                     
+%                     try
+%                         clustersettings{counter}.runlist = incompleteRuns(1:nRunsperJob);
+%                         incompleteRuns(1:nRunsperJob) = [];
+%                     catch
+%                         clustersettings{counter}.runlist = incompleteRuns;
+%                         incompleteRuns = [];
+%                     end
+%                     
+%                     counter = counter+1;
+%                 end
+%             end
+%             %             for irun = 1:nRunsleft
+%             %                 runlist = incompleteRuns(irun);
+%             %
+%             %                 clustersettings{counter}.subjid = subjid;
+%             %                 clustersettings{counter}.condition = condition;
+%             %                 clustersettings{counter}.model = model;
+%             %                 clustersettings{counter}.runlist = runlist;
+%             %
+%             %             counter = counter+1;
+%             %             end
+%         end
+%     end
+%     
+% end
+% 
+% save(filename,'clustersettings')
 
 %% fit decision noise parameter based on the no decision noise minimum
 
@@ -547,8 +547,7 @@ for isubj = subjstart:nSubjs
     end
 end
 
-%% histogram
-
+%% histogram of calculations done in cell above
 
 isubj = 1
 histogram(LL(isubj,:),10)
@@ -596,8 +595,7 @@ histogram(LL{imodel}(isubj,:))
 hold on; pause
 histogram(LL{imodel+14}(isubj,:))
 
-% 
-% %% cluster fix
+%% cluster fix
 % % i started fitting using ibs without moving previous fixed sample ones
 % % away. now separating the existing fits
 % 
@@ -678,30 +676,32 @@ nModels = size(modelMat,1);
 nConds = length(conditionVec);
 
 % see what remains
-condition = 'Ellipse';
 [subjidCell, modelCell, conditionCell, runlistCell] = deal([]);
-for isubj= 1:nSubjs
-    subjid = subjidVec{isubj};
-    
-    for imodel = 1:nModels;
-        model = modelMat(imodel,:);
+for icond = 1:nConds;
+    condition = conditionVec{icond};
+    for isubj= 1:nSubjs
+        subjid = subjidVec{isubj};
         
-        remainingrunlist = runlist_og;
-        try
-        load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
-            model(2),model(3),model(4)));
-%         blah(isubj,imodel) = length(completedruns); % see completed runs
-%         so far
-        remainingrunlist(completedruns) = [];
+        for imodel = 1:nModels;
+            model = modelMat(imodel,:);
+            
+            remainingrunlist = runlist_og;
+            try
+                load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
+                    model(2),model(3),model(4)));
+                %         blah(isubj,imodel) = length(completedruns); % see completed runs
+                %         so far
+                remainingrunlist(completedruns) = [];
+            end
+            
+            for idx = remainingrunlist
+                subjidCell = [subjidCell {subjid}];
+                modelCell = [modelCell {model}];
+                conditionCell = [conditionCell {condition}];
+                runlistCell = [runlistCell {idx}];
+            end
+            
         end
-        
-        for idx = remainingrunlist
-            subjidCell = [subjidCell {subjid}];
-            modelCell = [modelCell {model}];
-            conditionCell = [conditionCell {condition}];
-            runlistCell = [runlistCell {idx}];
-        end
-        
     end
 end
 
@@ -709,39 +709,39 @@ end
 save('jobsettings.mat','subjidCell','modelCell','conditionCell','runlistCell')
 
 
-%% =======
-%  model comparison
-% ========
+%% ======================================================================
+%                       MODEL COMPARISON
+% =======================================================================
 
 %% checking that noise models have higher LL than no noise models
-
-clear all
-
-icond = 1;
-
-load('modelfittingsettings.mat')
-
-condition = conditionVec{icond};
-load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
-
-x = nModels/3;
-blah = nan(x,nSubjs,3);
-blah(:,:,1) = LLMat(1:14,:);
-blah(:,:,2) = LLMat(15:28,:);
-blah(:,:,3) = LLMat(29:42,:);
-LL2 = bsxfun(@minus,blah(:,:,1),blah); 
-% larger number indicates better fit for decieion noise model
-
-
-figure;
-for isub = 1:3
-    subplot(3,1,isub)
-    xx = [1:x]+(isub-1)*x;
-    bar(LL2(:,:,isub))
-    xlim([0.5 x+0.5])
-    set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
-defaultplot
-end
+% 
+% clear all
+% 
+% icond = 1;
+% 
+% load('modelfittingsettings.mat')
+% 
+% condition = conditionVec{icond};
+% load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
+% 
+% x = nModels/3;
+% blah = nan(x,nSubjs,3);
+% blah(:,:,1) = LLMat(1:14,:);
+% blah(:,:,2) = LLMat(15:28,:);
+% blah(:,:,3) = LLMat(29:42,:);
+% LL2 = bsxfun(@minus,blah(:,:,1),blah); 
+% % larger number indicates better fit for decieion noise model
+% 
+% 
+% figure;
+% for isub = 1:3
+%     subplot(3,1,isub)
+%     xx = [1:x]+(isub-1)*x;
+%     bar(LL2(:,:,isub))
+%     xlim([0.5 x+0.5])
+%     set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
+% defaultplot
+% end
 
 %% model comparison (AICc and BIC)
 
@@ -824,30 +824,28 @@ set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 %% 3 separate plots, based on decision noise
-
-x = 14;
-figure;
-for isub = 1:3
-    subplot(3,1,isub)
-    xx = [1:x]+(isub-1)*x;
-    bar(BICMat(xx,:))
-    xlim([0.5 x+0.5])
-    set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
-defaultplot
-end
+% 
+% x = 14;
+% figure;
+% for isub = 1:3
+%     subplot(3,1,isub)
+%     xx = [1:x]+(isub-1)*x;
+%     bar(BICMat(xx,:))
+%     xlim([0.5 x+0.5])
+%     set(gca,'XTick',1:x,'XTickLabel',modelnamesVec(xx));
+% defaultplot
+% end
 
 %%
-xx=0.45;
-
-hold on
-for imodel = 1:nModels
-    m = M_BIC(imodel);
-    sigma = SEM_BIC(imodel);
-    fill(imodel+[-xx xx xx -xx -xx],m+[-sigma -sigma sigma sigma -sigma],0.7*ones(1,3))
-end
-
-
-
+% xx=0.45;
+% 
+% hold on
+% for imodel = 1:nModels
+%     m = M_BIC(imodel);
+%     sigma = SEM_BIC(imodel);
+%     fill(imodel+[-xx xx xx -xx -xx],m+[-sigma -sigma sigma sigma -sigma],0.7*ones(1,3))
+% end
+% 
 
 %% ====================================================================
 %                      PLOTS: ONE CONDITION
