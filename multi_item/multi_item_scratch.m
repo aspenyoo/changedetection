@@ -677,8 +677,9 @@ nConds = length(conditionVec);
 
 % see what remains
 [subjidCell, modelCell, conditionCell, runlistCell] = deal([]);
-for icond = 1:nConds;
-    condition = conditionVec{icond};
+% for icond = 1:nConds;
+%     condition = conditionVec{icond};
+condition = 'Line';
     for isubj= 1:nSubjs
         subjid = subjidVec{isubj};
         
@@ -703,7 +704,7 @@ for icond = 1:nConds;
             
         end
     end
-end
+% end
 
 
 save('jobsettings.mat','subjidCell','modelCell','conditionCell','runlistCell')
