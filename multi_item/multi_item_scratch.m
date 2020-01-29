@@ -596,67 +596,67 @@ histogram(LL{imodel}(isubj,:))
 hold on; pause
 histogram(LL{imodel+14}(isubj,:))
 
-
-%% cluster fix
-% i started fitting using ibs without moving previous fixed sample ones
-% away. now separating the existing fits
-
-clear all
-
-condition = 'Ellipse';
-subjVec = {'S02', 'S03','S06','S08','S10','S11','S14','S15',...
-    'S16','S17','S19','S20','S23'};
-modelMat = [1 1 1 2;    1 2 1 2;    1 3 1 2;    1 4 1 2; ...
-            1 1 2 2;    1 2 2 2;    1 3 2 2;    1 4 2 2; ...
-                        2 2 1 2;    2 3 1 2;    2 4 1 2; ...
-                        2 2 2 2;    2 3 2 2;    2 4 2 2];
-                    
-nModels = size(modelMat,1);
-nSubjs = length(subjVec);
-
-for isubj = 1:nSubjs
-    subjid = subjVec{isubj};
-    
-    for imodel = 1:nModels;
-        model = modelMat(imodel,:);
-        
-        load(sprintf('subj%s_%s_model%d%d%d%d.mat',subjid,condition,model(1),...
-            model(2),model(3),model(4)));
-        
-        idx = find(diff(completedruns)~=1);
-        
-        if length(idx)~=1;
-            subjid;
-            model;
-            idx;
-        else
-            % rename vars so can overwrite
-            bfp_og = bfp;
-            completedruns_og = completedruns;
-            LLVec_og = LLVec; 
-            
-            % save older, fixed sampling stuff
-            bfp = bfp_og(1:idx,:);
-            completedruns = completedruns_og(1:idx);
-            LLVec = LLVec_og(1:idx);
-            save(sprintf('fits/%s/zz_nSamples500/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
-                model(2),model(3),model(4)),'bfp','completedruns','LLVec')
-            
-            % save new, ibs stuff
-            bfp = bfp_og(idx+1:end,:);
-            completedruns = completedruns_og(idx+1:end);
-            LLVec = LLVec_og(idx+1:end);
-            save(sprintf('fits/%s/blah/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
-                model(2),model(3),model(4)),'bfp','completedruns','LLVec')
-            
-            % delete og file
-            delete(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
-                model(2),model(3),model(4)))
-        end
-            
-    end
-
-end
+% 
+% %% cluster fix
+% % i started fitting using ibs without moving previous fixed sample ones
+% % away. now separating the existing fits
+% 
+% clear all
+% 
+% condition = 'Ellipse';
+% subjVec = {'S02', 'S03','S06','S08','S10','S11','S14','S15',...
+%     'S16','S17','S19','S20','S23'};
+% modelMat = [1 1 1 2;    1 2 1 2;    1 3 1 2;    1 4 1 2; ...
+%             1 1 2 2;    1 2 2 2;    1 3 2 2;    1 4 2 2; ...
+%                         2 2 1 2;    2 3 1 2;    2 4 1 2; ...
+%                         2 2 2 2;    2 3 2 2;    2 4 2 2];
+%                     
+% nModels = size(modelMat,1);
+% nSubjs = length(subjVec);
+% 
+% for isubj = 1:nSubjs
+%     subjid = subjVec{isubj};
+%     
+%     for imodel = 1:nModels;
+%         model = modelMat(imodel,:);
+%         
+%         load(sprintf('subj%s_%s_model%d%d%d%d.mat',subjid,condition,model(1),...
+%             model(2),model(3),model(4)));
+%         
+%         idx = find(diff(completedruns)~=1);
+%         
+%         if length(idx)~=1;
+%             subjid;
+%             model;
+%             idx;
+%         else
+%             % rename vars so can overwrite
+%             bfp_og = bfp;
+%             completedruns_og = completedruns;
+%             LLVec_og = LLVec; 
+%             
+%             % save older, fixed sampling stuff
+%             bfp = bfp_og(1:idx,:);
+%             completedruns = completedruns_og(1:idx);
+%             LLVec = LLVec_og(1:idx);
+%             save(sprintf('fits/%s/zz_nSamples500/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
+%                 model(2),model(3),model(4)),'bfp','completedruns','LLVec')
+%             
+%             % save new, ibs stuff
+%             bfp = bfp_og(idx+1:end,:);
+%             completedruns = completedruns_og(idx+1:end);
+%             LLVec = LLVec_og(idx+1:end);
+%             save(sprintf('fits/%s/blah/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
+%                 model(2),model(3),model(4)),'bfp','completedruns','LLVec')
+%             
+%             % delete og file
+%             delete(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
+%                 model(2),model(3),model(4)))
+%         end
+%             
+%     end
+% 
+% end
 
 
 %% get cluster settings
@@ -690,6 +690,8 @@ for isubj= 1:nSubjs
         try
         load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
             model(2),model(3),model(4)));
+%         blah(isubj,imodel) = length(completedruns); % see completed runs
+%         so far
         remainingrunlist(completedruns) = [];
         end
         
@@ -748,6 +750,9 @@ clear all
 icond = 1;
 
 load('modelfittingsettings.mat')
+modelMat(1:28,:) = [];
+modelnamesVec = modelnamesVec(29:42);
+nModels = 14;
 
 condition = conditionVec{icond};
 load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));

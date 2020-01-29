@@ -53,6 +53,7 @@ for iter = 1:numel(runlist)
         UB > x0
     else
         x0 = x0_list(runlist(iter),:);
+        x0 = x0+rand(size(x0))*0.1-0.05; % adding a tiny bit of noise for jobs that are not converging
     end
 
 %     [xbest,LL,~,~] = ...
