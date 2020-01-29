@@ -23,7 +23,7 @@ runlist = 1:20;
 runmax = 20;
 
 % subject/model info
-subjidVec = {'S02','S03','S06','S07','S08','S10','S11','S14','S15','S16','S17','S19','S20','S23'}; % all real full subjects
+subjidVec = {'S02','S03','S06','S08','S10','S11','S14','S15','S16','S17','S19','S20','S23'}; % all real full subjects
 modelMat = ...
    [1 1 1 1;  1 2 1 1; 1 3 1 1; 1 4 1 1; ...  % V_Ol model variants
     1 1 2 1;  1 2 2 1; 1 3 2 1; 1 4 2 1; ...  % V_Ml model variants
