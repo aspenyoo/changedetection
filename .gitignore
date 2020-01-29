@@ -1,0 +1,10 @@
+# directories with old files
+zz_*/
+
+# R files
+*.Rdata
+*.Rhistory
+
+# other directories on local comp
+multi_item/data/combined_data/
+multi_item/keshvari_files/

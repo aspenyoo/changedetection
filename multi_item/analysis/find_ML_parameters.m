@@ -53,13 +53,15 @@ for iter = 1:numel(runlist)
         UB > x0
     else
         x0 = x0_list(runlist(iter),:);
-        x0 = x0+rand(size(x0))*0.1-0.05; % adding a tiny bit of noise for jobs that are not converging
+%         x0 = x0+rand(size(x0))*0.1-0.05; % adding a tiny bit of noise for jobs that are not converging
+%         x0 = min(max(x0,LB+1e-3),UB-1e-3); % make sure it is within bounds
     end
-
+    
 %     [xbest,LL,~,~] = ...
 %             bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
 
     % this is for ibs bads
+    
         fun = @(x,y) fun_LL(x,y,model,condition,logflag,data.resp);
     [xbest,LL,~,~] = bads(@(x) ibslike(fun,x,data.resp,dMat,options_ibs),x0,LB,UB,PLB,PUB,[],options)
     
