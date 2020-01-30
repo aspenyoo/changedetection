@@ -2,7 +2,7 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=02:00:00
+#SBATCH --time=04:00:00
 #SBATCH --mem=4GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
