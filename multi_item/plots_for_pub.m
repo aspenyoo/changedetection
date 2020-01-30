@@ -1,33 +1,45 @@
 %% exp criterion
 
-clear all
+% clear all
+% 
+% condition = 'combined';
+% subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
+%     'S15','S16','S17','S19','S20','S23'};
+% nSubj = length(subjidVec);
+% 
+% modelVec = [1 3 2; 2 3 2];
+% nModels = size(modelVec,1);
+% 
+% for imodel = 1:nModels;
+%     model = modelVec(imodel,:);
+%     
+%     for isubj = 1:nSubj;
+%         subjid = subjidVec{isubj};
+%         
+%         load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,...
+%             condition,model(1),model(2),model(3)))
+%         
+%         bfp(:,end) = exp(bfp(:,end));
+%         
+%         save(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,...
+%             condition,model(1),model(2),model(3)),'bfp','completedruns','LLVec')
+%     end
+% end
 
-condition = 'combined';
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
-    'S15','S16','S17','S19','S20','S23'};
-nSubj = length(subjidVec);
+%% ====================================================================
+%                 PLOTS OF RAW DATA (NO MODEL FITS)
+% ====================================================================
 
-modelVec = [1 3 2; 2 3 2];
-nModels = size(modelVec,1);
+%% plot raw data for both experiments
+% this cell produces a figure with four subplots:
+% - p("change") for the Ellipse experiment, broken up by number of high-rel ellipses (nHigh)
+% - p("change") for Line exp, broken up by nHigh
+% - Ellipse exp: hits and false alarms as a function of nHigh
+% - Line exp: hits and false alarms as a function of nHigh
 
-for imodel = 1:nModels;
-    model = modelVec(imodel,:);
-    
-    for isubj = 1:nSubj;
-        subjid = subjidVec{isubj};
-        
-        load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,...
-            condition,model(1),model(2),model(3)))
-        
-        bfp(:,end) = exp(bfp(:,end));
-        
-        save(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,...
-            condition,model(1),model(2),model(3)),'bfp','completedruns','LLVec')
-    end
-end
+% notes to self: 
+% - subjpsychometricfn seems to be resaved and is a vague title. pls fix!
 
-
-%%
 clear all
 
 subjidVec = {'S02','S03','S06','S08','S10','S11','S14',...
@@ -187,94 +199,47 @@ defaultplot
 xlabel('number of high reliability ellipses')
 %     legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
 
-%% comparins e vs. l
 
-nSubj = size(hrall_l,1);
-nrels = 5;
-
-rel = repmat(0:4,nSubj,1);
-subj = repmat([1:nSubj]',1,nrels);
-
-nrel = [rel(:); rel(:)];
-Subject = [subj(:); subj(:)];
-condition = [zeros(nSubj*nrels,1); ones(nSubj*nrels,1)];
-e = squeeze(mean(pc_e,2))';
-l = squeeze(mean(pc_l,2))';
-HRall = [l(:); e(:)];
-
-t = table(Subject, nrel, condition, HRall);
-writetable(t,'PC.txt');
-
-%% comparins e vs. l for Pc
-
-nSubj = size(hrall_l,1);
-nrels = 5;
-nbins = 6;
-
-rel = repmat([0:4]',1,nbins,nSubj);
-subj = permute(repmat(1:nSubj,nrels,1,nbins),[1 3 2]);
-bins = repmat(1:6,nrels,1,nSubj);
-
-nrel = [rel(:); rel(:)];
-Subject = [subj(:); subj(:)];
-bins = [bins(:); bins(:)];
-condition = [zeros(nSubj*nrels*nbins,1); ones(nSubj*nrels*nbins,1)];
-HRall = [pc_l(:); pc_e(:)];
-
-t = table(Subject, nrel, bins, condition, HRall);
-writetable(t,'PC.txt');
-
-%% save HR FAR
-
-% save txt for rm ANOVA: BOLD ~ N_H
-blah = (HRallVec+FARVec)./2;%squeeze(pc_data(5,:,:));%HRallVec;
-filedir = 'txt_forANOVAs';
-zero = blah(:,1);
-one = blah(:,2);
-two = blah(:,3);
-three = blah(:,4); 
-four = blah(:,5); 
-t = table(zero,one,two,three,four);
-
-writetable(t,'PC.txt');
 
 %% DATA alone plot
+% 01/29/2020: this plot seems to be plotting the above, but for one
+% condition only. doesn't work
 
-clear all
-
-load('subjpsychometricfn.mat')
-
-h = figure(99);
-cmap = colormap('parula'); % get a rough colormap
-close(h)
-idxs = round(linspace(1,size(cmap,1),5));
-colorMat = cmap(idxs,:);
-
-% PLOT MODEL FITS
-subplot(1,2,1), hold on;
-xlim([-0.2 pi/2+0.2])
-ylim([0 1])
-for ii = 1:5;
-    errorb(xrange(ii,:),partM(ii,:),partSEM(ii,:),'color',colorMat(ii,:))
-end
-set(gca,'XTick',[0:.25:1].*pi/2,'XTickLabel',[0:.25:1].*pi/2)
-defaultplot
-xlabel('magnitude change')
-%     ylabel('proportion respond change')
-
-% PLOT HITS FALSE ALARMS
-subplot(1,2,2), hold on;
-xlim([-0.5 4.5])
-ylim([0 1])
-errorb(0:4,m_HRall,sem_HRall,'color',colorMat(1,:))
-errorb(0:4,m_HRlow,sem_HRlow,'color',colorMat(2,:))
-errorb(0:4,m_HRhigh,sem_HRhigh,'color',colorMat(3,:))
-errorb(0:4,m_FAR,sem_FAR,'color',colorMat(4,:))
-set(gca,'XTick',0:4,'XTickLabel',0:4)
-defaultplot
-xlabel('number of high reliability ellipses')
-%     legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
-
+% clear all
+% 
+% load('subjpsychometricfn.mat')
+% 
+% h = figure(99);
+% cmap = colormap('parula'); % get a rough colormap
+% close(h)
+% idxs = round(linspace(1,size(cmap,1),5));
+% colorMat = cmap(idxs,:);
+% 
+% % PLOT MODEL FITS
+% subplot(1,2,1), hold on;
+% xlim([-0.2 pi/2+0.2])
+% ylim([0 1])
+% for ii = 1:5;
+%     errorb(xrange(ii,:),partM(ii,:),partSEM(ii,:),'color',colorMat(ii,:))
+% end
+% set(gca,'XTick',[0:.25:1].*pi/2,'XTickLabel',[0:.25:1].*pi/2)
+% defaultplot
+% xlabel('magnitude change')
+% %     ylabel('proportion respond change')
+% 
+% % PLOT HITS FALSE ALARMS
+% subplot(1,2,2), hold on;
+% xlim([-0.5 4.5])
+% ylim([0 1])
+% errorb(0:4,m_HRall,sem_HRall,'color',colorMat(1,:))
+% errorb(0:4,m_HRlow,sem_HRlow,'color',colorMat(2,:))
+% errorb(0:4,m_HRhigh,sem_HRhigh,'color',colorMat(3,:))
+% errorb(0:4,m_FAR,sem_FAR,'color',colorMat(4,:))
+% set(gca,'XTick',0:4,'XTickLabel',0:4)
+% defaultplot
+% xlabel('number of high reliability ellipses')
+% %     legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
+% 
 
 
 %% EXP 1 MODEL FITS
