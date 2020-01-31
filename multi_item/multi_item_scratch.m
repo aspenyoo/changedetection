@@ -710,6 +710,41 @@ condition = 'Line';
 save('jobsettings.mat','subjidCell','modelCell','conditionCell','runlistCell')
 
 
+%% checking which jobs failed
+% obtain idx of previous job settings failed, based on new jobsettings.mat
+
+subjidCell2 = subjidCell;
+modelCell2 = modelCell;
+conditionCell2 = conditionCell;
+runlistCell2 = runlistCell;
+save('jobsettings2.mat','subjidCell2','modelCell2','conditionCell2','runlistCell2')
+
+%%
+
+clear all
+% git checkout jobsettings.mat here!
+load('jobsettings.mat')
+load('jobsettings2.mat')
+
+nJobs = length(conditionCell2);
+jobidVec = nan(1,nJobs);
+for ijob = 1:nJobs
+    
+    % get settings of current job
+    subjid = subjidCell2{ijob};
+    model = modelCell2{ijob};
+    condition = conditionCell2{ijob};
+    runlist = runlistCell2{ijob};
+    
+    % figure out what id of prev joblist this was
+    idx = cellfun(@(x) strcmp(x,subjid),subjidCell,'UniformOutput',1);
+    idx = cellfun(@(x) sum(x==model)==4,modelCell,'UniformOutput',1) & idx;
+    idx = cellfun(@(x) x==runlist,runlistCell,'UniformOutput',1) & idx;
+    % all conditions are 'Line' currently, so no need to include that
+    
+    jobidVec(ijob) = find(idx);
+end
+
 %% ======================================================================
 %                       MODEL COMPARISON
 % =======================================================================
