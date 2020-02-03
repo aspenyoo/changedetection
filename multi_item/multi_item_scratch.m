@@ -415,7 +415,7 @@ end
 
 clear all
 
-icond = 1;
+icond = 2;
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
@@ -783,7 +783,7 @@ end
 
 clear all
 
-icond = 1;
+icond = 2;
 
 load('modelfittingsettings.mat')
 modelMat(1:28,:) = [];
@@ -791,7 +791,7 @@ modelnamesVec = modelnamesVec(29:42);
 nModels = 14;
 
 condition = conditionVec{icond};
-load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
 nTrials = 2000;
 
 % calculated AIC, AICc, and BIC
@@ -1423,4 +1423,77 @@ defaultplot
 p_logp = sum(data.resp.*p_C_hat.*log(p_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-p_C_hat))
 p_logq = sum(data.resp.*p_C_hat.*log(q_C_hat)) + sum((1-data.resp).*(1-p_C_hat).*log(1-q_C_hat))
 - p_logp - p_logq
+
+
+%% comparing model families
+
+clear all
+close all
+
+condition = 'Ellipse';
+additionalpaths = 'ellipse_keshvari/';%'';%'combined_diffdisp/';%
+% condition = 'combined';
+% additionalpaths = '';%'ellipse_keshvari/';%'';%'combined_diffdisp/';%
+load(sprintf('analysis/fits/%sbfp_%s.mat',additionalpaths,condition));
+modelnames = {  'VVO', 'VFO', 'VSO',...
+                'VVM', 'VFM', 'VSM',...
+                       'FFO', 'FSO',...
+                       'FFM', 'FSM'};
+nModels = length(modelnames);
+nTrials = 2000;
+
+% calculated AIC, AICc, and BIC
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
+nSubj = size(BICMat,2);
+
+% BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
+
+% mean sem of same thing
+% M_BIC = nanmean(BICMat,2);
+% SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubj);
+
+% compare V?? vs F?? models of same type
+models_v = [2 3 7 9];
+models_f = [5 6 9 10];
+
+moddiff = BICMat(models_v,:) - BICMat(models_f,:);
+mean(moddiff,2)
+std(moddiff,[],2)./sqrt(length(models_f))
+
+% VV vs FF
+models_v = [1 4];
+models_f = [7 9];
+
+moddiff = BICMat(models_v,:) - BICMat(models_f,:);
+mean(moddiff,2)
+std(moddiff,[],2)./sqrt(length(models_f))
+
+% comparing ?V? vs ?F? and ?S?
+models_v = [1 4];
+models_f = [2 5];
+models_s = [3 6];
+
+moddiff = BICMat(models_v,:) - BICMat(models_f,:);
+mean(moddiff,2)
+std(moddiff,[],2)./sqrt(length(models_f))
+
+moddiff = BICMat(models_v,:) - BICMat(models_s,:);
+mean(moddiff,2)
+std(moddiff,[],2)./sqrt(length(models_f))
+
+% comparison ?F? and ?S?
+models_f = [2 5 7 8];
+models_s = [3 6 9 10];
+
+moddiff = BICMat(models_f,:) - BICMat(models_s,:);
+mean(moddiff,2)
+std(moddiff,[],2)./sqrt(length(models_f))
+
+% comparing ??O vs ??M
+models_o = [1 2 3 7 8];
+models_m = [4 5 6 9 10];
+
+moddiff = BICMat(models_o,:) - BICMat(models_m,:);
+mean(moddiff,2)
+std(moddiff,[],2)./sqrt(length(models_o))
 
