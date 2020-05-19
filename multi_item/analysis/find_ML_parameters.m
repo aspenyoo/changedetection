@@ -62,7 +62,7 @@ for iter = 1:numel(runlist)
 
     % this is for ibs bads
     
-        fun = @(x,y) fun_LL(x,y,model,condition,logflag,data.resp);
+        fun = @(x,y) fun_LL(x,y,model,condition,logflag);
     [xbest,LL,~,~] = bads(@(x) ibslike(fun,x,data.resp,dMat,options_ibs),x0,LB,UB,PLB,PUB,[],options)
     
     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units

@@ -466,7 +466,7 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 clear all
 
 icond = 1;
-imodel = 31;
+imodel = 29;
 samplingtype = 'ibs';
 
 load('modelfittingsettings.mat')
@@ -476,7 +476,7 @@ model = modelMat(imodel,:);
 nSamps = 10;    % samples of LL calc
 logflag = [];
 
-load(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+% load(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
 switch samplingtype
     case 'fixed'
@@ -539,12 +539,12 @@ for isubj = subjstart:nSubjs
     end
     
     range(LL,2)
-    switch samplingtype
-        case 'fixed'
-            save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','nSamples','subjidVec','model')
-        case 'ibs'
-            save(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','subjidVec','options_ibs','model')
-    end
+%     switch samplingtype
+%         case 'fixed'
+%             save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','nSamples','subjidVec','model')
+%         case 'ibs'
+%             save(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','subjidVec','options_ibs','model')
+%     end
 end
 
 %% histogram of calculations done in cell above
@@ -745,6 +745,22 @@ for ijob = 1:nJobs
     jobidVec(ijob) = find(idx);
 end
 
+%% get m sem parameter values
+
+clear all
+
+% ellipse condition
+condition = 'Ellipse';
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+m_ellipse = mean(bfpMat{1})
+sem_ellipse = std(bfpMat{1})./13
+
+% line condition
+condition = 'Line';
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+m_line = mean(bfpMat{1})
+sem_line = std(bfpMat{1})./13
+
 %% ======================================================================
 %                       MODEL COMPARISON
 % =======================================================================
@@ -783,82 +799,217 @@ end
 
 clear all
 
-icond = 2;
+condition = 'Line';
 
 load('modelfittingsettings.mat')
 modelMat(1:28,:) = [];
 modelnamesVec = modelnamesVec(29:42);
-nModels = 14;
 
-condition = conditionVec{icond};
 load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
 nTrials = 2000;
 
 % calculated AIC, AICc, and BIC
 AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
 AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
-BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec'*log(nTrials));
 
-figure;
-bar(AICcMat)
-title('AICc')
-xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
-defaultplot
+nSubjs = size(AICcMat,2);
+nModels = size(AICcMat,1);
 
-figure;
-bar(BICMat)
-title('BIC')
-xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
-defaultplot
+% % plot indvl participants
+% figure;
+% bar(AICcMat)
+% title('AICc')
+% xlim([0.5 nModels+0.5])
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% defaultplot
+% 
+% figure;
+% bar(BICMat)
+% title('BIC')
+% xlim([0.5 nModels+0.5])
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% defaultplot
 
-%% AICc BIC relatve to VVO
-
+% AICc BIC relatve to VVO
 AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
 BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
 
-figure;
-bar(AICcMat)
-title('AICc')
-xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
-defaultplot
+% % plot indvl participants
+% figure;
+% bar(AICcMat)
+% title('AICc')
+% xlim([0.5 nModels+0.5])
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% defaultplot
+% 
+% figure;
+% bar(BICMat)
+% title('BIC')
+% xlim([0.5 nModels+0.5])
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% defaultplot
 
+% median
+med_AICc = median(AICcMat,2);
+med_BIC = median(BICMat,2);
 
-figure;
+% get 95 CI
+[CI_AICc,CI_BIC] = deal(nan(2,nModels));
+for imodel = 2:nModels
+    AICcVec = AICcMat(imodel,:);
+    BICVec = BICMat(imodel,:);
+    
+    blah = sort(median(AICcVec(randi(nSubjs,1000,nSubjs)),2));
+    CI_AICc(:,imodel) = blah([25 975]);
+    
+    blah = sort(median(BICVec(randi(nSubjs,1000,nSubjs)),2));
+    CI_BIC(:,imodel) = blah([25 975]);
+end
+
+figure;hold on
+for imodel = 2:nModels
+fill([-0.5 -0.5 0.5 0.5]+imodel,...
+    [CI_BIC(:,imodel)' CI_BIC(2,imodel) CI_BIC(1,imodel)],0.7*ones(1,3));
+end
 bar(BICMat)
 title('BIC')
 xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
-
-%% mean sem of same thing
-nSubjs = size(AICcMat,2);
-
-M_AICc = nanmean(AICcMat,2);
-SEM_AICc = nanstd(AICcMat,[],2)/sqrt(nSubjs);
-
-M_BIC = nanmean(BICMat,2);
-SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubjs);
-
-figure;
-bar(M_AICc); hold on
-errorbar(M_AICc,SEM_AICc,'k','LineStyle','none')
+figure;hold on
+for imodel = 2:nModels
+fill([-0.5 -0.5 0.5 0.5]+imodel,...
+    [CI_AICc(:,imodel)' CI_AICc(2,imodel) CI_AICc(1,imodel)],0.7*ones(1,3));
+end
+bar(AICcMat)
 title('AICc')
 xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
-figure
-bar(M_BIC); hold on
-errorbar(M_BIC,SEM_BIC,'k','LineStyle','none')
+% %% mean sem of same thing
+% nSubjs = size(AICcMat,2);
+% 
+% M_AICc = nanmean(AICcMat,2);
+% SEM_AICc = nanstd(AICcMat,[],2)/sqrt(nSubjs);
+% 
+% M_BIC = nanmean(BICMat,2);
+% SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubjs);
+% 
+% figure;
+% bar(M_AICc); hold on
+% errorbar(M_AICc,SEM_AICc,'k','LineStyle','none')
+% title('AICc')
+% xlim([0.5 nModels+0.5])
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% defaultplot
+% 
+% figure
+% bar(M_BIC); hold on
+% errorbar(M_BIC,SEM_BIC,'k','LineStyle','none')
+% title('BIC')
+% xlim([0.5 nModels+0.5])
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% defaultplot
+
+
+%% redo bootstrap to see variance across times
+% to see how many bootstraps necessary to get a stable estimate of CIs
+
+nReps = 10;
+
+CI_BIC = nan(2,nModels,nReps);
+for irep = 1:nReps
+    for imodel = 2:nModels
+        BICVec = BICMat(imodel,:);
+        
+        blah = sort(median(BICVec(randi(nSubjs,1000,nSubjs)),2));
+        CI_BIC(:,imodel,irep) = blah([25 975]);
+    end
+end
+
+% each repetition gives identical similar results
+% conclusion: estimates are very stable with 1000 samples. more is
+% unnecessary.
+
+%% 95% boostrapped CI of sum of BIC differences
+
+clear all
+
+condition = 'Ellipse';
+
+load('modelfittingsettings.mat')
+modelMat(1:28,:) = [];
+modelnamesVec = modelnamesVec(29:42);
+
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+nTrials = 2000;
+
+% calculated AIC, AICc, and BIC
+AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
+AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec'*log(nTrials));
+
+nSubjs = size(AICcMat,2);
+nModels = size(AICcMat,1);
+
+% AICc BIC relatve to VVO
+AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
+BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
+
+% median
+sum_AICc = sum(AICcMat,2);
+sum_BIC = sum(BICMat,2);
+
+% get 95 CI
+[CI_AICc,CI_BIC] = deal(nan(2,nModels));
+for imodel = 2:nModels
+    AICcVec = AICcMat(imodel,:);
+    BICVec = BICMat(imodel,:);
+    
+    blah = sort(sum(AICcVec(randi(nSubjs,1000,nSubjs)),2));
+    CI_AICc(:,imodel) = blah([25 975]);
+    
+    blah = sort(sum(BICVec(randi(nSubjs,1000,nSubjs)),2));
+    CI_BIC(:,imodel) = blah([25 975]);
+end
+
+figure;hold on
+for imodel = 2:nModels
+fill([-0.5 -0.5 0.5 0.5]+imodel,...
+    [CI_BIC(:,imodel)' CI_BIC(2,imodel) CI_BIC(1,imodel)],0.7*ones(1,3));
+end
+bar(sum_BIC)
 title('BIC')
 xlim([0.5 nModels+0.5])
 set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
+%% bayesian model selection: BMS. calculate exceedance probabilities
+clear all
+
+condition = 'Ellipse';
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+nTrials = 2000;
+
+% calculate AIC, AICc, and BIC
+AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
+AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec'*log(nTrials));
+
+Nsamp = 1e6;
+do_plot = 1;
+[alpha,exp_r,xp,pxp,bor] = spm_BMS(-0.5*BICMat', Nsamp, do_plot)
+
+% OUTPUT:
+% alpha   - vector of model probabilities
+% exp_r   - expectation of the posterior p(r|y)
+% xp      - exceedance probabilities
+% pxp     - protected exceedance probabilities
+% bor     - Bayes Omnibus Risk (probability that model frequencies 
+%           are equal)
 %% 3 separate plots, based on decision noise
 % 
 % x = 14;
@@ -1294,7 +1445,7 @@ LLMat = cellfun(@(x) x(imodelVec,:),LLMat,'UniformOutput',false);
 
 AICMat = cellfun(@(x) 2*bsxfun(@plus,x,nParamsVec'),LLMat,'UniformOutput',false);
 AICcMat = cellfun(@(x) bsxfun(@plus,x,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))'),AICMat,'UniformOutput',false);
-BICMat = cellfun(@(x) 2*bsxfun(@plus,x,nParamsVec' + log(nTrials)),LLMat,'UniformOutput',false);
+BICMat = cellfun(@(x) 2*bsxfun(@plus,x,nParamsVec'*log(nTrials)),LLMat,'UniformOutput',false);
 
 confusionMat = nan(nModels);
 for irealmodel = 1:nModels;
@@ -1443,7 +1594,7 @@ nModels = length(modelnames);
 nTrials = 2000;
 
 % calculated AIC, AICc, and BIC
-BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec'*log(nTrials));
 nSubj = size(BICMat,2);
 
 % BICMat = bsxfun(@minus,BICMat,BICMat(1,:));

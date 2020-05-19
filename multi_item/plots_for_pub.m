@@ -341,7 +341,6 @@ xlabel('number of high reliability ellipses')
 %     legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
 
 
-
 %% DATA alone plot
 % 01/29/2020: this plot seems to be plotting the above, but for one
 % condition only. doesn't work
@@ -392,10 +391,12 @@ xlabel('number of high reliability ellipses')
 % each column is psychometric fn, hits/false alarms, indvl BIC difference
 
 clear all
-condition = 'Ellipse';
+condition = 'Line';
 noisecond = 3; % 1: no, 2: local, 3: global decision noise
 
-imodelVec = [1 4];% 3 7 8];
+figure(2); clf;
+% imodelVec = [1:4 9:11];% 3 7 8];
+imodelVec = [5:8 12:14];
 % imodelVec = [4 5 6 9 10];
 
 load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
@@ -504,9 +505,9 @@ for imodel = 1:nModels;%imodelVec%1:2;%nModels
         plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
             modelSEM(ii,:),colorMat(ii,:),colorMat(ii,:))
     end
-    set(gca,'XTick',[0:.25:1].*pi/2,'XTickLabel',{'0','','\pi/4','','\pi/2'})
-    if (imodel == nModels); xlabel('magnitude change'); end
-    ylabel('proportion respond change')
+    set(gca,'XTick',[0:.25:1].*pi/2,'XTickLabel','','YTickLabel',{'0','','1'});%{'0','','\pi/4','','\pi/2'})
+%     if (imodel == nModels); xlabel('magnitude change'); end
+%     ylabel('proportion respond change')
     
     % PLOT HITS FALSE ALARMS
     subplot(nModels,3,3*imodel-1); hold on;
@@ -516,21 +517,23 @@ for imodel = 1:nModels;%imodelVec%1:2;%nModels
     plot_summaryfit(0:4,m_HRlow,sem_HRlow,m_mod_HRlow,sem_mod_HRlow,colorMat(2,:),colorMat(2,:));
     plot_summaryfit(0:4,m_HRhigh,sem_HRhigh,m_mod_HRhigh,sem_mod_HRhigh,colorMat(3,:),colorMat(3,:));
     plot_summaryfit(0:4,m_FAR,sem_FAR,m_mod_FAR,sem_mod_FAR,colorMat(4,:),colorMat(4,:));
-    set(gca,'XTick',0:4,'XTickLabel',0:4)
-    if (imodel == nModels); xlabel('number of high reliability ellipses'); end
+    set(gca,'XTick',0:4,'XTickLabel','','YTickLabel','');% 0:4)
+%     if (imodel == nModels); xlabel('number of high reliability ellipses'); end
     %     ylabel('proportion respond change')
     %     legend('hits: all', 'hits: low rel','hits: high rel','false alarms')
     
     subplot(nModels,3,3*imodel); hold on
-    fill([m_BIC(modelnum)-sem_BIC(modelnum) m_BIC(modelnum)+sem_BIC(modelnum) m_BIC(modelnum)+sem_BIC(modelnum)...
-        m_BIC(modelnum)-sem_BIC(modelnum)],[0 0 nSubj+1 nSubj+1],0.7*ones(1,3));
-    barh(BICMat(modelnum,:),'k')
-    xlim([-min(BICMat(modelnum,:)) max(BICMat(modelnum,:))])
+    fill([0 0 nSubj+1 nSubj+1],[m_BIC(modelnum)-sem_BIC(modelnum) m_BIC(modelnum)+sem_BIC(modelnum) m_BIC(modelnum)+sem_BIC(modelnum)...
+        m_BIC(modelnum)-sem_BIC(modelnum)],0.7*ones(1,3));
+    bar(BICMat(modelnum,:))
+%     xlim([-min(BICMat(modelnum,:)) max(BICMat(modelnum,:))])
     % xlim([0.5 nModels+0.5])
-    set(gca,'YTick',[],'YTickLabel',[]);
+    ylim([-100 1000])
+    set(gca,'XTick',[],'XTickLabel',[],...
+        'YTick', [-100 0 500 1000],'YTickLabel', {'', '0', '', '1000'});
     defaultplot
-    ylabel('individual subjects')
-    if (imodel == nModels); xlabel('BIC(model)-BIC(VV0)'); end
+%     ylabel('individual subjects')
+%     if (imodel == nModels); xlabel('BIC(model)-BIC(VV0)'); end
 end
 
 %% MODEL FITS
@@ -541,7 +544,7 @@ end
 % - hits and false alarms
 
 clear all
-condition = 'Ellipse';
+condition = 'Line';
 noisecond = 3; % 1: no, 2: local, 3: global decision noise
 
 load('modelfittingsettings.mat')
@@ -688,12 +691,12 @@ ylim([0 1])
 % ====================================================================
 
 
-%% model comparison (AICc and BIC)
+%% bar plot model comparison (BIC)
 
 clear all
 close all
 
-condition = 'Ellipse';
+condition = 'Line';
 load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
 
 noisecond = 3; % 1: no, 2: local, 3: global decision noise
@@ -705,9 +708,13 @@ nModels = length(modelnamesVec);
 
 nTrials = 2000;
 
-% calculated AIC, AICc, and BIC
-BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
+% calculated BIC
+AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
+% AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
+BICMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
+% BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
 nSubj = size(BICMat,2);
+
 
 BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
 
@@ -721,6 +728,50 @@ for imodel = 1:nModels-1
         SEM_BIC(imodel+1) SEM_BIC(imodel+1)]+M_BIC(imodel+1),0.7*ones(1,3),'LineStyle','none')
 end
 bar(BICMat(2:end,:),'FaceColor',0.7*ones(1,3))
+defaultplot
+set(gca,'XTick',1:nModels-1,'XTickLabel',modelnamesVec(2:end));
+xlabel('model')
+ylabel(sprintf('%s better model fit',modelnamesVec{1}))
+
+%% scatter plot model comparison (AICc and BIC)
+
+clear all
+
+condition = 'Line';
+load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition));
+
+noisecond = 3; % 1: no, 2: local, 3: global decision noise
+
+load('modelfittingsettings.mat')
+modelnamesVec = modelnamesVec((-13:0)+(noisecond*14));
+modelMat = modelMat((-13:0)+(noisecond*14),:);
+nModels = length(modelnamesVec);
+
+nTrials = 2000;
+
+% calculated AIC, AICc, and BIC
+AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
+AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec' + log(nTrials));
+nSubj = size(BICMat,2);
+
+BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
+AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
+
+% mean sem of same thing
+M_AICc = nanmean(AICcMat,2);
+SEM_AICc = nanstd(AICcMat,[],2)/sqrt(nSubj);
+M_BIC = nanmean(BICMat,2);
+SEM_BIC = nanstd(BICMat,[],2)/sqrt(nSubj);
+
+figure; hold on
+for imodel = 1:nModels-1
+    fill([-0.5 0.5 0.5 -0.5]+imodel,[-SEM_BIC(imodel+1) -SEM_BIC(imodel+1) ...
+        SEM_BIC(imodel+1) SEM_BIC(imodel+1)]+M_BIC(imodel+1),0.7*ones(1,3),'LineStyle','none')
+end
+x = repmat((1:nModels-1)',1,nSubj);
+y = BICMat(2:end,:);
+scatter(x(:),y(:))
 defaultplot
 set(gca,'XTick',1:nModels-1,'XTickLabel',modelnamesVec(2:end));
 xlabel('model')

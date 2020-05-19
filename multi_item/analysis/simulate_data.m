@@ -20,4 +20,5 @@ nParams = length(PLB);
 theta = (PUB-PLB).*rand(1,nParams)+PLB;
 
 % calculate p_C_hat
+nSamples = 2000;
 [~,p_C_hat] = calculate_LL(theta,data,model,logflag,nSamples);

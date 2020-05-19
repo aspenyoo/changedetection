@@ -1,4 +1,4 @@
-function resp = fun_LL(x,dMat,model,condition,logflag,respp)
+function resp = fun_LL(x,dMat,model,condition,logflag)
 if nargin < 5; logflag = []; end
 % nSamples = 1;
 % if nargin < 5; nSamples = 50; end
