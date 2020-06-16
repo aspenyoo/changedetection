@@ -422,34 +422,16 @@ load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
 nModels = size(modelMat,1);
 nSubjs = length(subjidVec);
 
-options_ibs = ibslike('defaults');
-options_ibs.Vectorized = 'on';
-options_ibs.MaxIter = 10000;
-options_ibs.Nreps=1000;
-logflag = [];
-    
 [LLMat, LLvarMat] = deal(nan(nModels,nSubjs));
 for imodel = 1:nModels
     model = modelMat(imodel,:)
 
     for isubj = 1:nSubjs
         subjid = subjidVec{isubj}
-        x = bfpMat{imodel}(isubj,:);
         
-        % load data
-        load(sprintf('/Volumes/GoogleDrive/My Drive/Research/VSTM/Aspen Luigi - Reliability in VWM/Exp 5 - Keshvari replication and extension/data/fitting_data/%s_Ellipse_simple.mat', subjid))
-        
-        % data in ibs format
-        dMat = data.Delta;
-        rels = unique(data.rel);
-        blah = data.rel;
-        for irel = 1:length(rels)
-            blah(blah == rels(irel)) = irel;
-        end
-        dMat = [dMat blah];
-        
-        fun = @(x,y) fun_LL(x,y,model,condition,logflag);
-        [LL(imodel,isubj), LLvar(imodel,isubj)]= ibslike(fun,x,data.resp,dMat,options_ibs);
+        load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj))
+        LLMat(imodel,isubj) = LL;
+        LLvarMat(imodel,isubj)]= LLvar;
     end
 end
 
