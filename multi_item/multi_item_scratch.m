@@ -123,6 +123,33 @@ ylabel('PC')
 ylim([0.5 0.8])
 defaultplot
 
+%% csv for gianni
+
+clear all
+
+load('modelfittingsettings.mat')
+
+nTrials = 2000;
+[Subj_ID, Condition, nRel, Delta, Resp] = deal([]);
+for icondition = 1:nConds
+    condition = conditionVec{icondition};
+    
+    for isubj = 1:nSubjs;
+        subjid = subjidVec{isubj};
+        load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+        
+        % subjid, condition, nrel, delta, response
+        Subj_ID = [Subj_ID; isubj*ones(nTrials,1)];
+        Condition = [Condition; icondition*ones(nTrials,1)];
+        nRel = [nRel; sum(data.rel==0.9,2)];
+        Delta = [Delta; 0.5*abs(circ_dist(sum(data.Delta,2),0))];
+        Resp = [Resp; data.resp];        
+    end
+end
+
+T = table(Subj_ID, Condition, nRel, Delta, Resp);
+writetable(T,'dataforgianni.csv','Delimiter',',')  
+
 %% ==============================================================
 %                     MODEL FITTING
 %  ===============================================================
@@ -383,6 +410,50 @@ model(end) = decision_noise;
 x0 = [x0(1:end-1) 0 x0(end)];
 rng(xx);
 LL = -calculate_LL(x0,data,model,[],nSamples)
+
+%% RECALCULATE LL FOR ALL MODELS AND SUBJECTS
+
+clear all
+
+condition = 'Ellipse';
+
+% model fits
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+nModels = size(modelMat,1);
+nSubjs = length(subjidVec);
+
+options_ibs = ibslike('defaults');
+options_ibs.Vectorized = 'on';
+options_ibs.MaxIter = 10000;
+options_ibs.Nreps=1000;
+logflag = [];
+    
+[LLMat, LLvarMat] = deal(nan(nModels,nSubjs));
+for imodel = 1:nModels
+    model = modelMat(imodel,:)
+
+    for isubj = 1:nSubjs
+        subjid = subjidVec{isubj}
+        x = bfpMat{imodel}(isubj,:);
+        
+        % load data
+        load(sprintf('/Volumes/GoogleDrive/My Drive/Research/VSTM/Aspen Luigi - Reliability in VWM/Exp 5 - Keshvari replication and extension/data/fitting_data/%s_Ellipse_simple.mat', subjid))
+        
+        % data in ibs format
+        dMat = data.Delta;
+        rels = unique(data.rel);
+        blah = data.rel;
+        for irel = 1:length(rels)
+            blah(blah == rels(irel)) = irel;
+        end
+        dMat = [dMat blah];
+        
+        fun = @(x,y) fun_LL(x,y,model,condition,logflag);
+        [LL(imodel,isubj), LLvar(imodel,isubj)]= ibslike(fun,x,data.resp,dMat,options_ibs);
+    end
+end
+
+save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
 
 
 %% ======================================================================
