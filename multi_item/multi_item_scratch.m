@@ -404,12 +404,32 @@ rng(xx);
 LL = -calculate_LL(x0,data,model_og,[],nSamples)
 
 %%
+
 % calculate w decision noise
 model = model_og;
 model(end) = decision_noise;
 x0 = [x0(1:end-1) 0 x0(end)];
 rng(xx);
 LL = -calculate_LL(x0,data,model,[],nSamples)
+
+%% figure out which idxs need to be redone
+
+clear all
+condition = 'Ellipse';
+nModels = 14; nSubjs = 13;
+
+idxs = [];
+for imodel = 1:nModels
+    for isubj = 1:nSubjs
+        
+        try
+            load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj))
+        catch
+            idx = sub2ind([nModels nSubjs], imodel, isubj);
+            idxs = [idxs idx];
+        end
+    end
+end
 
 %% RECALCULATE LL FOR ALL MODELS AND SUBJECTS
 
@@ -424,18 +444,20 @@ nSubjs = length(subjidVec);
 
 [LLMat, LLvarMat] = deal(nan(nModels,nSubjs));
 for imodel = 1:nModels
-    model = modelMat(imodel,:)
+    model = modelMat(imodel,:);
 
     for isubj = 1:nSubjs
-        subjid = subjidVec{isubj}
+        subjid = subjidVec{isubj};
         
+        try
         load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj))
         LLMat(imodel,isubj) = LL;
-        LLvarMat(imodel,isubj)]= LLvar;
+        LLvarMat(imodel,isubj)= LLvar;
+        end
     end
 end
 
-save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
+% save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
 
 
 %% ======================================================================
@@ -640,7 +662,7 @@ histogram(bleh(:),70)
 defaultplot
 xlabel('complex model better')
 
-%% make hsitograms of the diff models with diff decision rule
+%% make histograms of the diff models with diff decision rule
 imodel = 1;
 isubj = 1;
 
@@ -928,7 +950,7 @@ end
 bar(BICMat)
 title('BIC')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 figure;hold on
@@ -939,7 +961,7 @@ end
 bar(AICcMat)
 title('AICc')
 xlim([0.5 nModels+0.5])
-set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
+% set(gca,'XTick',1:nModels,'XTickLabel',modelnamesVec);
 defaultplot
 
 % %% mean sem of same thing
