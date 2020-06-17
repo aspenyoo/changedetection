@@ -449,11 +449,11 @@ for imodel = 1:nModels
     for isubj = 1:nSubjs
         subjid = subjidVec{isubj};
         
-        try
+%         try
         load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj))
         LLMat(imodel,isubj) = LL;
         LLvarMat(imodel,isubj)= LLvar;
-        end
+%         end
     end
 end
 
