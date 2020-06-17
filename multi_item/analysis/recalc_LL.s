@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=01:00:00
-#SBATCH --mem=6GB
+#SBATCH --mem=4GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
@@ -18,7 +18,7 @@ addpath(genpath('/home/ay963/changedetection/helper_functions'))
 addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
-condition = 'Ellipse';
+condition = 'Line';
 
 % fitting settings (determined by index)
 idx = $SLURM_ARRAY_TASK_ID;
