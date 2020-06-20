@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=20:00:00
 #SBATCH --mem=4GB
-#SBATCH --job-name=fit_parameters
+#SBATCH --job-name=llcalc
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
 #SBATCH --output=all_llcalc_%a.out
@@ -25,7 +25,8 @@ idx = $SLURM_ARRAY_TASK_ID;
 
 load('modelfittingsettings.mat')
 
-[imodel,isubj] = ind2sub([nModels nSubjs],idx);
+[icond,imodel,isubj] = ind2sub([nConds,nModels nSubjs],idx);
+condition = conditionVec{icond};
 model = modelMat(imodel,:);
 subjid = subjidVec{isubj}
 
@@ -57,13 +58,19 @@ LLVec = nan(1,nRuns);
 
 
 for irun = 1:nRuns
+    irun
+
+    x = bfp(irun,:);
+
     fun = @(x,y) fun_LL(x,y,model,condition,logflag);
     [LLVec(irun), LLvarVec(irun)]= ibslike(fun,x,data.resp,dMat,options_ibs);
+
+    save(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,...
+    condition,model(1),model(2),model(3),model(4)),...
+    'bfp','completedruns','LLVec','LLVec_old','LLvarVec');
 end
 
-save(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,...
-condition,model(1),model(2),model(3),model(4)),...
-'bfp','completedruns','LLVec','LLVec_old','LLvarVec');
+
 
 
 
