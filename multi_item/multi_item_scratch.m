@@ -415,7 +415,7 @@ LL = -calculate_LL(x0,data,model,[],nSamples)
 %% figure out which idxs need to be redone
 
 clear all
-condition = 'Ellipse';
+condition = 'Line';
 nModels = 14; nSubjs = 13;
 
 idxs = [];
@@ -435,7 +435,7 @@ end
 
 clear all
 
-condition = 'Ellipse';
+condition = 'Line';
 
 % model fits
 load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
@@ -449,16 +449,60 @@ for imodel = 1:nModels
     for isubj = 1:nSubjs
         subjid = subjidVec{isubj};
         
-%         try
+        try
         load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj))
         LLMat(imodel,isubj) = LL;
         LLvarMat(imodel,isubj)= LLvar;
-%         end
+        end
     end
 end
 
 % save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
 
+%% recalc LL for one subject multiple times
+clear all
+
+condition = 'Ellipse';
+nSamps = 100;
+
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+nModels = size(modelMat,1);
+nSubjs = length(subjidVec);
+
+imodel = 1;
+isubj = 1;
+model = modelMat(imodel,:);
+subjid = subjidVec{isubj};
+
+options_ibs = ibslike('defaults');
+options_ibs.Vectorized = 'on';
+options_ibs.MaxIter = 10000;
+options_ibs.Nreps=10;
+logflag = [];
+
+x = bfpMat{imodel}(isubj,:);
+        
+% load data
+load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
+
+% data in ibs format
+dMat = data.Delta;
+rels = unique(data.rel);
+blah = data.rel;
+for irel = 1:length(rels)
+    blah(blah == rels(irel)) = irel;
+end
+dMat = [dMat blah];
+
+[LL, LLvar] = deal(nan(1,nSamps));
+for isamp = 1:nSamps
+    isamp
+    fun = @(x,y) fun_LL(x,y,model,condition,logflag);
+    [LL(isamp), LLvar(isamp)]= ibslike(fun,x,data.resp,dMat,options_ibs);
+end
+
+figure;
+histogram(LL)
 
 %% ======================================================================
 %                       GETTING MODEL FITS
