@@ -403,6 +403,32 @@ x0 = bfpMat{imodel}(isubj,:);
 rng(xx);
 LL = -calculate_LL(x0,data,model_og,[],nSamples)
 
+
+%% check which subjects need to be redone
+
+clear all
+
+load('modelfittingsettings.mat')
+
+condition = 'Line';
+nModels = 14; nSubjs = 13;
+
+bleh = nan(nModels,nSubjs);
+for imodel = 1:nModels
+    model = modelMat(imodel,:);
+    
+    for isubj = 1:nSubjs
+        subjid = subjidVec{isubj};
+
+        
+        load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,...
+            condition,model(1),model(2),model(3),model(4)));
+        bleh(imodel,isubj) = sum(isnan(LLVec));
+    end
+end
+
+
+
 %%
 
 % calculate w decision noise
@@ -534,12 +560,10 @@ end
 
 clear all
 
-icond = 2;
+icond = 1;
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
-modelMat = modelMat(29:42,:);
-modelnamesVec = modelnamesVec(29:42);
 nModels = 14;
 
 LLMat = nan(nModels,nSubjs);
