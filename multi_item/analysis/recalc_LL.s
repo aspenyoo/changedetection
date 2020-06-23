@@ -2,12 +2,12 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=03:00:00
+#SBATCH --time=01:00:00
 #SBATCH --mem=4GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
-#SBATCH --output=llcalc_e_%a.out
+#SBATCH --output=llcalc_%a.out
 
 module purge
 module load matlab/2016b
@@ -52,9 +52,9 @@ end
 dMat = [dMat blah];
 
 fun = @(x,y) fun_LL(x,y,model,condition,logflag);
-[LL, LLvar]= ibslike(fun,x,data.resp,dMat,options_ibs);
+[LL, LLvar, PC]= ibslike(fun,x,data.resp,dMat,options_ibs);
 
-save(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj),'LL','LLvar')
+save(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj),'LL','LLvar','PC')
 
 
 EOF
