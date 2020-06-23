@@ -53,11 +53,16 @@ dMat = [dMat blah];
 
 nRuns = size(bfp,1);
 
-LLVec_old = LLVec;
-LLVec = nan(1,nRuns);
+if exist('LLVec_old')
+    idx = find(isnan(LLVec),1,'first');
+else
+    LLVec_old = LLVec;
+    LLVec = nan(1,nRuns);
+    idx = 1;
+end
 
 
-for irun = 1:nRuns
+for irun = idx:nRuns
     irun
 
     x = bfp(irun,:);
