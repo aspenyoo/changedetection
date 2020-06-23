@@ -441,7 +441,7 @@ LL = -calculate_LL(x0,data,model,[],nSamples)
 %% figure out which idxs need to be redone
 
 clear all
-condition = 'Line';
+condition = 'Ellipse';
 nModels = 14; nSubjs = 13;
 
 idxs = [];
@@ -457,11 +457,13 @@ for imodel = 1:nModels
     end
 end
 
+idxs
+
 %% RECALCULATE LL FOR ALL MODELS AND SUBJECTS
 
 clear all
 
-condition = 'Line';
+condition = 'Ellipse';
 
 % model fits
 load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
@@ -483,7 +485,7 @@ for imodel = 1:nModels
     end
 end
 
-% save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
+save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
 
 %% recalc LL for one subject multiple times
 clear all
@@ -945,10 +947,8 @@ clear all
 condition = 'Line';
 
 load('modelfittingsettings.mat')
-modelMat(1:28,:) = [];
-modelnamesVec = modelnamesVec(29:42);
 
-load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+load(sprintf('fits/bfp_%s.mat',condition));
 nTrials = 2000;
 
 % calculated AIC, AICc, and BIC
