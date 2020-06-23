@@ -2,12 +2,12 @@
 #
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=03:00:00
+#SBATCH --time=01:00:00
 #SBATCH --mem=4GB
 #SBATCH --job-name=fit_parameters
 #SBATCH --mail-type=END
 #SBATCH --mail-user=aspen.yoo@nyu.edu
-#SBATCH --output=llcalc_%a.out
+#SBATCH --output=llcalc_e_%a.out
 
 module purge
 module load matlab/2016b
@@ -18,7 +18,7 @@ addpath(genpath('/home/ay963/changedetection/helper_functions'))
 addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
-condition = 'Line';
+condition = 'Ellipse';
 
 % fitting settings (determined by index)
 idx = $SLURM_ARRAY_TASK_ID;
