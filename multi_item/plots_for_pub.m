@@ -386,18 +386,25 @@ xlabel('number of high reliability ellipses')
 % ====================================================================
 
 %% FIGURE 4: FACTORIAL MODEL FITS
-
+% tight_subplot2(m, n, row, col, gutter, margins, varargin)
 clear all
-condition = 'Line';
+condition = 'Ellipse';
 
 figure(2); clf;
-modelcolMat = [1; ...
-               5 ]';
+modelcolMat = [1:4 9:11; ...
+               5:8 12:14 ]';
 
 load(sprintf('analysis/fits/bfp_%s.mat',condition));
 load('modelfittingsettings.mat')
 
+gutter = .02;
 nTrials = 2000;
+
+% prediction stuff
+nSamples = 100;
+nBins = 6;
+quantilebinning=1;
+        
 
 % calculated AIC, AICc, and BIC
 AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
@@ -430,10 +437,6 @@ for icol = 1:2
         bfpmat = bfpMat{modelnum};
         nSubj = length(subjidVec);
         
-        % prediction stuff
-        nSamples = 50;
-        nBins = 6;
-        quantilebinning=1;
         
         figure(1);
         [x_mean, pc_data, pc_pred] = deal(nan(5,nBins,nSubj));
@@ -503,8 +506,9 @@ for icol = 1:2
         figure(2);
         
         % PLOT MODEL FITS
-        idx = sub2ind([6,nModels],3*icol,imodel);
-        subplot(nModels,6,idx-2); hold on
+%         idx = sub2ind([6,nModels],3*icol,imodel);
+        tight_subplot2(nModels,6,imodel,3*icol-2, gutter); hold on
+%         subplot(nModels,6,idx-2); hold on
         xlim([-0.2 pi/2+0.2])
         for ii = 1:5;
             plot_summaryfit(xrange(ii,:),partM(ii,:),partSEM(ii,:),modelM(ii,:),...
@@ -516,7 +520,8 @@ for icol = 1:2
         if (imodel==1) && (icol==1); set(gca,'YTickLabel',{0,'','','','',1}); end
         
         % PLOT HITS FALSE ALARMS
-        subplot(nModels,6,idx-1); hold on;
+        %         subplot(nModels,6,idx-1); hold on;
+        tight_subplot2(nModels,6,imodel,3*icol-1, gutter); hold on
         xlim([-0.5 4.5])
         ylim([0 1])
         plot_summaryfit(0:4,m_HRall,sem_HRall,m_mod_HRall,sem_mod_HRall,colorMat2(2,:),colorMat2(2,:));
@@ -527,9 +532,10 @@ for icol = 1:2
 
         
         % \Delta AICc
-        subplot(nModels,6,idx); hold on
+        %         subplot(nModels,6,idx); hold on
+        tight_subplot2(nModels,6,imodel,3*icol, gutter); hold on
         fill([0 0 nSubj+1 nSubj+1],...
-            [CI_AICc(:,imodel)' CI_AICc(2,imodel) CI_AICc(1,imodel)],0.8*ones(1,3));
+            [CI_AICc(:,imodel)' CI_AICc(2,imodel) CI_AICc(1,imodel)],0.85*ones(1,3),'EdgeColor','none');
         bar(AICcMat(modelnum,:),'FaceColor',[234 191 51]./255,'EdgeColor','none','LineWidth',2)
         set(gca,'Xlim',[0 nSubj],'Ylim',[-100 1000],...
                 'XTick',[],'XTickLabel',[],...
