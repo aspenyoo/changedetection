@@ -388,7 +388,7 @@ xlabel('number of high reliability ellipses')
 %% FIGURE 4: FACTORIAL MODEL FITS
 % tight_subplot2(m, n, row, col, gutter, margins, varargin)
 clear all
-condition = 'Ellipse';
+condition = 'Line';
 
 figure(2); clf;
 modelcolMat = [1:4 9:11; ...
@@ -537,7 +537,7 @@ for icol = 1:2
         fill([0 0 nSubj+1 nSubj+1],...
             [CI_AICc(:,imodel)' CI_AICc(2,imodel) CI_AICc(1,imodel)],0.85*ones(1,3),'EdgeColor','none');
         bar(AICcMat(modelnum,:),'FaceColor',[234 191 51]./255,'EdgeColor','none','LineWidth',2)
-        set(gca,'Xlim',[0 nSubj],'Ylim',[-100 1000],...
+        set(gca,'Xlim',[0 nSubj+1],'Ylim',[-100 1000],...
                 'XTick',[],'XTickLabel',[],...
                 'YTick', [-100 0:200:1000],'YTickLabel', '');
         if (imodel==1) && (icol==1); 
@@ -546,6 +546,46 @@ for icol = 1:2
         end
         defaultplot
     end
+end
+
+%% TABLE 3
+
+clear all
+
+condition = 'Line';
+
+load('modelfittingsettings.mat')
+
+load(sprintf('fits/bfp_%s.mat',condition));
+nTrials = 2000;
+
+% calculated AIC, AICc, and BIC
+AICMat = 2*bsxfun(@plus,LLMat,nParamsVec');
+AICcMat = bsxfun(@plus,AICMat,((2.*nParamsVec.*(nParamsVec+1))./(nTrials-nParamsVec-1))');
+BICMat = 2*bsxfun(@plus,LLMat,nParamsVec'*log(nTrials));
+
+nSubjs = size(AICcMat,2);
+nModels = size(AICcMat,1);
+
+% AICc BIC relatve to VVO
+AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
+BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
+
+% median
+med_AICc = median(AICcMat,2);
+med_BIC = median(BICMat,2);
+
+% get 95 CI
+[CI_AICc,CI_BIC] = deal(nan(2,nModels));
+for imodel = 2:nModels
+    AICcVec = AICcMat(imodel,:);
+    BICVec = BICMat(imodel,:);
+    
+    blah = sort(median(AICcVec(randi(nSubjs,1000,nSubjs)),2));
+    CI_AICc(:,imodel) = blah([25 975]);
+    
+    blah = sort(median(BICVec(randi(nSubjs,1000,nSubjs)),2));
+    CI_BIC(:,imodel) = blah([25 975]);
 end
 
 %% MODEL FITS
