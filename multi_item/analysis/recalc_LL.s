@@ -18,7 +18,7 @@ addpath(genpath('/home/ay963/changedetection/helper_functions'))
 addpath(genpath('/home/ay963/changedetection/multi_item'))
 
 % fixed model fitting settings
-condition = 'Line';
+condition = 'Ellipse';
 
 % fitting settings (determined by index)
 idx = $SLURM_ARRAY_TASK_ID;
