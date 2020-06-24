@@ -232,176 +232,93 @@ runmax = 1;
 
 [bfp, LLVec, completedruns] = find_ML_parameters(data,model,runlist,runmax,nSamples)
 
-%% make mat file of settings for different cluster indices
-% % this is to continue going through the runlist, based on what runlists
-% % were complete already
+%% fit decision noise parameter based on the no decision noise minimum
 % 
 % clear all
 % 
-% % filename = 'analysis/clusterfittingsettings.mat';
-% filename = 'analysis/clusterfitting_joint.mat';
-% % filename = 'analysis/clusterjobs_keshvari.mat';
-% additionalpaths = ''; %'ellipse_keshvari/'
+% icond = 2;
+% imodel = 8; % the og one without decision noise 
+% decision_noise = 1;     % that decision noise number
+% xxx = 21;
 % 
-% % subjidCell = {'S91','S92','S93','S94','S95','S96','S97','S98','S99'};
-% subjidCell = {'S02','S03','S06','S07','S08','S10','S11','S14','S04'};
-% conditionCell = {'combined'};
-% modelMat = ...
-%     [1 1 1;  1 2 1; ...  % V_O model variants
-%     1 1 2;  1 2 2; ...  % V_M model variants
-%     2 2 1; ...  % F_O model variants
-%     2 2 2];     % F_M model variants
-% % modelMat = ...
-% %     [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-% %      1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-% %              2 2 1; 2 3 1; ...  % F_O model variants
-% %              2 2 2; 2 3 2];     % F_M model variants
-% nSubjs = length(subjidCell);
-% nConds = length(conditionCell);
-% nModels = size(modelMat,1);
-% runlistpermodel = ones(1,nModels);
+% load('modelfittingsettings.mat')
+% options.UncertaintyHandling = 'on';
+% condition = conditionVec{icond};
+% model_og = modelMat(imodel,:);
+% model = model_og;
+% model(end) = decision_noise;
+% nSamples = [500 1000];
 % 
-% counter = 1;
+% % get original bfp, in correct log space
+% load(sprintf('fits/%s/bfp_%s.mat',condition,condition))
+% logflag = getFittingSettings(model_og, condition);
+% x0_list = bfpMat{imodel};
+% x0_list(:,logflag) = log(x0_list(:,logflag));
+% 
+% % update logflag and other fitting parameters
+% [logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition);
+% 
 % for isubj = 1:nSubjs
-%     subjid = subjidCell{isubj};
+%     subjid = subjidVec{isubj};
 %     
-%     for icond = 1:nConds
-%         condition = conditionCell{icond};
-%         
-%         for imodel = 1:nModels
-%             model = modelMat(imodel,:);
-%             try
-%                 load(sprintf('analysis/fits/%ssubj%s_%s_model%d%d%d.mat',additionalpaths,subjid,condition,model(1),model(2),model(3)));
-%                 
-%                 % get the indices of runlists left
-%                 incompleteRuns = 1:20;
-%                 incompleteRuns(completedruns) = [];
-%                 nRunsleft = length(incompleteRuns);
-%                 
-%                 % assume that the number completed is the amount that can be
-%                 % completed in the same amount of time. set number of jobs
-%                 % based on that
-%                 nRunsperJob = 2;%length(completedruns)*2;
-%                 while (~isempty(incompleteRuns)) % while there are runs not assigned to jobs
-%                     clustersettings{counter}.subjid = subjid;
-%                     clustersettings{counter}.condition = condition;
-%                     clustersettings{counter}.model = model;
-%                     
-%                     try
-%                         clustersettings{counter}.runlist = incompleteRuns(1:nRunsperJob);
-%                         incompleteRuns(1:nRunsperJob) = [];
-%                     catch
-%                         clustersettings{counter}.runlist = incompleteRuns;
-%                         incompleteRuns = [];
-%                     end
-%                     
-%                     counter = counter+1;
-%                 end
-%             end
-%             %             for irun = 1:nRunsleft
-%             %                 runlist = incompleteRuns(irun);
-%             %
-%             %                 clustersettings{counter}.subjid = subjid;
-%             %                 clustersettings{counter}.condition = condition;
-%             %                 clustersettings{counter}.model = model;
-%             %                 clustersettings{counter}.runlist = runlist;
-%             %
-%             %             counter = counter+1;
-%             %             end
-%         end
+%     % load data
+%     load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
+%     
+%     filename = sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,data.subjid,condition,model(1),model(2),model(3),model(4));
+%     filename
+%     
+%     % Fix random seed based on iteration (for reproducibility)
+%     rng(xxx);
+%     x0 = [x0_list(isubj,1:end-1) PLB(end-1)+rand*(PUB(end-1)-PLB(end-1)) x0_list(isubj,end)]
+%     x0(4) = x0(4) + 1e-3;
+%     [xbest,~,~,~] = ...
+%         bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
+%     
+%     % recalculate LL with more samples
+%     LL = -calculate_LL(xbest,data,model,logflag,nSamples(2));
+%     
+%     xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
+%     
+%     % it is necessary to reload the file at every iteration in case multiple processors are
+%     % saving the file at the same time
+%     if exist(filename,'file')
+%         load(filename,'bfp','LLVec','completedruns')
+%     else
+%         [bfp, LLVec, completedruns] = deal([]);
 %     end
 %     
+%     % update and save variables
+%     bfp = [bfp; xbest];
+%     LLVec = [LLVec; LL];
+%     completedruns = [completedruns; xxx];
+%     save(filename,'bfp','LLVec','completedruns')
+%     
 % end
-% 
-% save(filename,'clustersettings')
-
-%% fit decision noise parameter based on the no decision noise minimum
-
-clear all
-
-icond = 2;
-imodel = 8; % the og one without decision noise 
-decision_noise = 1;     % that decision noise number
-xxx = 21;
-
-load('modelfittingsettings.mat')
-options.UncertaintyHandling = 'on';
-condition = conditionVec{icond};
-model_og = modelMat(imodel,:);
-model = model_og;
-model(end) = decision_noise;
-nSamples = [500 1000];
-
-% get original bfp, in correct log space
-load(sprintf('fits/%s/bfp_%s.mat',condition,condition))
-logflag = getFittingSettings(model_og, condition);
-x0_list = bfpMat{imodel};
-x0_list(:,logflag) = log(x0_list(:,logflag));
-
-% update logflag and other fitting parameters
-[logflag,LB,UB,PLB,PUB] = getFittingSettings(model, condition);
-
-for isubj = 1:nSubjs
-    subjid = subjidVec{isubj};
-    
-    % load data
-    load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
-    
-    filename = sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,data.subjid,condition,model(1),model(2),model(3),model(4));
-    filename
-    
-    % Fix random seed based on iteration (for reproducibility)
-    rng(xxx);
-    x0 = [x0_list(isubj,1:end-1) PLB(end-1)+rand*(PUB(end-1)-PLB(end-1)) x0_list(isubj,end)]
-    x0(4) = x0(4) + 1e-3;
-    [xbest,~,~,~] = ...
-        bads(@(x) -calculate_LL(x,data,model,logflag,nSamples(1)),x0,LB,UB,PLB,PUB,[],options)
-    
-    % recalculate LL with more samples
-    LL = -calculate_LL(xbest,data,model,logflag,nSamples(2));
-    
-    xbest(logflag) = exp(xbest(logflag)); % getting parameters back into natural units
-    
-    % it is necessary to reload the file at every iteration in case multiple processors are
-    % saving the file at the same time
-    if exist(filename,'file')
-        load(filename,'bfp','LLVec','completedruns')
-    else
-        [bfp, LLVec, completedruns] = deal([]);
-    end
-    
-    % update and save variables
-    bfp = [bfp; xbest];
-    LLVec = [LLVec; LL];
-    completedruns = [completedruns; xxx];
-    save(filename,'bfp','LLVec','completedruns')
-    
-end
 
 %% check that decision noise model has higher LL than without dec noise
-
-clear all
-
-isubj = 1;
-icond = 2;
-imodel = 42; % the og one without decision noise 
-decision_noise = 1;     % that decision noise number
-nSamples = 1000;
-xx = 1;
-
-load('modelfittingsettings.mat')
-subjid = subjidVec{isubj};
-condition = conditionVec{icond};
-model_og = modelMat(imodel,:)
-
-% load bfp mat and data
-load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
-load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition))
-
-% calc og LL
-x0 = bfpMat{imodel}(isubj,:);
-rng(xx);
-LL = -calculate_LL(x0,data,model_og,[],nSamples)
+% 
+% clear all
+% 
+% isubj = 1;
+% icond = 2;
+% imodel = 42; % the og one without decision noise 
+% decision_noise = 1;     % that decision noise number
+% nSamples = 1000;
+% xx = 1;
+% 
+% load('modelfittingsettings.mat')
+% subjid = subjidVec{isubj};
+% condition = conditionVec{icond};
+% model_og = modelMat(imodel,:)
+% 
+% % load bfp mat and data
+% load(sprintf('data/fitting_data/%s_%s_simple.mat',subjid,condition))
+% load(sprintf('analysis/fits/%s/bfp_%s.mat',condition,condition))
+% 
+% % calc og LL
+% x0 = bfpMat{imodel}(isubj,:);
+% rng(xx);
+% LL = -calculate_LL(x0,data,model_og,[],nSamples)
 
 
 %% check which subjects need to be redone
@@ -430,13 +347,13 @@ end
 
 
 %%
-
-% calculate w decision noise
-model = model_og;
-model(end) = decision_noise;
-x0 = [x0(1:end-1) 0 x0(end)];
-rng(xx);
-LL = -calculate_LL(x0,data,model,[],nSamples)
+% 
+% % calculate w decision noise
+% model = model_og;
+% model(end) = decision_noise;
+% x0 = [x0(1:end-1) 0 x0(end)];
+% rng(xx);
+% LL = -calculate_LL(x0,data,model,[],nSamples)
 
 %% figure out which idxs need to be redone
 
@@ -459,33 +376,6 @@ end
 
 idxs
 
-%% RECALCULATE LL FOR ALL MODELS AND SUBJECTS
-
-clear all
-
-condition = 'Ellipse';
-
-% model fits
-load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
-nModels = size(modelMat,1);
-nSubjs = length(subjidVec);
-
-[LLMat, LLvarMat] = deal(nan(nModels,nSubjs));
-for imodel = 1:nModels
-    model = modelMat(imodel,:);
-
-    for isubj = 1:nSubjs
-        subjid = subjidVec{isubj};
-        
-        try
-        load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj))
-        LLMat(imodel,isubj) = LL;
-        LLvarMat(imodel,isubj)= LLvar;
-        end
-    end
-end
-
-save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
 
 %% recalc LL for one subject multiple times
 clear all
@@ -532,6 +422,34 @@ end
 figure;
 histogram(LL)
 
+
+
+%% ======================================================================
+%                       GETTING MODEL FITS
+% ======================================================================
+%% load current fits of models
+
+clear all
+
+subjid = 'POO';
+condition = 'Ellipse';
+modelMat = ...
+    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
+    1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
+    2 2 1; 2 3 1; ...  % F_O model variants
+    2 2 2; 2 3 2];     % F_M model variants
+nModels = size(modelMat,1);
+
+nCompleteVec = nan(1,nModels);
+for imodel = 1:nModels
+    imodel
+    model = modelMat(imodel,:);
+    
+    load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
+    disp(completedruns')
+    nCompleteVec(imodel) = length(completedruns);
+end
+
 %% 06/23/2020: getting idxs of recalcall_LL.s that need to be redone
 
 clear all
@@ -562,37 +480,11 @@ for icond = 1:nConds
 end
 idxs
 
-%% ======================================================================
-%                       GETTING MODEL FITS
-% ======================================================================
-%% load current fits of models
-
-clear all
-
-subjid = 'POO';
-condition = 'Ellipse';
-modelMat = ...
-    [1 1 1;  1 2 1; 1 3 1; ...  % V_O model variants
-    1 1 2;  1 2 2; 1 3 2; ...  % V_M model variants
-    2 2 1; 2 3 1; ...  % F_O model variants
-    2 2 2; 2 3 2];     % F_M model variants
-nModels = size(modelMat,1);
-
-nCompleteVec = nan(1,nModels);
-for imodel = 1:nModels
-    imodel
-    model = modelMat(imodel,:);
-    
-    load(sprintf('analysis/fits/subj%s_%s_model%d%d%d.mat',subjid,condition,model(1),model(2),model(3)))
-    disp(completedruns')
-    nCompleteVec(imodel) = length(completedruns);
-end
-
 %% get best fit param for all subjects, for a particular condition
 
 clear all
 
-icond = 1;
+icond = 2;
 
 load('modelfittingsettings.mat')
 condition = conditionVec{icond};
@@ -631,250 +523,311 @@ save(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subji
 
 % save(sprintf('analysis/fits/%s/bfp_%s.mat',foldername,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
 
+%% check which aprameters need to be redone
+
+clear all
+
+condition = 'Ellipse';
+
+load(sprintf('fits/bfp_%s.mat',condition));
+nModels = size(modelMat,1);
+nSubjs = length(subjidVec);
+
+idxlist = 1:182;
+
+for idx = idxlist
+    [imodel,isubj] = ind2sub([nModels nSubjs],idx);
+    model = modelMat(imodel,:);
+    subjid = subjidVec{isubj};
+    
+    x = bfpMat{imodel}(isubj,:);
+    
+    load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj),'LL')
+
+end
+
+
+        
+
+
+
+fun = @(x,y) fun_LL(x,y,model,condition,logflag);
+[LL, LLvar, PC]= ibslike(fun,x,data.resp,dMat,options_ibs);
+
+save(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj),'LL','LLvar','PC')
+
+
+%% RECALCULATE LL FOR ALL MODELS AND SUBJECTS
+
+% clear all
+
+condition = 'Ellipse';
+
+% model fits
+load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+nModels = size(modelMat,1);
+nSubjs = length(subjidVec);
+
+[LLMat, LLvarMat] = deal(nan(nModels,nSubjs));
+for imodel = 1:nModels
+    model = modelMat(imodel,:);
+
+    for isubj = 1:nSubjs
+        subjid = subjidVec{isubj};
+        
+        try
+        load(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj))
+        LLMat(imodel,isubj) = LL;
+        LLvarMat(imodel,isubj)= LLvar;
+        end
+    end
+end
+
+save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
 
 %% =========
 % multiple LL calculations
 % ==============
 
-%% redo LL calculations
-% using either fixed sampling or ibs
-
-clear all
-
-icond = 1;
-imodel = 29;
-samplingtype = 'ibs';
-
-load('modelfittingsettings.mat')
-condition = conditionVec{icond};
-model = modelMat(imodel,:);
-
-nSamps = 10;    % samples of LL calc
-logflag = [];
-
-% load(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
-
-switch samplingtype
-    case 'fixed'
-        % fixed sampling settings
-        nSamples = 1000; % samples in one LL calc
-    case 'ibs'
-        % ibs settings
-        options_ibs = ibslike('defaults');
-        options_ibs.Vectorized = 'on';
-        options_ibs.Nreps = 10;
-end
-
-try
-    switch samplingtype
-        case 'fixed'
-            load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)))
-        case 'ibs'
-            load(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)))
-    end
-    subjstart = find(sum(isnan(LL),2)==nSamps,1,'first');
-    
-catch
-    [evaltime,LL] = deal(nan(nSubjs,nSamps));
-    subjstart = 1;
-end
-
-
-for isubj = subjstart:nSubjs
-    subjid = subjidVec{isubj}
-    
-    % load subj data
-    load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
-    
-    if strcmp(samplingtype,'ibs')
-        % ibs settings
-        dMat = data.Delta;
-        rels = unique(data.rel);
-        blah = data.rel;
-        for irel = 1:length(rels)
-            blah(blah == rels(irel)) = irel;
-        end
-        dMat = [dMat blah];
-    end
-    
-    x = bfpMat{imodel}(isubj,:);
-    
-    for isamp = 1:nSamps
-        
-        tic;
-        switch samplingtype
-            case 'fixed'
-                % calculating LL using fixed sampling
-                LL(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
-            case 'ibs'
-                % calculating LL using ibs
-                fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
-                LL(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
-        end
-        evaltime(isubj,isamp) = toc;
-    end
-    
-    range(LL,2)
+% %% redo LL calculations
+% % using either fixed sampling or ibs
+% 
+% clear all
+% 
+% icond = 1;
+% imodel = 29;
+% samplingtype = 'ibs';
+% 
+% load('modelfittingsettings.mat')
+% condition = conditionVec{icond};
+% model = modelMat(imodel,:);
+% 
+% nSamps = 10;    % samples of LL calc
+% logflag = [];
+% 
+% % load(sprintf('fits/%s/bfp_%s%s.mat',condition,condition),'LLMat','bfpMat','subjidVec','modelMat','nParamsVec')
+% 
+% switch samplingtype
+%     case 'fixed'
+%         % fixed sampling settings
+%         nSamples = 1000; % samples in one LL calc
+%     case 'ibs'
+%         % ibs settings
+%         options_ibs = ibslike('defaults');
+%         options_ibs.Vectorized = 'on';
+%         options_ibs.Nreps = 10;
+% end
+% 
+% try
 %     switch samplingtype
 %         case 'fixed'
-%             save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','nSamples','subjidVec','model')
+%             load(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)))
 %         case 'ibs'
-%             save(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','subjidVec','options_ibs','model')
+%             load(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)))
 %     end
-end
-
-%% histogram of calculations done in cell above
-
-isubj = 1
-histogram(LL(isubj,:),10)
-
-
-%% histogram of variances across noise and no noise models
-
-clear all
-load('fits/redo_LL.mat')
-
-nModels = 42
-varr = nan(1,nModels);
-for imodel = 1:nModels
-    blah = var(LL{imodel},0,2);
-    varr(imodel) = median(blah);
-end
-
-figure; hold on
-histogram(varr(1:14),10)
-histogram(varr(15:28),10)
-histogram(varr(29:42),10)
-
-%% average across subjects for
-clear all
-
-condition = 'Line';
-load(sprintf('fits/%s/redo_LL.mat',condition))
-
-blah = cellfun(@(x) mean(x,2),LL,'UniformOutput',false);
-blah = cell2mat(blah);
-
-xx = 29:42;%15:28;%
-bleh = blah(:,xx)-blah(:,1:14);
-
-figure
-histogram(bleh(:),70)
-defaultplot
-xlabel('complex model better')
-
-%% make histograms of the diff models with diff decision rule
-imodel = 1;
-isubj = 1;
-
-histogram(LL{imodel}(isubj,:))
-hold on; pause
-histogram(LL{imodel+14}(isubj,:))
-
-
-%% get cluster settings
-
-clear all
-
-% all possible things
-runlist_og = 1:20;
-subjidVec = {'S02','S03','S06','S08','S10','S11','S14','S15','S16','S17','S19','S20','S23'}; % all real full subjects
-modelMat = ...
-   [1 1 1 2;  1 2 1 2; 1 3 1 2; 1 4 1 2; ...  % V_O model variants --|
-    1 1 2 2;  1 2 2 2; 1 3 2 2; 1 4 2 2; ...  % V_M model variants   |  global decision
-              2 2 1 2; 2 3 1 2; 2 4 1 2; ...  % F_O model variants   |      noise
-              2 2 2 2; 2 3 2 2; 2 4 2 2];     % F_M model variants __|
-conditionVec = {'Ellipse','Line'};
-
-nSubjs = length(subjidVec);
-nModels = size(modelMat,1);
-nConds = length(conditionVec);
-
-% see what remains
-[subjidCell, modelCell, conditionCell, runlistCell] = deal([]);
-% for icond = 1:nConds;
-%     condition = conditionVec{icond};
-condition = 'Line';
-    for isubj= 1:nSubjs
-        subjid = subjidVec{isubj};
-        
-        for imodel = 1:nModels;
-            model = modelMat(imodel,:);
-            
-            remainingrunlist = runlist_og;
-            try
-                load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
-                    model(2),model(3),model(4)));
-                %         blah(isubj,imodel) = length(completedruns); % see completed runs
-                %         so far
-                remainingrunlist(completedruns) = [];
-            end
-            
-            for idx = remainingrunlist
-                subjidCell = [subjidCell {subjid}];
-                modelCell = [modelCell {model}];
-                conditionCell = [conditionCell {condition}];
-                runlistCell = [runlistCell {idx}];
-            end
-            
-        end
-    end
+%     subjstart = find(sum(isnan(LL),2)==nSamps,1,'first');
+%     
+% catch
+%     [evaltime,LL] = deal(nan(nSubjs,nSamps));
+%     subjstart = 1;
 % end
-
-
-save('jobsettings.mat','subjidCell','modelCell','conditionCell','runlistCell')
-
-
-%% checking which jobs failed
-% obtain idx of previous job settings failed, based on new jobsettings.mat
-
-subjidCell2 = subjidCell;
-modelCell2 = modelCell;
-conditionCell2 = conditionCell;
-runlistCell2 = runlistCell;
-save('jobsettings2.mat','subjidCell2','modelCell2','conditionCell2','runlistCell2')
-
-%%
-
-clear all
-% git checkout jobsettings.mat here!
-load('jobsettings.mat')
-load('jobsettings2.mat')
-
-nJobs = length(conditionCell2);
-jobidVec = nan(1,nJobs);
-for ijob = 1:nJobs
-    
-    % get settings of current job
-    subjid = subjidCell2{ijob};
-    model = modelCell2{ijob};
-    condition = conditionCell2{ijob};
-    runlist = runlistCell2{ijob};
-    
-    % figure out what id of prev joblist this was
-    idx = cellfun(@(x) strcmp(x,subjid),subjidCell,'UniformOutput',1);
-    idx = cellfun(@(x) sum(x==model)==4,modelCell,'UniformOutput',1) & idx;
-    idx = cellfun(@(x) x==runlist,runlistCell,'UniformOutput',1) & idx;
-    % all conditions are 'Line' currently, so no need to include that
-    
-    jobidVec(ijob) = find(idx);
-end
-
-%% get m sem parameter values
-
-clear all
-
-% ellipse condition
-condition = 'Ellipse';
-load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
-m_ellipse = mean(bfpMat{1})
-sem_ellipse = std(bfpMat{1})./13
-
-% line condition
-condition = 'Line';
-load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
-m_line = mean(bfpMat{1})
-sem_line = std(bfpMat{1})./13
+% 
+% 
+% for isubj = subjstart:nSubjs
+%     subjid = subjidVec{isubj}
+%     
+%     % load subj data
+%     load(sprintf('../data/fitting_data/%s_%s_simple.mat',subjid,condition))
+%     
+%     if strcmp(samplingtype,'ibs')
+%         % ibs settings
+%         dMat = data.Delta;
+%         rels = unique(data.rel);
+%         blah = data.rel;
+%         for irel = 1:length(rels)
+%             blah(blah == rels(irel)) = irel;
+%         end
+%         dMat = [dMat blah];
+%     end
+%     
+%     x = bfpMat{imodel}(isubj,:);
+%     
+%     for isamp = 1:nSamps
+%         
+%         tic;
+%         switch samplingtype
+%             case 'fixed'
+%                 % calculating LL using fixed sampling
+%                 LL(isubj,isamp) = calculate_LL(x,data,model,logflag,nSamples);
+%             case 'ibs'
+%                 % calculating LL using ibs
+%                 fun = @(xx,y) fun_LL(xx,y,model,condition,logflag,data.resp);
+%                 LL(isubj,isamp) = ibslike(fun,x,data.resp,dMat,options_ibs);
+%         end
+%         evaltime(isubj,isamp) = toc;
+%     end
+%     
+%     range(LL,2)
+% %     switch samplingtype
+% %         case 'fixed'
+% %             save(sprintf('fits/%s/redo_LL_fixedsampling%d_model%d%d%d%d.mat',condition,nSamples,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','nSamples','subjidVec','model')
+% %         case 'ibs'
+% %             save(sprintf('fits/%s/redo_LL%d_ibs_model%d%d%d%d.mat',condition,options_ibs.Nreps,model(1),model(2),model(3),model(4)),'LL','evaltime','nSamps','subjidVec','options_ibs','model')
+% %     end
+% end
+% 
+% %% histogram of calculations done in cell above
+% 
+% isubj = 1
+% histogram(LL(isubj,:),10)
+% 
+% 
+% %% histogram of variances across noise and no noise models
+% 
+% clear all
+% load('fits/redo_LL.mat')
+% 
+% nModels = 42
+% varr = nan(1,nModels);
+% for imodel = 1:nModels
+%     blah = var(LL{imodel},0,2);
+%     varr(imodel) = median(blah);
+% end
+% 
+% figure; hold on
+% histogram(varr(1:14),10)
+% histogram(varr(15:28),10)
+% histogram(varr(29:42),10)
+% 
+% %% average across subjects for
+% clear all
+% 
+% condition = 'Line';
+% load(sprintf('fits/%s/redo_LL.mat',condition))
+% 
+% blah = cellfun(@(x) mean(x,2),LL,'UniformOutput',false);
+% blah = cell2mat(blah);
+% 
+% xx = 29:42;%15:28;%
+% bleh = blah(:,xx)-blah(:,1:14);
+% 
+% figure
+% histogram(bleh(:),70)
+% defaultplot
+% xlabel('complex model better')
+% 
+% %% make histograms of the diff models with diff decision rule
+% imodel = 1;
+% isubj = 1;
+% 
+% histogram(LL{imodel}(isubj,:))
+% hold on; pause
+% histogram(LL{imodel+14}(isubj,:))
+% 
+% 
+% %% get cluster settings
+% 
+% clear all
+% 
+% % all possible things
+% runlist_og = 1:20;
+% subjidVec = {'S02','S03','S06','S08','S10','S11','S14','S15','S16','S17','S19','S20','S23'}; % all real full subjects
+% modelMat = ...
+%    [1 1 1 2;  1 2 1 2; 1 3 1 2; 1 4 1 2; ...  % V_O model variants --|
+%     1 1 2 2;  1 2 2 2; 1 3 2 2; 1 4 2 2; ...  % V_M model variants   |  global decision
+%               2 2 1 2; 2 3 1 2; 2 4 1 2; ...  % F_O model variants   |      noise
+%               2 2 2 2; 2 3 2 2; 2 4 2 2];     % F_M model variants __|
+% conditionVec = {'Ellipse','Line'};
+% 
+% nSubjs = length(subjidVec);
+% nModels = size(modelMat,1);
+% nConds = length(conditionVec);
+% 
+% % see what remains
+% [subjidCell, modelCell, conditionCell, runlistCell] = deal([]);
+% % for icond = 1:nConds;
+% %     condition = conditionVec{icond};
+% condition = 'Line';
+%     for isubj= 1:nSubjs
+%         subjid = subjidVec{isubj};
+%         
+%         for imodel = 1:nModels;
+%             model = modelMat(imodel,:);
+%             
+%             remainingrunlist = runlist_og;
+%             try
+%                 load(sprintf('fits/%s/subj%s_%s_model%d%d%d%d.mat',condition,subjid,condition,model(1),...
+%                     model(2),model(3),model(4)));
+%                 %         blah(isubj,imodel) = length(completedruns); % see completed runs
+%                 %         so far
+%                 remainingrunlist(completedruns) = [];
+%             end
+%             
+%             for idx = remainingrunlist
+%                 subjidCell = [subjidCell {subjid}];
+%                 modelCell = [modelCell {model}];
+%                 conditionCell = [conditionCell {condition}];
+%                 runlistCell = [runlistCell {idx}];
+%             end
+%             
+%         end
+%     end
+% % end
+% 
+% 
+% save('jobsettings.mat','subjidCell','modelCell','conditionCell','runlistCell')
+% 
+% 
+% %% checking which jobs failed
+% % obtain idx of previous job settings failed, based on new jobsettings.mat
+% 
+% subjidCell2 = subjidCell;
+% modelCell2 = modelCell;
+% conditionCell2 = conditionCell;
+% runlistCell2 = runlistCell;
+% save('jobsettings2.mat','subjidCell2','modelCell2','conditionCell2','runlistCell2')
+% 
+% %%
+% 
+% clear all
+% % git checkout jobsettings.mat here!
+% load('jobsettings.mat')
+% load('jobsettings2.mat')
+% 
+% nJobs = length(conditionCell2);
+% jobidVec = nan(1,nJobs);
+% for ijob = 1:nJobs
+%     
+%     % get settings of current job
+%     subjid = subjidCell2{ijob};
+%     model = modelCell2{ijob};
+%     condition = conditionCell2{ijob};
+%     runlist = runlistCell2{ijob};
+%     
+%     % figure out what id of prev joblist this was
+%     idx = cellfun(@(x) strcmp(x,subjid),subjidCell,'UniformOutput',1);
+%     idx = cellfun(@(x) sum(x==model)==4,modelCell,'UniformOutput',1) & idx;
+%     idx = cellfun(@(x) x==runlist,runlistCell,'UniformOutput',1) & idx;
+%     % all conditions are 'Line' currently, so no need to include that
+%     
+%     jobidVec(ijob) = find(idx);
+% end
+% 
+% %% get m sem parameter values
+% 
+% clear all
+% 
+% % ellipse condition
+% condition = 'Ellipse';
+% load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+% m_ellipse = mean(bfpMat{1})
+% sem_ellipse = std(bfpMat{1})./13
+% 
+% % line condition
+% condition = 'Line';
+% load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
+% m_line = mean(bfpMat{1})
+% sem_line = std(bfpMat{1})./13
 
 %% ======================================================================
 %                       MODEL COMPARISON
