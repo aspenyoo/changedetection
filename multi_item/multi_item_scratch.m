@@ -1000,16 +1000,13 @@ end
 % conclusion: estimates are very stable with 1000 samples. more is
 % unnecessary.
 
-%% 95% boostrapped CI of sum of BIC differences
+%% 95% boostrapped CI of sum of AICc and BIC differences
 
 clear all
 
-condition = 'Ellipse';
+condition = 'Line';
 
 load('modelfittingsettings.mat')
-modelMat(1:28,:) = [];
-modelnamesVec = modelnamesVec(29:42);
-
 load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
 nTrials = 2000;
 
@@ -1025,7 +1022,7 @@ nModels = size(AICcMat,1);
 AICcMat = bsxfun(@minus,AICcMat,AICcMat(1,:));
 BICMat = bsxfun(@minus,BICMat,BICMat(1,:));
 
-% median
+% sum
 sum_AICc = sum(AICcMat,2);
 sum_BIC = sum(BICMat,2);
 
@@ -1056,7 +1053,7 @@ defaultplot
 %% bayesian model selection: BMS. calculate exceedance probabilities
 clear all
 
-condition = 'Ellipse';
+condition = 'Line';
 load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
 nTrials = 2000;
 
@@ -1067,7 +1064,7 @@ BICMat = 2*bsxfun(@plus,LLMat,nParamsVec'*log(nTrials));
 
 Nsamp = 1e6;
 do_plot = 1;
-[alpha,exp_r,xp,pxp,bor] = spm_BMS(-0.5*BICMat', Nsamp, do_plot)
+[alpha,exp_r,xp,pxp,bor] = spm_BMS(-0.5*AICcMat', Nsamp, do_plot)
 
 % OUTPUT:
 % alpha   - vector of model probabilities

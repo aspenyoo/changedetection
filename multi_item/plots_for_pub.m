@@ -391,6 +391,7 @@ clear all
 condition = 'Line';
 
 figure(2); clf;
+% modelcolMat = [1 4 ; 8 8]';
 modelcolMat = [1:4 9:11; ...
                5:8 12:14 ]';
 
@@ -535,7 +536,8 @@ for icol = 1:2
         %         subplot(nModels,6,idx); hold on
         tight_subplot2(nModels,6,imodel,3*icol, gutter); hold on
         fill([0 0 nSubj+1 nSubj+1],...
-            [CI_AICc(:,imodel)' CI_AICc(2,imodel) CI_AICc(1,imodel)],0.85*ones(1,3),'EdgeColor','none');
+            [CI_AICc(:,modelnum)' CI_AICc(2,modelnum) CI_AICc(1,modelnum)],0.85*ones(1,3),'EdgeColor','none');
+        plot([0 nSubj+1], [med_AICc(modelnum) med_AICc(modelnum)], 'k-'); hold on
         bar(AICcMat(modelnum,:),'FaceColor',[234 191 51]./255,'EdgeColor','none','LineWidth',2)
         set(gca,'Xlim',[0 nSubj+1],'Ylim',[-100 1000],...
                 'XTick',[],'XTickLabel',[],...
@@ -552,7 +554,7 @@ end
 
 clear all
 
-condition = 'Line';
+condition = 'Ellipse';
 
 load('modelfittingsettings.mat')
 
@@ -587,6 +589,8 @@ for imodel = 2:nModels
     blah = sort(median(BICVec(randi(nSubjs,1000,nSubjs)),2));
     CI_BIC(:,imodel) = blah([25 975]);
 end
+
+%% get indices of which model fi
 
 %% MODEL FITS
 % 1x4 figure with the following subplots
