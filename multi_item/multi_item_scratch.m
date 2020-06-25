@@ -561,7 +561,7 @@ save(sprintf('fits/recalcLL_%s_imodel%d_isubj%d.mat',condition,imodel,isubj),'LL
 
 % clear all
 
-condition = 'Ellipse';
+condition = 'Line';
 
 % model fits
 load(sprintf('fits/%s/bfp_%s.mat',condition,condition));
@@ -583,7 +583,7 @@ for imodel = 1:nModels
     end
 end
 
-save(sprintf('fits/bfp_%s.mat',condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
+save(sprintf('fits/%s/bfp_%s.mat',condition,condition),'bfpMat','LLMat','modelMat','nParamsVec','subjidVec','LLvarMat');
 
 %% =========
 % multiple LL calculations
